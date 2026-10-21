@@ -1,0 +1,453 @@
+// schema.prisma — DALA Finance
+//
+// Les modèles du cahier des charges sont repris tels quels. Les ajouts nécessaires à la
+// conformité BCEAO (coffre-fort, OTP, sessions, piste d'audit, LBC/FT, réclamations) sont
+// regroupés en fin de fichier et signalés par « AJOUT » dans le modèle User.
+// Seule modification d'un champ existant : CrowdfundInvestment.equityPct (précision, voir commentaire).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  phone         String    @unique
+  firstName     String
+  lastName      String
+  email         String?
+  pin           String    // Hashed
+  kycLevel      Int       @default(1) // 1=Basic, 2=Intermediate, 3=Full
+  kycDocuments  Json?
+  avatarUrl     String?
+  referralCode  String    @unique @default(cuid())
+  referredBy    String?
+  creditScore   Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  savings       SavingsGoal[]
+  tontines      TontineMember[]
+  investments   Investment[]
+  crowdfunds    CrowdfundInvestment[]
+  loans         Loan[]
+  transactions  Transaction[]
+  notifications Notification[]
+  projects      Project[]
+
+  // AJOUT — conformité
+  status              UserStatus     @default(ACTIVE)
+  customMonthlyLimit  Decimal?       @db.Decimal(15, 2) // Plafond personnalisé (Art. 52-74)
+  pushToken           String?
+  language            String         @default("fr")
+  failedPinAttempts   Int            @default(0)
+  vaults              Vault[]
+  refreshTokens       RefreshToken[]
+  amlAlerts           AmlAlert[]
+  complaints          Complaint[]
+}
+
+model Account {
+  id          String      @id @default(cuid())
+  userId      String
+  type        AccountType @default(MAIN)
+  balance     Decimal     @default(0) @db.Decimal(15, 2)
+  currency    String      @default("XOF")
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+enum AccountType {
+  MAIN
+  SAVINGS
+  VAULT
+  INVESTMENT
+  CROWDFUND
+}
+
+model SavingsGoal {
+  id            String     @id @default(cuid())
+  userId        String
+  name          String
+  targetAmount  Decimal    @db.Decimal(15, 2)
+  currentAmount Decimal    @default(0) @db.Decimal(15, 2)
+  deadline      DateTime?
+  autoSave      Boolean    @default(false)
+  frequency     Frequency?
+  autoAmount    Decimal?   @db.Decimal(15, 2)
+  icon          String     @default("target")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  user          User       @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+model Tontine {
+  id              String        @id @default(cuid())
+  name            String
+  amount          Decimal       @db.Decimal(15, 2)
+  frequency       Frequency
+  maxMembers      Int
+  currentCycle    Int           @default(1)
+  totalCycles     Int
+  status          TontineStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+
+  members         TontineMember[]
+}
+
+enum TontineStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model TontineMember {
+  id          String   @id @default(cuid())
+  tontineId   String
+  userId      String
+  position    Int
+  hasPaid     Boolean  @default(false)
+  hasReceived Boolean  @default(false)
+  joinedAt    DateTime @default(now())
+
+  tontine     Tontine  @relation(fields: [tontineId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  @@unique([tontineId, userId])
+}
+
+model Investment {
+  id            String           @id @default(cuid())
+  userId        String
+  type          InvestmentType
+  instrumentId  String
+  amount        Decimal          @db.Decimal(15, 2)
+  rate          Decimal          @db.Decimal(5, 4)
+  maturityDate  DateTime
+  status        InvestmentStatus @default(ACTIVE)
+  isHalal       Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+
+  user          User             @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+enum InvestmentType {
+  TREASURY_BOND
+  FCP
+  SUKUK
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  MATURED
+  WITHDRAWN
+  CANCELLED
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  submittedBy     String
+  name            String
+  sector          ProjectSector
+  description     String        @db.Text
+  problem         String        @db.Text
+  solution        String        @db.Text
+  targetMarket    String
+  fundingGoal     Decimal       @db.Decimal(15, 2)
+  fundingRaised   Decimal       @default(0) @db.Decimal(15, 2)
+  equityOffered   Decimal       @db.Decimal(5, 4)
+  equityMin       Decimal       @db.Decimal(5, 4)
+  equityMax       Decimal       @db.Decimal(5, 4)
+  valuation       Decimal       @db.Decimal(15, 2)
+  deadline        DateTime
+  status          ProjectStatus @default(SUBMITTED)
+  validatedBy     String?
+  imageUrl        String?
+  galleryUrls     Json?
+  documents       Json?
+  teamMembers     Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  submitter       User          @relation(fields: [submittedBy], references: [id])
+  investments     CrowdfundInvestment[]
+  @@index([submittedBy])
+  @@index([status])
+}
+
+enum ProjectSector {
+  AGRITECH
+  SOLARTECH
+  FOODTECH
+  HEALTHTECH
+  FINTECH
+  EDUTECH
+  LOGISTICS
+  OTHER
+}
+
+enum ProjectStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  VALIDATED
+  ACTIVE
+  FUNDED
+  CLOSED
+  REJECTED
+}
+
+model CrowdfundInvestment {
+  id          String          @id @default(cuid())
+  userId      String
+  projectId   String
+  amount      Decimal         @db.Decimal(15, 2)
+  // Précision élargie (spec : Decimal(5,4)) : un ticket de 5 000 FCFA sur une valorisation
+  // de 250 M représente 0,002 % du capital, arrondi à 0 avec 4 décimales.
+  equityPct   Decimal         @db.Decimal(9, 8)
+  status      CrowdfundStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+
+  user        User            @relation(fields: [userId], references: [id])
+  project     Project         @relation(fields: [projectId], references: [id])
+  @@index([userId])
+  @@index([projectId])
+}
+
+enum CrowdfundStatus {
+  PENDING
+  CONFIRMED
+  REFUNDED
+  CANCELLED
+}
+
+model Loan {
+  id              String     @id @default(cuid())
+  userId          String
+  amount          Decimal    @db.Decimal(15, 2)
+  interestRate    Decimal    @db.Decimal(5, 4)
+  fees            Decimal    @db.Decimal(15, 2)
+  totalDue        Decimal    @db.Decimal(15, 2)
+  duration        Int
+  dueDate         DateTime
+  amountPaid      Decimal    @default(0) @db.Decimal(15, 2)
+  status          LoanStatus @default(PENDING)
+  mlScore         Decimal?   @db.Decimal(5, 4)
+  mlFeatures      Json?
+  disbursedAt     DateTime?
+  createdAt       DateTime   @default(now())
+
+  user            User       @relation(fields: [userId], references: [id])
+  repayments      Repayment[]
+  @@index([userId])
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  DISBURSED
+  REPAID
+  OVERDUE
+  DEFAULTED
+  REJECTED
+}
+
+model Repayment {
+  id        String   @id @default(cuid())
+  loanId    String
+  amount    Decimal  @db.Decimal(15, 2)
+  paidAt    DateTime @default(now())
+
+  loan      Loan     @relation(fields: [loanId], references: [id])
+  @@index([loanId])
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  userId      String
+  type        TransactionType
+  amount      Decimal           @db.Decimal(15, 2)
+  currency    String            @default("XOF")
+  description String
+  reference   String?
+  status      TransactionStatus @default(COMPLETED)
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+
+  user        User              @relation(fields: [userId], references: [id])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  SAVINGS_IN
+  SAVINGS_OUT
+  INVESTMENT_BUY
+  INVESTMENT_RETURN
+  CROWDFUND_IN
+  CROWDFUND_RETURN
+  LOAN_DISBURSEMENT
+  LOAN_REPAYMENT
+  TRANSFER_IN
+  TRANSFER_OUT
+  FEE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  @@index([userId, isRead])
+}
+
+// =====================================================================
+// AJOUTS — conformité Instruction BCEAO N°001-01-2024
+// =====================================================================
+
+enum UserStatus {
+  ACTIVE
+  FROZEN   // Gel automatique sur alerte LBC/FT rouge
+  CLOSED
+}
+
+/// Coffre-fort : épargne bloquée avec taux bonus.
+model Vault {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Decimal  @db.Decimal(15, 2)
+  rate        Decimal  @db.Decimal(5, 4)
+  months      Int
+  unlockDate  DateTime
+  released    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+/// Codes OTP (stockés hachés).
+model OtpChallenge {
+  id         String   @id @default(cuid())
+  phone      String
+  codeHash   String
+  purpose    String   @default("LOGIN")
+  attempts   Int      @default(0)
+  consumed   Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([phone, createdAt])
+}
+
+/// Jetons de rafraîchissement (stockés hachés, rotation à chaque usage).
+model RefreshToken {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  deviceId   String?
+  revokedAt  DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+/// Piste d'audit immuable (Art. 48-51) : chaque entrée chaîne le hash de la précédente.
+model AuditLog {
+  id         String   @id @default(cuid())
+  seq        Int      @unique @default(autoincrement())
+  userId     String?
+  action     String
+  entity     String
+  entityId   String?
+  payload    Json?
+  prevHash   String
+  hash       String   @unique
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+}
+
+enum AmlSeverity {
+  GREEN
+  ORANGE
+  RED
+}
+
+/// Alertes LBC/FT et déclarations de soupçon CENTIF (Art. 27-31).
+model AmlAlert {
+  id              String      @id @default(cuid())
+  userId          String
+  severity        AmlSeverity
+  rules           Json
+  amount          Decimal     @db.Decimal(15, 2)
+  context         Json?
+  reportedToCentif Boolean    @default(false)
+  reportedAt      DateTime?
+  resolvedAt      DateTime?
+  createdAt       DateTime    @default(now())
+
+  user            User        @relation(fields: [userId], references: [id])
+  @@index([userId])
+  @@index([severity, resolvedAt])
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+/// Réclamations clients (réponse sous 15 jours ouvrés).
+model Complaint {
+  id          String          @id @default(cuid())
+  userId      String
+  subject     String
+  message     String          @db.Text
+  category    String
+  status      ComplaintStatus @default(OPEN)
+  response    String?         @db.Text
+  dueBy       DateTime
+  respondedAt DateTime?
+  createdAt   DateTime        @default(now())
+
+  user        User            @relation(fields: [userId], references: [id])
+  @@index([userId])
+  @@index([status, dueBy])
+}

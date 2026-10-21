@@ -1,0 +1,26 @@
+{
+  "name": "dala-finance",
+  "private": true,
+  "description": "DALA Finance — super-app financier UEMOA (épargne, investissement, micro-crédit, crowdfunding en capital)",
+  "workspaces": [
+    "apps/*",
+    "packages/shared"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "dev:api": "npm run dev -w @dala/api",
+    "dev:mobile": "npm run start -w @dala/mobile"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.3",
+    "typescript": "~5.5.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@10.9.4"
+}

@@ -1,0 +1,18 @@
+# Environnement de développement local : PostgreSQL 16, Redis (BullMQ), service de scoring ML.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dala
+      POSTGRES_PASSWORD: dala
+      POSTGRES_DB: dala
+    ports: ['5432:5432']
+    volumes: ['pgdata:/var/lib/postgresql/data']
+  redis:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+  ml-scoring:
+    build: ./packages/ml-scoring
+    ports: ['8000:8000']
+volumes:
+  pgdata:

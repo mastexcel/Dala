@@ -1,0 +1,44 @@
+import { describe, expect, it } from 'vitest';
+import { checkKycLimit, evaluateAml, isStrongAuth, requiresStrongAuth } from './compliance';
+
+describe('KYC', () => {
+  it('bloque les transferts au niveau 1', () => {
+    expect(checkKycLimit({ kycLevel: 1, monthToDateVolume: 0, amount: 1_000, isTransfer: true }).allowed).toBe(false);
+  });
+  it('applique le plafond mensuel du niveau 1', () => {
+    expect(checkKycLimit({ kycLevel: 1, monthToDateVolume: 190_000, amount: 10_000 }).allowed).toBe(true);
+    const r = checkKycLimit({ kycLevel: 1, monthToDateVolume: 190_000, amount: 20_000 });
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) expect(r.requiredLevel).toBe(2);
+  });
+  it('niveau 3 sans plafond', () => {
+    expect(checkKycLimit({ kycLevel: 3, monthToDateVolume: 1e9, amount: 1e8 }).allowed).toBe(true);
+  });
+});
+
+describe('Authentification forte', () => {
+  it('exige 2 facteurs au-delà de 50 000 FCFA', () => {
+    expect(requiresStrongAuth('PAYMENT', 50_000)).toBe(false);
+    expect(requiresStrongAuth('PAYMENT', 50_001)).toBe(true);
+    expect(requiresStrongAuth('LOGIN')).toBe(true);
+    expect(isStrongAuth(['KNOWLEDGE', 'KNOWLEDGE'])).toBe(false);
+    expect(isStrongAuth(['KNOWLEDGE', 'POSSESSION'])).toBe(true);
+  });
+});
+
+describe('LBC/FT', () => {
+  const now = new Date('2026-05-01T12:00:00Z');
+  it('détecte le fractionnement', () => {
+    const recent = [4_500_000, 4_200_000].map((amount, i) => ({ amount, createdAt: new Date(now.getTime() - (i + 1) * 3_600_000) }));
+    expect(evaluateAml({ amount: 4_900_000, recent, now }).severity).toBe('RED');
+  });
+  it('signale les gros montants en orange', () => {
+    expect(evaluateAml({ amount: 6_000_000, recent: [], now }).severity).toBe('ORANGE');
+  });
+  it('gèle en rouge sur liste de sanctions', () => {
+    expect(evaluateAml({ amount: 100, recent: [], sanctionsHit: true, now }).severity).toBe('RED');
+  });
+  it('vert sinon', () => {
+    expect(evaluateAml({ amount: 25_000, recent: [], now }).severity).toBe('GREEN');
+  });
+});

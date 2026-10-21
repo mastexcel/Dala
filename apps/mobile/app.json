@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "DALA Finance",
+    "slug": "dala-finance",
+    "scheme": "dala",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#0F1B3D",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F1B3D"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "finance.dala.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "DALA utilise Face ID pour sécuriser l'accès à votre compte.",
+        "NSCameraUsageDescription": "DALA utilise l'appareil photo pour la vérification de votre identité (KYC)."
+      }
+    },
+    "android": {
+      "package": "finance.dala.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F1B3D"
+      },
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-localization",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "DALA utilise Face ID pour sécuriser l'accès à votre compte."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#D4A017"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "DALA utilise l'appareil photo pour scanner les QR codes de paiement et vérifier votre identité."
+        }
+      ]
+    ]
+  }
+}

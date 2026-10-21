@@ -1,0 +1,19 @@
+{
+  "name": "@dala/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Types, constantes réglementaires et calculs financiers partagés DALA Finance",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "react-native": "src/index.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "~5.5.4",
+    "vitest": "^2.1.9"
+  }
+}
