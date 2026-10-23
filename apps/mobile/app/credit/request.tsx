@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import { router } from 'expo-router';
 import { MotiView } from 'moti';
-import { CheckCircle, HourglassMedium, XCircle } from 'phosphor-react-native';
 import {
   LEGAL_NOTICE_CREDIT,
   LOAN_DURATIONS,
@@ -14,7 +13,7 @@ import {
   quoteLoan,
   type LoanDecision,
 } from '@dala/shared';
-import { AmountSlider, AppText, Button, Card, Chip, Header, KeyValue, LegalNotice, Loading, Screen } from '@/components/ui';
+import { AmountSlider, AppText, Button, Card, Chip, DalaIcon, Header, type DalaIconName, KeyValue, LegalNotice, Loading, Screen } from '@/components/ui';
 import { Confetti } from '@/components/charts/Confetti';
 import { loanApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
@@ -22,10 +21,10 @@ import { qk, useCredit, useFinancialMutation } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
-const RESULT: Record<LoanDecision, { title: string; body: string; color: string; Icon: typeof CheckCircle }> = {
-  APPROVED: { title: 'Prêt approuvé !', body: 'Les fonds ont été crédités sur votre compte principal.', color: COLORS.gold, Icon: CheckCircle },
-  MANUAL_REVIEW: { title: 'Vérification en cours', body: 'Un conseiller examine votre demande. Réponse sous 24 h.', color: COLORS.blue, Icon: HourglassMedium },
-  REJECTED: { title: 'Demande non retenue', body: 'Votre score ne permet pas ce montant aujourd’hui. Épargnez régulièrement pour l’améliorer.', color: COLORS.red, Icon: XCircle },
+const RESULT: Record<LoanDecision, { title: string; body: string; icon: DalaIconName }> = {
+  APPROVED: { title: 'Prêt approuvé !', body: 'Les fonds ont été crédités sur votre compte principal.', icon: 'success' },
+  MANUAL_REVIEW: { title: 'Vérification en cours', body: 'Un conseiller examine votre demande. Réponse sous 24 h.', icon: 'pending' },
+  REJECTED: { title: 'Demande non retenue', body: 'Votre score ne permet pas ce montant aujourd’hui. Épargnez régulièrement pour l’améliorer.', icon: 'error' },
 };
 
 export default function LoanRequest() {
@@ -64,7 +63,9 @@ export default function LoanRequest() {
         {decision === 'APPROVED' ? <Confetti /> : null}
         <View style={styles.result}>
           <MotiView from={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 10 }}>
-            <r.Icon size={96} color={r.color} weight="duotone" />
+            <View style={{ backgroundColor: COLORS.white, borderRadius: 72, padding: 12 }}>
+              <DalaIcon name={r.icon} size={96} />
+            </View>
           </MotiView>
           <AppText variant="h1" color={COLORS.white} align="center">{r.title}</AppText>
           <AppText color={COLORS.lightGray} align="center">{r.body}</AppText>
@@ -85,11 +86,17 @@ export default function LoanRequest() {
       footer={<Button title={scoring ? 'Analyse de votre profil…' : 'Soumettre la demande'} disabled={!accepted || amount > eligible} loading={scoring} onPress={submit} />}
     >
       <Card>
+        <View style={{ alignItems: 'center' }}>
+          <DalaIcon name="request-loan" size={56} />
+        </View>
         <AmountSlider value={amount} onChange={setAmount} min={LOAN_MIN} max={Math.max(LOAN_MIN, eligible)} step={LOAN_STEP} color={COLORS.orange} label="Montant souhaité" />
       </Card>
-      <AppText variant="h4" weight="bold" style={{ marginTop: SPACING.lg, marginBottom: SPACING.sm }}>
-        Durée
-      </AppText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginTop: SPACING.lg, marginBottom: SPACING.sm }}>
+        <DalaIcon name="schedule" size={28} />
+        <AppText variant="h4" weight="bold">
+          Durée
+        </AppText>
+      </View>
       <View style={styles.chips}>
         {LOAN_DURATIONS.map((d) => (
           <Chip key={d} label={`${d} j`} active={duration === d} onPress={() => setDuration(d)} color={COLORS.orange} />
@@ -97,6 +104,10 @@ export default function LoanRequest() {
       </View>
 
       <Card style={{ marginTop: SPACING.lg }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.xs }}>
+          <DalaIcon name="simulation" size={28} />
+          <AppText weight="bold">Coût du crédit</AppText>
+        </View>
         <KeyValue label="Montant emprunté" value={formatFCFA(quote.amount)} />
         <KeyValue label={`Intérêts (${formatPercent(quote.annualRate)} / an)`} value={formatFCFA(quote.interest)} />
         <KeyValue label="Frais de dossier" value={formatFCFA(quote.fees)} />

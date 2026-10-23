@@ -4,6 +4,7 @@ import { ArrowLeft } from 'phosphor-react-native';
 import type { ReactNode } from 'react';
 import { COLORS, SPACING } from '@/theme';
 import { AppText } from './AppText';
+import { DalaIcon } from './DalaIcon';
 
 interface Props {
   title: string;
@@ -23,7 +24,7 @@ export function Header({ title, right, light, onBack }: Props) {
         onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/(tabs)')))}
         style={styles.side}
       >
-        <ArrowLeft size={24} color={color} />
+        {light ? <ArrowLeft size={24} color={color} /> : <DalaIcon name="back" size={32} />}
       </Pressable>
       <AppText variant="h4" weight="bold" color={color} numberOfLines={1} style={styles.title} accessibilityRole="header">
         {title}

@@ -2,9 +2,8 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MotiView } from 'moti';
-import { CheckCircle } from 'phosphor-react-native';
 import { LEGAL_NOTICE_INVEST, WITHDRAWAL_PERIOD_HOURS, formatDate, formatFCFA, formatPercent, simulateBond } from '@dala/shared';
-import { AppText, Button, Card, Header, Input, KeyValue, LegalNotice, Loading, Screen } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, Header, Input, KeyValue, LegalNotice, Loading, Screen } from '@/components/ui';
 import { Confetti } from '@/components/charts/Confetti';
 import { investApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
@@ -57,7 +56,9 @@ export default function InvestFlow() {
         <Confetti />
         <View style={styles.success}>
           <MotiView from={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 10 }}>
-            <CheckCircle size={96} color={COLORS.gold} weight="duotone" />
+            <View style={styles.successIcon}>
+              <DalaIcon name="success" size={96} />
+            </View>
           </MotiView>
           <AppText variant="h1" color={COLORS.white} align="center">
             Investissement réussi !
@@ -76,6 +77,9 @@ export default function InvestFlow() {
     return (
       <Screen header={<Header title="Récapitulatif" onBack={() => setStep('amount')} />} footer={<Button title="Confirmer l'investissement" disabled={!accepted} loading={invest.isPending} onPress={confirm} />}>
         <Card>
+          <View style={{ alignItems: 'center', marginBottom: SPACING.sm }}>
+            <DalaIcon name="details" size={56} />
+          </View>
           <KeyValue label="Produit" value={inst.name} />
           <KeyValue label="Montant investi" value={formatFCFA(value)} strong />
           <KeyValue label={inst.isBond ? 'Taux annuel' : 'Performance depuis janv. (indicative)'} value={formatPercent(inst.rate, 2)} />
@@ -99,9 +103,12 @@ export default function InvestFlow() {
 
   return (
     <Screen header={<Header title="Investir" />} footer={<Button title="Continuer" disabled={!value || !!amountError} onPress={() => setStep('confirm')} />}>
-      <AppText variant="h3" weight="bold">
-        {inst.name}
-      </AppText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+        <DalaIcon name={inst.isBond ? 'bonds' : 'fcp'} size={40} />
+        <AppText variant="h3" weight="bold" style={{ flex: 1 }}>
+          {inst.name}
+        </AppText>
+      </View>
       <AppText color={TEXT_ON_WHITE.muted} style={{ marginBottom: SPACING.lg }}>
         {formatPercent(inst.rate, 2)} / an · minimum {formatFCFA(inst.min)}
       </AppText>
@@ -128,5 +135,6 @@ export default function InvestFlow() {
 
 const styles = StyleSheet.create({
   success: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: SPACING.lg, padding: SPACING.lg },
+  successIcon: { backgroundColor: COLORS.white, borderRadius: 72, padding: 12 },
   accept: { flexDirection: 'row', gap: SPACING.md, alignItems: 'center', marginVertical: SPACING.lg },
 });

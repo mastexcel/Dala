@@ -1,8 +1,7 @@
 import { StyleSheet, View } from 'react-native';
-import { UsersThree } from 'phosphor-react-native';
 import { formatDate, formatFCFA, type TontineDTO } from '@dala/shared';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
-import { AppText, Badge, Card, ProgressBar } from '@/components/ui';
+import { AppText, Badge, Card, DalaIcon, ProgressBar } from '@/components/ui';
 import { FREQUENCY_LABEL } from '@/utils/meta';
 
 export function TontineCard({ tontine, onPress }: { tontine: TontineDTO; onPress?: () => void }) {
@@ -11,7 +10,7 @@ export function TontineCard({ tontine, onPress }: { tontine: TontineDTO; onPress
     <Card onPress={onPress} style={{ marginBottom: SPACING.sm, gap: SPACING.sm }} accessibilityLabel={tontine.name}>
       <View style={styles.row}>
         <View style={styles.icon}>
-          <UsersThree size={22} color={COLORS.green} weight="duotone" />
+          <DalaIcon name="tontines" size={32} />
         </View>
         <View style={{ flex: 1 }}>
           <AppText weight="bold" numberOfLines={2}>
@@ -28,9 +27,15 @@ export function TontineCard({ tontine, onPress }: { tontine: TontineDTO; onPress
           Tour {tontine.currentCycle}/{tontine.totalCycles} · Vous êtes n°{tontine.myPosition}
         </AppText>
         {me?.hasPaid ? (
-          <Badge label="Cotisé ✓" color={TEXT_ON_WHITE.green} />
+          <View style={styles.status}>
+            <DalaIcon name="success" size={18} />
+            <Badge label="Cotisé" color={TEXT_ON_WHITE.green} />
+          </View>
         ) : (
-          <Badge label={`À cotiser · ${formatDate(tontine.nextContributionDate)}`} color={TEXT_ON_WHITE.orange} />
+          <View style={styles.status}>
+            <DalaIcon name="pending" size={18} />
+            <Badge label={`À cotiser · ${formatDate(tontine.nextContributionDate)}`} color={TEXT_ON_WHITE.orange} />
+          </View>
         )}
       </View>
     </Card>
@@ -39,5 +44,6 @@ export function TontineCard({ tontine, onPress }: { tontine: TontineDTO; onPress
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  icon: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: `${COLORS.green}1A`, alignItems: 'center', justifyContent: 'center' },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  icon: { width: 48, height: 48, borderRadius: RADIUS.md, backgroundColor: COLORS.offWhite, alignItems: 'center', justifyContent: 'center' },
 });

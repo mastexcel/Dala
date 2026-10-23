@@ -1,4 +1,4 @@
-import { AppText, Card, Header, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Card, Header, Logo, Screen, SectionTitle } from '@/components/ui';
 import { COMPLAINT_RESPONSE_DAYS, CROWDFUND_VALIDATOR, LEGAL_NOTICE, LEGAL_NOTICE_CREDIT, LEGAL_NOTICE_CROWDFUND, LEGAL_NOTICE_INVEST, WITHDRAWAL_PERIOD_HOURS } from '@dala/shared';
 import { COLORS, SPACING } from '@/theme';
 
@@ -17,6 +17,7 @@ const SECTIONS = [
 export default function Legal() {
   return (
     <Screen header={<Header title="Mentions légales & CGU" />}>
+      <Logo variant="black" width={140} style={{ alignSelf: 'center', marginBottom: SPACING.md }} />
       {SECTIONS.map((s) => (
         <Card key={s.title} style={{ marginBottom: SPACING.sm }}>
           <SectionTitle title={s.title} />

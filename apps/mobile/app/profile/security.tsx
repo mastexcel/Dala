@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { Fingerprint, LockKey, ShieldCheck } from 'phosphor-react-native';
+import { Fingerprint } from 'phosphor-react-native';
 import { STRONG_AUTH_THRESHOLD, formatFCFA } from '@dala/shared';
-import { AppText, Button, Card, Header, Input, KeyValue, LegalNotice, ProgressBar, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, Header, Input, KeyValue, LegalNotice, ProgressBar, Screen, SectionTitle } from '@/components/ui';
 import { qk, useLimits } from '@/hooks/queries';
 import { useBiometrics } from '@/hooks/useBiometrics';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
@@ -59,7 +59,7 @@ export default function Security() {
     <Screen header={<Header title="Sécurité" />}>
       <Card style={{ gap: SPACING.sm }}>
         <View style={styles.row}>
-          <ShieldCheck size={26} color={COLORS.green} weight="duotone" />
+          <DalaIcon name="security" size={44} />
           <View style={{ flex: 1 }}>
             <AppText weight="bold">Double authentification active</AppText>
             <AppText variant="small" color={TEXT_ON_WHITE.muted}>
@@ -83,7 +83,7 @@ export default function Security() {
         </View>
       </Card>
 
-      <SectionTitle title="Plafonds" />
+      <SectionTitle title="Plafonds" icon="status" />
       <Card style={{ gap: SPACING.sm }}>
         {l ? (
           <>
@@ -97,11 +97,11 @@ export default function Security() {
         <Button title="Enregistrer le plafond" variant="outline" onPress={saveLimit} />
       </Card>
 
-      <SectionTitle title="Code PIN" />
+      <SectionTitle title="Code PIN" icon="edit" />
       <Card>
         <Input label="PIN actuel" secureTextEntry keyboardType="number-pad" maxLength={6} value={currentPin} onChangeText={setCurrentPin} />
         <Input label="Nouveau PIN" secureTextEntry keyboardType="number-pad" maxLength={6} value={newPin} onChangeText={setNewPin} />
-        <Button title="Changer mon PIN" variant="outline" icon={<LockKey size={18} color={COLORS.navy} />} disabled={currentPin.length < 4 || newPin.length < 4} onPress={changePin} />
+        <Button title="Changer mon PIN" variant="outline" icon={<DalaIcon name="security" size={22} />} disabled={currentPin.length < 4 || newPin.length < 4} onPress={changePin} />
       </Card>
       {msg ? <AppText color={msg.ok ? TEXT_ON_WHITE.green : TEXT_ON_WHITE.red} style={{ marginTop: SPACING.sm }}>{msg.text}</AppText> : null}
       <LegalNotice text="Ne communiquez jamais votre PIN ni vos codes SMS, même à un agent DALA." />

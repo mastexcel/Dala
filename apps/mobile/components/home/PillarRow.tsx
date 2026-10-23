@@ -1,11 +1,10 @@
 import { StyleSheet, View } from 'react-native';
 import { CaretRight } from 'phosphor-react-native';
-import type { ReactNode } from 'react';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
-import { AppText, Amount, Card, ProgressBar } from '@/components/ui';
+import { AppText, Amount, Card, DalaIcon, ProgressBar, type DalaIconName } from '@/components/ui';
 
 interface Props {
-  icon: ReactNode;
+  icon: DalaIconName;
   color: string;
   title: string;
   amount: number;
@@ -18,11 +17,15 @@ export function PillarRow({ icon, color, title, amount, subtitle, progress, onPr
   return (
     <Card onPress={onPress} style={styles.card} accessibilityLabel={`${title} : ${amount} francs CFA. ${subtitle}`}>
       <View style={styles.row}>
-        <View style={[styles.icon, { backgroundColor: `${color}1A` }]}>{icon}</View>
+        <View style={[styles.icon, { backgroundColor: `${color}14` }]}>
+          <DalaIcon name={icon} size={32} />
+        </View>
         <View style={{ flex: 1, gap: 2 }}>
           <View style={styles.between}>
-            <AppText weight="semibold">{title}</AppText>
-            <Amount value={amount} maskable weight="bold" />
+            <AppText weight="semibold" numberOfLines={1} style={{ flexShrink: 1 }}>
+              {title}
+            </AppText>
+            <Amount value={amount} maskable weight="bold" numberOfLines={1} />
           </View>
           <AppText variant="small" color={TEXT_ON_WHITE.muted}>
             {subtitle}
@@ -43,5 +46,5 @@ const styles = StyleSheet.create({
   card: { marginBottom: SPACING.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SPACING.sm },
-  icon: { width: 44, height: 44, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 48, height: 48, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
 });

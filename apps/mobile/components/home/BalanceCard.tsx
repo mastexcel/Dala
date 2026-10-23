@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Eye, EyeSlash, TrendDown, TrendUp } from 'phosphor-react-native';
 import { formatFCFA, formatPercent, type BalanceSummary } from '@dala/shared';
 import { COLORS, RADIUS, SPACING } from '@/theme';
-import { AppText, Amount } from '@/components/ui';
+import { AppText, Amount, Logo } from '@/components/ui';
 import { useUiStore } from '@/stores/ui';
 
 export function BalanceCard({ summary }: { summary: BalanceSummary }) {
@@ -28,7 +28,7 @@ export function BalanceCard({ summary }: { summary: BalanceSummary }) {
           {hidden ? '••••' : formatFCFA(summary.monthDelta, { sign: true })} ce mois · {up ? '↑' : '↓'} {formatPercent(Math.abs(summary.monthDeltaPct))}
         </AppText>
       </View>
-      <View style={styles.goldLine} />
+      <Logo variant="whiteFine" width={150} style={styles.watermark} />
     </LinearGradient>
   );
 }
@@ -37,5 +37,5 @@ const styles = StyleSheet.create({
   card: { borderRadius: RADIUS.xl, padding: SPACING.lg, gap: SPACING.xs, overflow: 'hidden' },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   delta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: SPACING.xs },
-  goldLine: { position: 'absolute', right: -40, top: -40, width: 140, height: 140, borderRadius: 70, borderWidth: 18, borderColor: 'rgba(212,160,23,0.18)' },
+  watermark: { position: 'absolute', right: -12, bottom: -6, opacity: 0.12 },
 });

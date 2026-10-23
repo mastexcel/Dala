@@ -4,6 +4,7 @@ import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 import { errorMessage } from '@/services/errors';
 import { AppText } from './AppText';
 import { Button } from './Button';
+import { DalaIcon, type DalaIconName } from './DalaIcon';
 
 export function Loading({ label = 'Chargement…' }: { label?: string }) {
   return (
@@ -16,6 +17,7 @@ export function Loading({ label = 'Chargement…' }: { label?: string }) {
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   return (
     <View style={styles.center}>
+      <DalaIcon name="error" size={48} />
       <AppText align="center" color={TEXT_ON_WHITE.red}>
         {errorMessage(error)}
       </AppText>
@@ -41,12 +43,15 @@ export function EmptyState({ icon, title, body, action }: { icon?: ReactNode; ti
   );
 }
 
-export function SectionTitle({ title, action }: { title: string; action?: ReactNode }) {
+export function SectionTitle({ title, action, icon }: { title: string; action?: ReactNode; icon?: DalaIconName }) {
   return (
     <View style={styles.section}>
-      <AppText variant="h4" weight="bold" color={COLORS.navy} accessibilityRole="header">
-        {title}
-      </AppText>
+      <View style={styles.sectionTitle}>
+        {icon ? <DalaIcon name={icon} size={28} /> : null}
+        <AppText variant="h4" weight="bold" color={COLORS.navy} accessibilityRole="header" style={{ flexShrink: 1 }}>
+          {title}
+        </AppText>
+      </View>
       {action}
     </View>
   );
@@ -54,5 +59,6 @@ export function SectionTitle({ title, action }: { title: string; action?: ReactN
 
 const styles = StyleSheet.create({
   center: { padding: SPACING.xl, alignItems: 'center', justifyContent: 'center', gap: SPACING.md },
+  sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1 },
   section: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: SPACING.lg, marginBottom: SPACING.sm },
 });

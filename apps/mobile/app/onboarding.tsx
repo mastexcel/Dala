@@ -4,17 +4,16 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { MotiView } from 'moti';
-import { ChartLineUp, Coins, HandCoins, PiggyBank, UsersThree, Vault } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
-import { AppText, Button } from '@/components/ui';
+import { AppText, Button, DalaIcon, Logo, type DalaIconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth';
 import { COLORS, RADIUS, SPACING } from '@/theme';
 
-const SLIDES = [
-  { key: 's1', color: COLORS.green, Main: Vault, Accent: Coins, Accent2: PiggyBank },
-  { key: 's2', color: COLORS.blue, Main: ChartLineUp, Accent: Coins, Accent2: ChartLineUp },
-  { key: 's3', color: COLORS.gold, Main: UsersThree, Accent: HandCoins, Accent2: Coins },
-] as const;
+const SLIDES: { key: string; color: string; main: DalaIconName; accent: DalaIconName; accent2: DalaIconName }[] = [
+  { key: 's1', color: COLORS.green, main: 'savings', accent: 'vault', accent2: 'goals' },
+  { key: 's2', color: COLORS.blue, main: 'invest', accent: 'bonds', accent2: 'sukuk' },
+  { key: 's3', color: COLORS.gold, main: 'crowdfund', accent: 'request-loan', accent2: 'validated-projects' },
+];
 
 export default function Onboarding() {
   const { t } = useTranslation();
@@ -36,11 +35,14 @@ export default function Onboarding() {
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar style="light" />
-      <Pressable onPress={finish} style={styles.skip} accessibilityRole="button">
-        <AppText weight="semibold" color={COLORS.lightGray}>
-          {t('onboarding.skip')}
-        </AppText>
-      </Pressable>
+      <View style={styles.top}>
+        <Logo variant="whiteFine" width={96} />
+        <Pressable onPress={finish} style={styles.skip} accessibilityRole="button">
+          <AppText weight="semibold" color={COLORS.lightGray}>
+            {t('onboarding.skip')}
+          </AppText>
+        </Pressable>
+      </View>
       <FlatList
         ref={list}
         data={SLIDES}
@@ -56,14 +58,14 @@ export default function Onboarding() {
               from={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: 'spring', damping: 14 }}
-              style={[styles.illustration, { backgroundColor: `${item.color}26`, borderColor: `${item.color}66` }]}
+              style={[styles.illustration, { borderColor: item.color }]}
             >
-              <item.Main size={110} color={item.color} weight="duotone" />
-              <View style={[styles.bubble, { top: 18, right: 10, backgroundColor: item.color }]}>
-                <item.Accent size={26} color={COLORS.white} weight="fill" />
+              <DalaIcon name={item.main} size={130} />
+              <View style={[styles.bubble, { top: 10, right: 0, borderColor: item.color }]}>
+                <DalaIcon name={item.accent} size={44} />
               </View>
-              <View style={[styles.bubble, { bottom: 20, left: 6, backgroundColor: COLORS.gold }]}>
-                <item.Accent2 size={22} color={COLORS.navy} weight="fill" />
+              <View style={[styles.bubble, { bottom: 12, left: 0, borderColor: COLORS.gold }]}>
+                <DalaIcon name={item.accent2} size={44} />
               </View>
             </MotiView>
             <AppText variant="h1" color={COLORS.white} align="center">
@@ -94,10 +96,11 @@ export default function Onboarding() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.navy },
-  skip: { alignSelf: 'flex-end', padding: SPACING.md },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: SPACING.md },
+  skip: { padding: SPACING.md },
   slide: { alignItems: 'center', justifyContent: 'center', gap: SPACING.lg, paddingHorizontal: SPACING.lg },
-  illustration: { width: 240, height: 240, borderRadius: 120, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.lg },
-  bubble: { position: 'absolute', width: 52, height: 52, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center' },
+  illustration: { width: 240, height: 240, borderRadius: 120, borderWidth: 6, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.lg },
+  bubble: { position: 'absolute', width: 68, height: 68, borderRadius: RADIUS.full, borderWidth: 3, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center' },
   footer: { padding: SPACING.lg, gap: SPACING.md },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: SPACING.sm },
   dot: { height: 8, borderRadius: 4 },

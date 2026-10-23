@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatFCFA, savingsInstallments, type Frequency } from '@dala/shared';
-import { AppText, Button, Card, Chip, Header, Input, LegalNotice, Screen } from '@/components/ui';
+import { AppText, Button, Card, Chip, DalaIcon, Header, Input, LegalNotice, Screen } from '@/components/ui';
 import { GOAL_ICONS } from '@/components/savings/GoalCard';
 import { savingsApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
@@ -82,9 +82,12 @@ export default function CreateGoal() {
       <Controller control={control} name="name" render={({ field, fieldState }) => <Input label="Nom de l'objectif" placeholder="Ex. Mariage, études, commerce…" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
       <Controller control={control} name="target" render={({ field, fieldState }) => <Input label="Montant cible" keyboardType="number-pad" value={field.value} onChangeText={(t) => field.onChange(t.replace(/\D/g, ''))} error={fieldState.error?.message} suffix={<AppText weight="semibold">FCFA</AppText>} />} />
 
-      <AppText variant="caption" weight="semibold" color={COLORS.darkGray} style={{ marginBottom: SPACING.xs }}>
-        Échéance
-      </AppText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: SPACING.xs }}>
+        <DalaIcon name="schedule" size={22} />
+        <AppText variant="caption" weight="semibold" color={COLORS.darkGray}>
+          Échéance
+        </AppText>
+      </View>
       <View style={styles.chips}>
         {DEADLINES.map((d) => (
           <Chip key={d.label} label={d.label} active={months === d.months} onPress={() => setMonths(d.months)} color={COLORS.green} />
@@ -97,6 +100,7 @@ export default function CreateGoal() {
           name="autoSave"
           render={({ field }) => (
             <View style={styles.switchRow}>
+              <DalaIcon name="autosave" size={36} />
               <View style={{ flex: 1 }}>
                 <AppText weight="bold">Épargne automatique</AppText>
                 <AppText variant="small" color={TEXT_ON_WHITE.muted}>

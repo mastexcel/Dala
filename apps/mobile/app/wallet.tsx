@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { CheckCircle } from 'phosphor-react-native';
 import { UEMOA_COUNTRIES, formatFCFA, toE164 } from '@dala/shared';
-import { AppText, Button, Card, Chip, Header, Input, LegalNotice, PhoneInput, Screen, SegmentedTabs, type Country } from '@/components/ui';
+import { AppText, Button, Card, Chip, DalaIcon, Header, Input, LegalNotice, PhoneInput, Screen, SegmentedTabs, type Country } from '@/components/ui';
 import { accountApi, type MobileMoneyProvider } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { useFinancialMutation, useSummary } from '@/hooks/queries';
@@ -68,7 +67,7 @@ export default function Wallet() {
     return (
       <Screen header={<Header title="Opération réussie" />}>
         <View style={{ alignItems: 'center', gap: SPACING.md, marginTop: SPACING.xl }}>
-          <CheckCircle size={88} color={COLORS.green} weight="duotone" />
+          <DalaIcon name="success" size={100} />
           <AppText variant="h3" weight="bold" align="center">{done}</AppText>
           <AppText color={TEXT_ON_WHITE.muted} align="center">Une notification de confirmation vous a été envoyée.</AppText>
           <Button title="Retour à l'accueil" onPress={() => router.replace('/(tabs)')} />
@@ -88,10 +87,10 @@ export default function Wallet() {
         value={mode}
         onChange={setMode}
         tabs={[
-          { key: 'deposit', label: 'Recharger' },
-          { key: 'send', label: 'Envoyer' },
-          { key: 'withdraw', label: 'Retirer' },
-          { key: 'scan', label: 'Scanner' },
+          { key: 'deposit', label: 'Recharger', icon: 'deposit' },
+          { key: 'send', label: 'Envoyer', icon: 'send' },
+          { key: 'withdraw', label: 'Retirer', icon: 'withdraw' },
+          { key: 'scan', label: 'Scanner', icon: 'scan' },
         ]}
       />
       <AppText variant="caption" color={TEXT_ON_WHITE.muted} style={{ marginBottom: SPACING.md }}>
@@ -117,8 +116,9 @@ export default function Wallet() {
             <View style={styles.frame} />
           </View>
         ) : (
-          <Card style={{ gap: SPACING.md }}>
-            <AppText>Scannez le QR code DALA d'un commerçant ou d'un proche pour payer instantanément.</AppText>
+          <Card style={{ gap: SPACING.md, alignItems: 'center' }}>
+            <DalaIcon name="scan" size={96} />
+            <AppText align="center">Scannez le QR code DALA d'un commerçant ou d'un proche pour payer instantanément.</AppText>
             <Button title="Autoriser l'appareil photo" onPress={() => void requestPermission()} />
           </Card>
         )

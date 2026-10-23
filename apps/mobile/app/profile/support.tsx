@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 import { CaretDown, CaretUp, ChatCircleText, Phone } from 'phosphor-react-native';
 import { COMPLAINT_RESPONSE_DAYS } from '@dala/shared';
-import { AppText, Button, Card, Chip, Header, Input, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Button, Card, Chip, DalaIcon, Header, Input, Screen, SectionTitle } from '@/components/ui';
 import { complianceApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -54,7 +54,7 @@ export default function Support() {
         <Button title="WhatsApp" variant="outline" fullWidth={false} style={{ flex: 1 }} icon={<ChatCircleText size={18} color={COLORS.navy} />} onPress={() => void Linking.openURL('https://wa.me/2250000000000')} />
       </View>
 
-      <SectionTitle title="Questions fréquentes" />
+      <SectionTitle title="Questions fréquentes" icon="info" />
       <Card padded={false}>
         {FAQ.map((f, i) => (
           <Pressable key={f.q} onPress={() => setOpen(open === i ? null : i)} accessibilityRole="button" accessibilityState={{ expanded: open === i }} style={{ padding: SPACING.md, borderBottomWidth: 0.5, borderBottomColor: COLORS.lightGray, gap: SPACING.xs }}>
@@ -67,7 +67,7 @@ export default function Support() {
         ))}
       </Card>
 
-      <SectionTitle title="Déposer une réclamation" />
+      <SectionTitle title="Déposer une réclamation" icon="warning" />
       <Card>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.md }}>
           {CATEGORIES.map((c) => <Chip key={c.key} label={c.label} active={category === c.key} onPress={() => setCategory(c.key)} />)}

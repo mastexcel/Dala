@@ -1,7 +1,6 @@
 import { Pressable, View } from 'react-native';
-import { CheckCircle, Circle } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
-import { AppText, Card, Header, Screen } from '@/components/ui';
+import { AppText, Card, DalaIcon, Header, Screen } from '@/components/ui';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const LANGS = [
@@ -26,7 +25,7 @@ export default function Language() {
               accessibilityState={{ checked: active, disabled: !l.available }}
               style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md, padding: SPACING.md }}
             >
-              {active ? <CheckCircle size={22} color={COLORS.green} weight="fill" /> : <Circle size={22} color={COLORS.midGray} />}
+              <DalaIcon name={active ? 'success' : 'settings'} size={28} dimmed={!active} />
               <View style={{ flex: 1 }}>
                 <AppText weight="semibold" color={l.available ? COLORS.black : COLORS.midGray}>{l.label}</AppText>
                 {!l.available ? <AppText variant="small" color={TEXT_ON_WHITE.muted}>Bientôt disponible</AppText> : null}

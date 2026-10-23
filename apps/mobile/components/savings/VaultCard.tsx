@@ -1,8 +1,7 @@
 import { StyleSheet, View } from 'react-native';
-import { LockKey } from 'phosphor-react-native';
 import { daysBetween, formatDate, formatFCFA, formatPercent, type VaultDTO } from '@dala/shared';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
-import { AppText, Card, ProgressBar } from '@/components/ui';
+import { AppText, Card, DalaIcon, ProgressBar } from '@/components/ui';
 
 export function VaultCard({ vault }: { vault: VaultDTO }) {
   const total = daysBetween(new Date(vault.createdAt), new Date(vault.unlockDate));
@@ -11,7 +10,7 @@ export function VaultCard({ vault }: { vault: VaultDTO }) {
     <Card style={{ marginBottom: SPACING.sm, gap: SPACING.sm }}>
       <View style={styles.row}>
         <View style={styles.icon}>
-          <LockKey size={22} color={COLORS.gold} weight="duotone" />
+          <DalaIcon name="vault" size={32} />
         </View>
         <View style={{ flex: 1 }}>
           <AppText weight="bold">{formatFCFA(vault.amount)}</AppText>
@@ -38,5 +37,5 @@ export function VaultCard({ vault }: { vault: VaultDTO }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  icon: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: `${COLORS.gold}22`, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 48, height: 48, borderRadius: RADIUS.md, backgroundColor: COLORS.offWhite, alignItems: 'center', justifyContent: 'center' },
 });

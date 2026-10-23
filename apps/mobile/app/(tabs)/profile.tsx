@@ -1,35 +1,21 @@
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Bell,
-  CaretRight,
-  Gift,
-  IdentificationCard,
-  Lifebuoy,
-  Scroll,
-  ShieldCheck,
-  SignOut,
-  Translate,
-  User,
-} from 'phosphor-react-native';
+import { CaretRight } from 'phosphor-react-native';
 import { KYC_LIMITS, formatFCFA, maskPhone, type KycLevel } from '@dala/shared';
-import type { ComponentType } from 'react';
-import { AppText, Badge, Card, ProgressBar, Screen } from '@/components/ui';
+import { AppText, Badge, Card, DalaIcon, Logo, ProgressBar, Screen, type DalaIconName } from '@/components/ui';
 import { useMe } from '@/hooks/queries';
 import { useAuthStore } from '@/stores/auth';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
-type IconT = ComponentType<{ size?: number; color?: string; weight?: 'duotone' }>;
-
-const ITEMS: { label: string; Icon: IconT; href: string }[] = [
-  { label: 'Informations personnelles', Icon: User, href: '/profile/personal' },
-  { label: 'Sécurité (PIN, biométrie, 2FA)', Icon: ShieldCheck, href: '/profile/security' },
-  { label: 'Notifications', Icon: Bell, href: '/profile/notifications' },
-  { label: 'Langue', Icon: Translate, href: '/profile/language' },
-  { label: 'Parrainage', Icon: Gift, href: '/profile/referral' },
-  { label: 'Support / FAQ', Icon: Lifebuoy, href: '/profile/support' },
-  { label: 'Mentions légales / CGU', Icon: Scroll, href: '/profile/legal' },
+const ITEMS: { label: string; icon: DalaIconName; href: string }[] = [
+  { label: 'Informations personnelles', icon: 'user', href: '/profile/personal' },
+  { label: 'Sécurité (PIN, biométrie, 2FA)', icon: 'security', href: '/profile/security' },
+  { label: 'Notifications', icon: 'notifications', href: '/profile/notifications' },
+  { label: 'Langue', icon: 'settings', href: '/profile/language' },
+  { label: 'Parrainage', icon: 'referral', href: '/profile/referral' },
+  { label: 'Support / FAQ', icon: 'info', href: '/profile/support' },
+  { label: 'Mentions légales / CGU', icon: 'details', href: '/profile/legal' },
 ];
 
 const KYC_COLOR: Record<KycLevel, string> = { 1: COLORS.orange, 2: COLORS.blue, 3: COLORS.green };
@@ -73,14 +59,14 @@ export default function Profile() {
 
       <Card onPress={() => router.push('/profile/kyc')} style={{ gap: SPACING.sm }} accessibilityLabel={`Vérification KYC niveau ${level}`}>
         <View style={styles.row}>
-          <IdentificationCard size={26} color={KYC_COLOR[level]} weight="duotone" />
-          <View style={{ flex: 1 }}>
+          <DalaIcon name="kyc" size={40} />
+          <View style={{ flex: 1, gap: 4 }}>
             <AppText weight="bold">Vérification d'identité</AppText>
+            <Badge label={`Niveau ${level} · ${KYC_LIMITS[level].label}`} color={COLORS.white} background={KYC_COLOR[level]} />
             <AppText variant="small" color={TEXT_ON_WHITE.muted}>
               Plafond : {limit ? `${formatFCFA(limit)} / mois` : 'illimité'}
             </AppText>
           </View>
-          <Badge label={`Niveau ${level} · ${KYC_LIMITS[level].label}`} color={COLORS.white} background={KYC_COLOR[level]} />
         </View>
         <ProgressBar value={level / 3} color={KYC_COLOR[level]} label="Progression KYC" />
         {level < 3 ? (
@@ -91,14 +77,14 @@ export default function Profile() {
       </Card>
 
       <Card padded={false} style={{ marginTop: SPACING.md }}>
-        {ITEMS.map(({ label, Icon, href }, i) => (
+        {ITEMS.map(({ label, icon, href }, i) => (
           <Pressable
             key={href}
             onPress={() => router.push(href as never)}
             accessibilityRole="button"
             style={({ pressed }) => [styles.item, i < ITEMS.length - 1 && styles.border, pressed && { backgroundColor: COLORS.offWhite }]}
           >
-            <Icon size={22} color={COLORS.navy} weight="duotone" />
+            <DalaIcon name={icon} size={30} />
             <AppText style={{ flex: 1 }}>{label}</AppText>
             <CaretRight size={16} color={COLORS.midGray} />
           </Pressable>
@@ -106,14 +92,17 @@ export default function Profile() {
       </Card>
 
       <Pressable onPress={signOut} accessibilityRole="button" style={[styles.item, { marginTop: SPACING.md, justifyContent: 'center' }]}>
-        <SignOut size={22} color={TEXT_ON_WHITE.red} />
+        <DalaIcon name="close" size={28} />
         <AppText weight="bold" color={TEXT_ON_WHITE.red}>
           Déconnexion
         </AppText>
       </Pressable>
-      <AppText variant="small" align="center" color={TEXT_ON_WHITE.muted}>
-        DALA Finance v0.1.0
-      </AppText>
+      <View style={{ alignItems: 'center', gap: SPACING.xs, marginTop: SPACING.md }}>
+        <Logo variant="black" width={90} style={{ opacity: 0.6 }} />
+        <AppText variant="small" align="center" color={TEXT_ON_WHITE.muted}>
+          DALA Finance v0.1.0
+        </AppText>
+      </View>
     </Screen>
   );
 }

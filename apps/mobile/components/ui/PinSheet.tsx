@@ -1,10 +1,11 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useEffect, useState } from 'react';
-import { Backspace, LockKey } from 'phosphor-react-native';
+import { Backspace } from 'phosphor-react-native';
 import * as Haptics from 'expo-haptics';
 import { useStrongAuthStore } from '@/stores/strongAuth';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 import { AppText } from './AppText';
+import { DalaIcon } from './DalaIcon';
 
 const PIN_LENGTH = 4;
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
@@ -35,7 +36,7 @@ export function PinSheet() {
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.icon}>
-            <LockKey size={28} color={COLORS.gold} weight="duotone" />
+            <DalaIcon name="security" size={40} />
           </View>
           <AppText variant="h4" weight="bold" align="center">
             {request?.title}
@@ -79,7 +80,7 @@ export function PinSheet() {
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(15,27,61,0.6)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: COLORS.white, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, gap: SPACING.sm, paddingBottom: SPACING.xl },
-  icon: { alignSelf: 'center', backgroundColor: `${COLORS.gold}22`, padding: SPACING.md, borderRadius: RADIUS.full },
+  icon: { alignSelf: 'center', backgroundColor: COLORS.offWhite, padding: SPACING.sm, borderRadius: RADIUS.full },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: SPACING.md, marginVertical: SPACING.md },
   dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: COLORS.navy },
   dotFilled: { backgroundColor: COLORS.navy },

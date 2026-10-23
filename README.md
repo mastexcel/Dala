@@ -95,7 +95,11 @@ Si `EXPO_PUBLIC_API_URL` est vide, l'app tourne sur un backend simulé en mémoi
 | Transactions (filtres, recherche, export CSV/PDF) | `app/transactions.tsx` |
 | Portefeuille : recharger, envoyer, retirer, scanner | `app/wallet.tsx` |
 
-**Design system.** Les tokens sont dans `theme/` : couleurs, DM Serif Display et Plus Jakarta Sans, espacements et rayons. Les composants partagés sont dans `components/ui`, les icônes viennent de Phosphor (style duotone) et les logos de `assets/brand`.
+**Design system.** Les tokens sont dans `theme/` : couleurs, DM Serif Display et Plus Jakarta Sans, espacements et rayons. Les composants partagés sont dans `components/ui`.
+
+**Icônes DALA.** Les 62 icônes illustrées de la charte (`design/icon-sheet.png`) sont découpées en PNG transparents dans `apps/mobile/assets/icons` par `design/cut_icons.py`, et s'affichent avec `<DalaIcon name="savings" size={32} />` (noms typés). Elles sont multicolores et conçues pour fond clair : la barre d'onglets et les onglets segmentés sont donc blancs, et sur fond sombre les icônes sont posées dans une pastille blanche. Phosphor ne sert plus qu'aux petits pictogrammes d'interface (chevrons, recherche, retour arrière du clavier PIN). Pour modifier une icône, remplacez la planche puis relancez `python design/cut_icons.py design/icon-sheet.png apps/mobile/assets/icons 6`.
+
+**Logos.** `<Logo variant="…" />` dans `components/ui/Logo.tsx` : `color` (dégradé, fond sombre : splash, connexion), `colorLight` (dégradé, fond clair : en-tête de l'accueil), `whiteFine` (rayures fines : onboarding, filigrane de la carte de solde), `white`, `black` (profil, mentions légales). Les originaux sont dans `assets/brand/logo-*-dark.png` / `-light.png`.
 
 **Hors-ligne.** Le cache React Query est persisté dans AsyncStorage (solde, transactions, profil, objectifs, crédit). Les requêtes sont servies depuis le cache puis revalidées au retour du réseau, et un bandeau signale le mode hors-ligne.
 

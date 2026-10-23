@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { FileText } from 'phosphor-react-native';
 import {
   CROWDFUND_MIN_INVESTMENT,
   LEGAL_NOTICE_CROWDFUND,
@@ -12,7 +11,7 @@ import {
   formatFCFA,
   formatPercent,
 } from '@dala/shared';
-import { AmountSlider, AppText, Badge, Button, Card, ErrorState, Header, KeyValue, LegalNotice, Loading, ProgressBar, Screen, SectionTitle } from '@/components/ui';
+import { AmountSlider, AppText, Badge, Button, Card, DalaIcon, ErrorState, Header, type DalaIconName, KeyValue, LegalNotice, Loading, ProgressBar, Screen, SectionTitle } from '@/components/ui';
 import { ValidatedBadge } from '@/components/crowdfund/ValidatedBadge';
 import { Confetti } from '@/components/charts/Confetti';
 import { crowdfundApi } from '@/services/api';
@@ -91,13 +90,13 @@ export default function ProjectDetail() {
             </AppText>
           </View>
           <View style={styles.between}>
-            <Stat label="Investisseurs" value={String(p.investorCount)} />
-            <Stat label="Jours restants" value={String(days)} />
-            <Stat label="Equity offerte" value={`${formatPercent(p.equityMin, 0)}–${formatPercent(p.equityMax, 0)}`} />
+            <Stat icon="investors" label="Investisseurs" value={String(p.investorCount)} />
+            <Stat icon="schedule" label="Jours restants" value={String(days)} />
+            <Stat icon="portfolio" label="Equity offerte" value={`${formatPercent(p.equityMin, 0)}–${formatPercent(p.equityMax, 0)}`} />
           </View>
         </Card>
 
-        <SectionTitle title="Le pitch" />
+        <SectionTitle title="Le pitch" icon="news" />
         <Card style={{ gap: SPACING.sm }}>
           <AppText weight="bold">Le problème</AppText>
           <AppText color={COLORS.darkGray}>{p.problem}</AppText>
@@ -107,7 +106,7 @@ export default function ProjectDetail() {
           <AppText color={COLORS.darkGray}>{p.targetMarket}</AppText>
         </Card>
 
-        <SectionTitle title="Informations financières" />
+        <SectionTitle title="Informations financières" icon="bonds" />
         <Card>
           <KeyValue label="Objectif de levée" value={formatFCFA(p.fundingGoal)} />
           <KeyValue label="Déjà levé" value={formatFCFA(p.fundingRaised)} />
@@ -116,7 +115,7 @@ export default function ProjectDetail() {
           <KeyValue label="Ticket minimum" value={formatFCFA(CROWDFUND_MIN_INVESTMENT)} />
         </Card>
 
-        <SectionTitle title="Équipe fondatrice" />
+        <SectionTitle title="Équipe fondatrice" icon="investors" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SPACING.sm }}>
           {p.teamMembers.map((m) => (
             <Card key={m.name} style={styles.member}>
@@ -131,17 +130,17 @@ export default function ProjectDetail() {
           ))}
         </ScrollView>
 
-        <SectionTitle title="Documents" />
+        <SectionTitle title="Documents" icon="details" />
         <Card>
           {p.documents.map((d) => (
             <Pressable key={d.name} onPress={() => void Linking.openURL(d.url)} accessibilityRole="link" style={styles.doc}>
-              <FileText size={22} color={COLORS.purple} weight="duotone" />
+              <DalaIcon name={d.kind === 'VALIDATION' ? 'validated-projects' : 'details'} size={30} />
               <AppText style={{ flex: 1 }}>{d.name}</AppText>
             </Pressable>
           ))}
         </Card>
 
-        <SectionTitle title="Investir" />
+        <SectionTitle title="Investir" icon="portfolio" />
         <Card style={{ gap: SPACING.sm }}>
           <AmountSlider value={Math.min(amount, maxTicket)} onChange={setAmount} min={CROWDFUND_MIN_INVESTMENT} max={maxTicket} step={5_000} color={COLORS.purple} label="Votre ticket" />
           <KeyValue label="Part du capital obtenue" value={formatPercent(equity, 4)} strong color={TEXT_ON_WHITE.purple} />
@@ -160,9 +159,10 @@ export default function ProjectDetail() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, icon }: { label: string; value: string; icon: DalaIconName }) {
   return (
-    <View style={{ alignItems: 'center', flex: 1 }}>
+    <View style={{ alignItems: 'center', flex: 1, gap: 2 }}>
+      <DalaIcon name={icon} size={30} />
       <AppText weight="bold">{value}</AppText>
       <AppText variant="small" color={TEXT_ON_WHITE.muted} align="center">{label}</AppText>
     </View>

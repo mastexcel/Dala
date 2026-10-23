@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { LockKey, Plus, Target, UsersThree } from 'phosphor-react-native';
 import { formatFCFA, VAULT_OPTIONS, formatPercent } from '@dala/shared';
-import { AppText, Button, Card, EmptyState, ErrorState, LegalNotice, Loading, SegmentedTabs, Screen } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, SegmentedTabs, Screen } from '@/components/ui';
 import { GoalCard } from '@/components/savings/GoalCard';
 import { TontineCard } from '@/components/savings/TontineCard';
 import { VaultCard } from '@/components/savings/VaultCard';
@@ -25,6 +24,9 @@ export default function Savings() {
         Épargne
       </AppText>
       <Card style={styles.total}>
+        <View style={styles.totalIcon}>
+          <DalaIcon name="savings" size={40} />
+        </View>
         <AppText variant="caption" color={COLORS.lightGray}>
           Total épargné
         </AppText>
@@ -41,9 +43,9 @@ export default function Savings() {
         value={tab}
         onChange={setTab}
         tabs={[
-          { key: 'goals', label: 'Objectifs' },
-          { key: 'tontines', label: 'Tontines' },
-          { key: 'vault', label: 'Coffre-fort' },
+          { key: 'goals', label: 'Objectifs', icon: 'goals' },
+          { key: 'tontines', label: 'Tontines', icon: 'tontines' },
+          { key: 'vault', label: 'Coffre-fort', icon: 'vault' },
         ]}
       />
 
@@ -57,9 +59,9 @@ export default function Savings() {
             {goals.data?.length ? (
               goals.data.map((g) => <GoalCard key={g.id} goal={g} onPress={() => router.push(`/savings/goal/${g.id}`)} />)
             ) : (
-              <EmptyState icon={<Target size={48} color={COLORS.green} weight="duotone" />} title="Aucun objectif" body="Mariage, études, commerce… donnez un but à votre épargne." />
+              <EmptyState icon={<DalaIcon name="goals" size={72} />} title="Aucun objectif" body="Mariage, études, commerce… donnez un but à votre épargne." />
             )}
-            <Button title="Nouvel objectif" variant="secondary" icon={<Plus size={18} color={COLORS.white} weight="bold" />} onPress={() => router.push('/savings/create-goal')} />
+            <Button title="Nouvel objectif" icon={<DalaIcon name="add" size={24} />} onPress={() => router.push('/savings/create-goal')} />
           </>
         )
       ) : null}
@@ -72,7 +74,7 @@ export default function Savings() {
             {tontines.data?.length ? (
               tontines.data.map((t) => <TontineCard key={t.id} tontine={t} onPress={() => router.push(`/savings/tontine/${t.id}`)} />)
             ) : (
-              <EmptyState icon={<UsersThree size={48} color={COLORS.green} weight="duotone" />} title="Aucune tontine" body="Cotisez à plusieurs, en toute transparence : chaque tour est tracé." />
+              <EmptyState icon={<DalaIcon name="tontines" size={72} />} title="Aucune tontine" body="Cotisez à plusieurs, en toute transparence : chaque tour est tracé." />
             )}
             <AppText variant="small" color={TEXT_ON_WHITE.muted} style={{ marginTop: SPACING.sm }}>
               Les cotisations sont cantonnées sur un compte dédié jusqu'au versement au bénéficiaire du tour.
@@ -88,7 +90,7 @@ export default function Savings() {
           <>
             <Card style={{ marginBottom: SPACING.md, gap: SPACING.sm }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
-                <LockKey size={22} color={COLORS.gold} weight="duotone" />
+                <DalaIcon name="interest" size={32} />
                 <AppText weight="bold">Bloquez, gagnez plus</AppText>
               </View>
               <View style={styles.rates}>
@@ -105,7 +107,7 @@ export default function Savings() {
               </View>
             </Card>
             {vaults.data?.vaults.map((v) => <VaultCard key={v.id} vault={v} />)}
-            <Button title="Créer un coffre-fort" icon={<LockKey size={18} color={COLORS.navy} weight="bold" />} onPress={() => router.push('/savings/vault')} />
+            <Button title="Créer un coffre-fort" icon={<DalaIcon name="vault" size={24} />} onPress={() => router.push('/savings/vault')} />
           </>
         )
       ) : null}
@@ -117,6 +119,7 @@ export default function Savings() {
 
 const styles = StyleSheet.create({
   total: { backgroundColor: COLORS.green, marginVertical: SPACING.md, gap: 2 },
+  totalIcon: { position: 'absolute', right: SPACING.md, top: SPACING.md, backgroundColor: COLORS.white, borderRadius: 14, padding: 6 },
   rates: { flexDirection: 'row', justifyContent: 'space-between' },
   rate: { alignItems: 'center', flex: 1 },
 });

@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
-import { CheckCircle, FilePlus, Trash } from 'phosphor-react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CROWDFUND_REVIEW_DAYS, CROWDFUND_VALIDATOR, PROJECT_SECTORS, formatFCFA, formatPercent, type ProjectSector } from '@dala/shared';
-import { AppText, Button, Card, Chip, Header, Input, KeyValue, LegalNotice, Screen } from '@/components/ui';
+import { AppText, Button, Card, Chip, DalaIcon, Header, Input, KeyValue, LegalNotice, Screen } from '@/components/ui';
 import { crowdfundApi, userApi, type SubmitProjectInput } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -100,7 +99,7 @@ export default function SubmitProject() {
     return (
       <Screen header={<Header title="Projet soumis" />}>
         <View style={{ alignItems: 'center', gap: SPACING.md, marginTop: SPACING.xl }}>
-          <CheckCircle size={88} color={COLORS.purple} weight="duotone" />
+          <DalaIcon name="validated-projects" size={110} />
           <AppText variant="h2" align="center">Merci !</AppText>
           <AppText align="center" color={COLORS.darkGray}>
             Votre projet sera examiné par le comité {CROWDFUND_VALIDATOR}. Délai moyen : {CROWDFUND_REVIEW_DAYS} jours ouvrés.
@@ -189,7 +188,7 @@ export default function SubmitProject() {
             return (
               <Card key={d.kind} onPress={() => void pickDoc(d.kind, d.label).catch((e) => setError(errorMessage(e)))} style={{ marginBottom: SPACING.sm }} accessibilityLabel={`Ajouter ${d.label}`}>
                 <View style={styles.row}>
-                  {doc ? <CheckCircle size={24} color={COLORS.green} weight="fill" /> : <FilePlus size={24} color={COLORS.purple} weight="duotone" />}
+                  <DalaIcon name={doc ? 'success' : 'submit-project'} size={34} />
                   <View style={{ flex: 1 }}>
                     <AppText weight="semibold">{d.label}</AppText>
                     <AppText variant="small" color={TEXT_ON_WHITE.muted} numberOfLines={1}>
@@ -198,7 +197,7 @@ export default function SubmitProject() {
                   </View>
                   {doc ? (
                     <Pressable onPress={() => setDocs((x) => x.filter((y) => y.kind !== d.kind))} accessibilityRole="button" accessibilityLabel="Retirer">
-                      <Trash size={20} color={COLORS.red} />
+                      <DalaIcon name="delete" size={28} />
                     </Pressable>
                   ) : null}
                 </View>
@@ -210,6 +209,9 @@ export default function SubmitProject() {
 
       {step === 3 ? (
         <>
+          <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
+            <DalaIcon name="validated-projects" size={80} />
+          </View>
           <Card>
             <KeyValue label="Entreprise" value={getValues('name')} />
             <KeyValue label="Secteur" value={sectorLabel(sector)} />

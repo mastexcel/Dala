@@ -1,6 +1,6 @@
 import { Share, View } from 'react-native';
-import { Gift, ShareNetwork } from 'phosphor-react-native';
-import { AppText, Button, Card, Header, Loading, Screen } from '@/components/ui';
+import { ShareNetwork } from 'phosphor-react-native';
+import { AppText, Button, Card, DalaIcon, Header, Loading, Screen } from '@/components/ui';
 import { useReferrals } from '@/hooks/queries';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
@@ -10,7 +10,7 @@ export default function Referral() {
   return (
     <Screen header={<Header title="Parrainage" />}>
       <View style={{ alignItems: 'center', gap: SPACING.sm, marginVertical: SPACING.lg }}>
-        <Gift size={72} color={COLORS.gold} weight="duotone" />
+        <DalaIcon name="referral" size={96} />
         <AppText variant="h2" align="center">Invitez vos proches</AppText>
         <AppText align="center" color={TEXT_ON_WHITE.muted}>Partagez DALA avec votre famille, vos amis et votre tontine.</AppText>
       </View>

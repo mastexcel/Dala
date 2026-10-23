@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Switch, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { AppText, Card, Header, Screen } from '@/components/ui';
+import { AppText, Card, DalaIcon, Header, Screen } from '@/components/ui';
 import { userApi } from '@/services/api';
 import { USE_MOCKS } from '@/services/config';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -45,6 +45,7 @@ export default function NotificationSettings() {
     <Screen header={<Header title="Notifications" />}>
       <Card style={{ marginBottom: SPACING.md }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
+          <DalaIcon name="notifications" size={40} />
           <View style={{ flex: 1 }}>
             <AppText weight="bold">Notifications push</AppText>
             <AppText variant="small" color={TEXT_ON_WHITE.muted}>{push ? 'Activées sur cet appareil' : 'Désactivées'}</AppText>

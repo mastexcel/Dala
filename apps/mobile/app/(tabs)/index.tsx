@@ -1,9 +1,8 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChartLineUp, CreditCard, PiggyBank, UsersThree } from 'phosphor-react-native';
 import { useTranslation } from 'react-i18next';
 import { formatFCFA, progressRatio } from '@dala/shared';
-import { AppText, Card, ErrorState, LegalNotice, Loading, SectionTitle, Screen } from '@/components/ui';
+import { AppText, Card, DalaIcon, ErrorState, LegalNotice, Loading, Logo, SectionTitle, Screen } from '@/components/ui';
 import { BalanceCard } from '@/components/home/BalanceCard';
 import { QuickActions } from '@/components/home/QuickActions';
 import { PillarRow } from '@/components/home/PillarRow';
@@ -29,11 +28,14 @@ export default function Home() {
   return (
     <Screen refreshing={summary.isRefetching} onRefresh={refresh}>
       <View style={styles.header}>
-        <AppText variant="h3" weight="bold" color={COLORS.navy} accessibilityRole="header">
-          {t('home.hello', { name: user?.firstName ?? '' })}
-        </AppText>
+        <View style={{ gap: 2 }}>
+          <Logo variant="colorLight" width={96} />
+          <AppText variant="h3" weight="bold" color={COLORS.navy} accessibilityRole="header">
+            {t('home.hello', { name: user?.firstName ?? '' })}
+          </AppText>
+        </View>
         <Pressable onPress={() => router.push('/notifications')} hitSlop={12} accessibilityRole="button" accessibilityLabel={`Notifications, ${unread} non lues`}>
-          <Bell size={26} color={COLORS.navy} weight="duotone" />
+          <DalaIcon name="notifications" size={34} />
           {unread > 0 ? (
             <View style={styles.dot}>
               <AppText variant="small" weight="bold" color={COLORS.white} style={{ fontSize: 10, lineHeight: 12 }}>
@@ -53,7 +55,7 @@ export default function Home() {
           <BalanceCard summary={summary.data} />
           <QuickActions />
           <PillarRow
-            icon={<PiggyBank size={24} color={PILLAR_COLORS.savings} weight="duotone" />}
+            icon="savings"
             color={PILLAR_COLORS.savings}
             title={t('home.savings')}
             amount={summary.data.savings + summary.data.vault}
@@ -62,7 +64,7 @@ export default function Home() {
             onPress={() => router.push('/(tabs)/savings')}
           />
           <PillarRow
-            icon={<ChartLineUp size={24} color={PILLAR_COLORS.invest} weight="duotone" />}
+            icon="invest"
             color={PILLAR_COLORS.invest}
             title={t('home.invest')}
             amount={summary.data.investments}
@@ -70,7 +72,7 @@ export default function Home() {
             onPress={() => router.push('/invest')}
           />
           <PillarRow
-            icon={<UsersThree size={24} color={PILLAR_COLORS.crowdfund} weight="duotone" />}
+            icon="crowdfund"
             color={PILLAR_COLORS.crowdfund}
             title={t('home.crowdfund')}
             amount={summary.data.crowdfund}
@@ -78,7 +80,7 @@ export default function Home() {
             onPress={() => router.push('/(tabs)/crowdfund')}
           />
           <PillarRow
-            icon={<CreditCard size={24} color={PILLAR_COLORS.credit} weight="duotone" />}
+            icon="credit"
             color={PILLAR_COLORS.credit}
             title={t('home.credit')}
             amount={summary.data.creditOutstanding}

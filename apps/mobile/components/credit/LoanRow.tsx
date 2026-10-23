@@ -1,9 +1,17 @@
 import { StyleSheet, View } from 'react-native';
-import { Lightning } from 'phosphor-react-native';
 import { formatDate, formatFCFA, type LoanDTO } from '@dala/shared';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
-import { AppText, Badge, Card } from '@/components/ui';
+import { AppText, Badge, Card, DalaIcon, type DalaIconName } from '@/components/ui';
 import { LOAN_STATUS_LABEL } from '@/utils/meta';
+
+const STATUS_ICON: Partial<Record<LoanDTO['status'], DalaIconName>> = {
+  REPAID: 'success',
+  PENDING: 'pending',
+  OVERDUE: 'warning',
+  DEFAULTED: 'error',
+  REJECTED: 'close',
+  DISBURSED: 'credit',
+};
 
 export function LoanRow({ loan, onPress }: { loan: LoanDTO; onPress: () => void }) {
   const st = LOAN_STATUS_LABEL[loan.status];
@@ -11,7 +19,7 @@ export function LoanRow({ loan, onPress }: { loan: LoanDTO; onPress: () => void 
     <Card onPress={onPress} style={{ marginBottom: SPACING.sm }} accessibilityLabel={`Prêt de ${loan.amount} francs CFA, ${st.label}`}>
       <View style={styles.row}>
         <View style={styles.icon}>
-          <Lightning size={20} color={COLORS.orange} weight="duotone" />
+          <DalaIcon name={STATUS_ICON[loan.status] ?? 'credit'} size={30} />
         </View>
         <View style={{ flex: 1 }}>
           <AppText weight="bold">{formatFCFA(loan.amount)}</AppText>
@@ -27,5 +35,5 @@ export function LoanRow({ loan, onPress }: { loan: LoanDTO; onPress: () => void 
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  icon: { width: 40, height: 40, borderRadius: RADIUS.md, backgroundColor: `${COLORS.orange}1A`, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: COLORS.offWhite, alignItems: 'center', justifyContent: 'center' },
 });

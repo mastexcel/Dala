@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { CheckCircle, Crown, HourglassMedium } from 'phosphor-react-native';
+import { Crown } from 'phosphor-react-native';
 import { formatDate, formatFCFA } from '@dala/shared';
-import { AppText, Badge, Button, Card, ErrorState, Header, KeyValue, LegalNotice, Loading, ProgressBar, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Badge, Button, Card, DalaIcon, ErrorState, Header, KeyValue, LegalNotice, Loading, ProgressBar, Screen } from '@/components/ui';
 import { savingsApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { qk, useFinancialMutation, useTontine } from '@/hooks/queries';
@@ -72,7 +72,12 @@ export default function TontineDetail() {
         <KeyValue label="Statut" value={t.status === 'ACTIVE' ? 'Active' : t.status === 'PENDING' ? 'En attente de membres' : 'Terminée'} />
       </Card>
 
-      <SectionTitle title={`Membres (${t.members.length}/${t.maxMembers})`} />
+      <View style={[styles.row, { marginTop: SPACING.lg, marginBottom: SPACING.sm }]}>
+        <DalaIcon name="tontines" size={28} />
+        <AppText variant="h4" weight="bold" color={COLORS.navy}>
+          Membres ({t.members.length}/{t.maxMembers})
+        </AppText>
+      </View>
       <Card>
         {t.members.map((m) => (
           <View key={m.id} style={[styles.row, styles.member]}>
@@ -93,19 +98,20 @@ export default function TontineDetail() {
             {m.hasReceived ? (
               <Badge label="A perçu" color={TEXT_ON_WHITE.gold} />
             ) : m.hasPaid ? (
-              <View accessible accessibilityLabel="A cotisé">
-                <CheckCircle size={22} color={COLORS.green} weight="fill" />
-              </View>
+              <DalaIcon name="success" size={26} label="A cotisé" />
             ) : (
-              <View accessible accessibilityLabel="En attente">
-                <HourglassMedium size={22} color={COLORS.midGray} />
-              </View>
+              <DalaIcon name="pending" size={26} label="En attente" />
             )}
           </View>
         ))}
       </Card>
 
-      <SectionTitle title="Historique des tours" />
+      <View style={[styles.row, { marginTop: SPACING.lg, marginBottom: SPACING.sm }]}>
+        <DalaIcon name="contribution" size={28} />
+        <AppText variant="h4" weight="bold" color={COLORS.navy}>
+          Historique des tours
+        </AppText>
+      </View>
       <Card>
         {t.members
           .filter((m) => m.hasReceived)

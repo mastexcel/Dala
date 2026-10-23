@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { AppText, Button, Header, Input, LegalNotice, Screen } from '@/components/ui';
+import { AppText, Button, DalaIcon, Header, Input, LegalNotice, Screen } from '@/components/ui';
 import { useMe, qk } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { userApi } from '@/services/api';
@@ -39,6 +40,9 @@ export default function Personal() {
 
   return (
     <Screen header={<Header title="Informations personnelles" />} footer={<Button title="Enregistrer" onPress={save} loading={saving} />}>
+      <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
+        <DalaIcon name="user" size={80} />
+      </View>
       <Input label="Prénom" value={firstName} onChangeText={setFirstName} />
       <Input label="Nom" value={lastName} onChangeText={setLastName} />
       <Input label="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />

@@ -20,3 +20,4 @@ export * from './PinSheet';
 export * from './PhoneInput';
 export * from './CodeInput';
 export * from './AuthBackground';
+export * from './DalaIcon';

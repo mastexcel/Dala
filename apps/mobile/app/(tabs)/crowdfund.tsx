@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { Briefcase, RocketLaunch, SealCheck } from 'phosphor-react-native';
 import { CROWDFUND_REVIEW_DAYS, CROWDFUND_VALIDATOR, LEGAL_NOTICE_CROWDFUND, PROJECT_SECTORS, formatFCFA, formatPercent, type ProjectSector } from '@dala/shared';
-import { AppText, Badge, Button, Card, Chip, EmptyState, ErrorState, LegalNotice, Loading, Screen, SegmentedTabs } from '@/components/ui';
+import { AppText, Badge, Button, Card, Chip, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, Screen, SegmentedTabs } from '@/components/ui';
 import { ProjectCard } from '@/components/crowdfund/ProjectCard';
 import { useCrowdfundPortfolio, useProjects } from '@/hooks/queries';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -36,9 +35,9 @@ export default function Crowdfund() {
         value={tab}
         onChange={setTab}
         tabs={[
-          { key: 'explore', label: 'Explorer' },
-          { key: 'portfolio', label: 'Mon portfolio' },
-          { key: 'submit', label: 'Soumettre' },
+          { key: 'explore', label: 'Explorer', icon: 'explore' },
+          { key: 'portfolio', label: 'Mon portfolio', icon: 'portfolio' },
+          { key: 'submit', label: 'Soumettre', icon: 'submit-project' },
         ]}
       />
 
@@ -59,7 +58,7 @@ export default function Crowdfund() {
           ) : projects.data?.length ? (
             projects.data.map((p) => <ProjectCard key={p.id} project={p} onPress={() => router.push(`/crowdfund/${p.id}`)} />)
           ) : (
-            <EmptyState icon={<RocketLaunch size={48} color={COLORS.purple} weight="duotone" />} title="Aucun projet dans ce secteur" body="Revenez bientôt : de nouveaux projets sont validés chaque mois." />
+            <EmptyState icon={<DalaIcon name="explore" size={72} />} title="Aucun projet dans ce secteur" body="Revenez bientôt : de nouveaux projets sont validés chaque mois." />
           )}
         </>
       ) : null}
@@ -70,6 +69,9 @@ export default function Crowdfund() {
         ) : (
           <>
             <Card style={{ backgroundColor: COLORS.purple, marginBottom: SPACING.md }}>
+              <View style={styles.cardIcon}>
+                <DalaIcon name="portfolio" size={36} />
+              </View>
               <AppText variant="caption" color={COLORS.white}>
                 Total investi en capital
               </AppText>
@@ -104,7 +106,7 @@ export default function Crowdfund() {
                 </Card>
               ))
             ) : (
-              <EmptyState icon={<Briefcase size={48} color={COLORS.purple} weight="duotone" />} title="Pas encore d'investissement" body="Explorez les projets validés et prenez vos premières parts." />
+              <EmptyState icon={<DalaIcon name="portfolio" size={72} />} title="Pas encore d'investissement" body="Explorez les projets validés et prenez vos premières parts." />
             )}
           </>
         )
@@ -112,17 +114,29 @@ export default function Crowdfund() {
 
       {tab === 'submit' ? (
         <Card style={{ gap: SPACING.md }}>
-          <SealCheck size={40} color={COLORS.purple} weight="duotone" />
+          <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
+            <DalaIcon name="submit-project" size={56} />
+            <DalaIcon name="validated-projects" size={56} />
+          </View>
           <AppText variant="h3" weight="bold">
             Vous portez un projet ?
           </AppText>
           <AppText color={COLORS.darkGray}>
             Levez des fonds en capital auprès de la communauté DALA. Chaque dossier est étudié par le comité {CROWDFUND_VALIDATOR}.
           </AppText>
-          {['Infos entreprise', 'Pitch & chiffres', 'Documents', 'Soumission'].map((s, i) => (
+          {(
+            [
+              ['Infos entreprise', 'user'],
+              ['Pitch & chiffres', 'performance'],
+              ['Documents', 'details'],
+              ['Soumission', 'validated-projects'],
+            ] as const
+          ).map(([s, icon], i) => (
             <View key={s} style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
-              <Badge label={String(i + 1)} color={COLORS.white} background={COLORS.purple} />
-              <AppText>{s}</AppText>
+              <DalaIcon name={icon} size={28} />
+              <AppText>
+                {i + 1}. {s}
+              </AppText>
             </View>
           ))}
           <AppText variant="small" color={TEXT_ON_WHITE.muted}>
@@ -139,5 +153,6 @@ export default function Crowdfund() {
 
 const styles = StyleSheet.create({
   chips: { gap: SPACING.sm, paddingBottom: SPACING.md },
+  cardIcon: { position: 'absolute', right: SPACING.md, top: SPACING.md, backgroundColor: COLORS.white, borderRadius: 12, padding: 4 },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SPACING.sm },
 });

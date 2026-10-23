@@ -1,21 +1,33 @@
 import { StyleSheet, View } from 'react-native';
-import { ArrowDown, ArrowUp } from 'phosphor-react-native';
-import { formatRelative, type TransactionDTO } from '@dala/shared';
+import { formatRelative, type TransactionDTO, type TransactionType } from '@dala/shared';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
-import { AppText, Amount } from '@/components/ui';
-import { CATEGORY_COLOR, TX_CATEGORY } from '@/utils/meta';
+import { AppText, Amount, DalaIcon, type DalaIconName } from '@/components/ui';
 
 const STATUS_LABEL = { PENDING: 'En attente', FAILED: 'Échouée', CANCELLED: 'Annulée', COMPLETED: '' } as const;
 
+export const TX_ICON: Record<TransactionType, DalaIconName> = {
+  DEPOSIT: 'deposit',
+  WITHDRAWAL: 'withdraw',
+  TRANSFER_IN: 'transfers',
+  TRANSFER_OUT: 'transfers',
+  SAVINGS_IN: 'tx-savings',
+  SAVINGS_OUT: 'tx-savings',
+  INVESTMENT_BUY: 'tx-invest',
+  INVESTMENT_RETURN: 'interest',
+  CROWDFUND_IN: 'tx-crowdfund',
+  CROWDFUND_RETURN: 'tx-crowdfund',
+  LOAN_DISBURSEMENT: 'tx-credit',
+  LOAN_REPAYMENT: 'repay',
+  FEE: 'info',
+};
+
 export function TransactionRow({ tx }: { tx: TransactionDTO }) {
   const incoming = tx.amount > 0;
-  const color = CATEGORY_COLOR[TX_CATEGORY[tx.type]];
-  const Icon = incoming ? ArrowDown : ArrowUp;
   const status = STATUS_LABEL[tx.status];
   return (
     <View style={styles.row} accessible accessibilityLabel={`${tx.description}, ${incoming ? 'crédit' : 'débit'} ${Math.abs(tx.amount)} francs CFA, ${formatRelative(tx.createdAt)}`}>
-      <View style={[styles.icon, { backgroundColor: `${color}1A` }]}>
-        <Icon size={18} color={color} weight="bold" />
+      <View style={styles.icon}>
+        <DalaIcon name={TX_ICON[tx.type]} size={28} />
       </View>
       <View style={{ flex: 1 }}>
         <AppText weight="semibold" numberOfLines={1}>
@@ -33,5 +45,5 @@ export function TransactionRow({ tx }: { tx: TransactionDTO }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingVertical: SPACING.sm + 2 },
-  icon: { width: 40, height: 40, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 42, height: 42, borderRadius: RADIUS.md, backgroundColor: COLORS.offWhite, alignItems: 'center', justifyContent: 'center' },
 });

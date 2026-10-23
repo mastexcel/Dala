@@ -1,24 +1,24 @@
 import { useState } from 'react';
-import { Alert, FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { DownloadSimple, MagnifyingGlass } from 'phosphor-react-native';
+import { MagnifyingGlass } from 'phosphor-react-native';
 import type { TransactionCategory, TransactionDTO } from '@dala/shared';
-import { AppText, Button, Card, Chip, EmptyState, Header, Input, Loading, Screen } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, EmptyState, Header, Input, Loading, Screen, type DalaIconName } from '@/components/ui';
 import { TransactionRow } from '@/components/home/TransactionRow';
 import { useTransactions } from '@/hooks/queries';
 import { exportUrl } from '@/services/client';
 import { USE_MOCKS } from '@/services/config';
 import { useAuthStore } from '@/stores/auth';
-import { COLORS, SPACING } from '@/theme';
+import { COLORS, RADIUS, SHADOW, SPACING } from '@/theme';
 
-const FILTERS: { key: TransactionCategory; label: string }[] = [
-  { key: 'ALL', label: 'Tout' },
-  { key: 'SAVINGS', label: 'Épargne' },
-  { key: 'INVEST', label: 'Investissement' },
-  { key: 'CROWDFUND', label: 'Crowdfund' },
-  { key: 'CREDIT', label: 'Crédit' },
-  { key: 'TRANSFER', label: 'Transferts' },
+const FILTERS: { key: TransactionCategory; label: string; icon: DalaIconName }[] = [
+  { key: 'ALL', label: 'Tout', icon: 'tx-all' },
+  { key: 'SAVINGS', label: 'Épargne', icon: 'tx-savings' },
+  { key: 'INVEST', label: 'Investissement', icon: 'tx-invest' },
+  { key: 'CROWDFUND', label: 'Crowdfund', icon: 'tx-crowdfund' },
+  { key: 'CREDIT', label: 'Crédit', icon: 'tx-credit' },
+  { key: 'TRANSFER', label: 'Transferts', icon: 'transfers' },
 ];
 
 function toCsv(items: TransactionDTO[]) {
@@ -59,14 +59,29 @@ export default function Transactions() {
       />
       <View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {FILTERS.map((f) => (
-            <Chip key={f.key} label={f.label} active={category === f.key} onPress={() => setCategory(f.key)} />
-          ))}
+          {FILTERS.map((f) => {
+            const active = category === f.key;
+            return (
+              <Pressable
+                key={f.key}
+                onPress={() => setCategory(f.key)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={f.label}
+                style={[styles.filter, active && styles.filterActive]}
+              >
+                <DalaIcon name={f.icon} size={30} dimmed={!active} />
+                <AppText variant="small" weight={active ? 'bold' : 'medium'} color={active ? COLORS.navy : COLORS.midGray}>
+                  {f.label}
+                </AppText>
+              </Pressable>
+            );
+          })}
         </ScrollView>
       </View>
       <View style={styles.exports}>
-        <Button title="CSV" variant="outline" fullWidth={false} style={{ flex: 1, minHeight: 40 }} icon={<DownloadSimple size={16} color={COLORS.navy} />} onPress={() => void exportFile('csv')} />
-        <Button title="PDF" variant="outline" fullWidth={false} style={{ flex: 1, minHeight: 40 }} icon={<DownloadSimple size={16} color={COLORS.navy} />} onPress={() => void exportFile('pdf')} />
+        <Button title="CSV" variant="outline" fullWidth={false} style={{ flex: 1, minHeight: 40 }} icon={<DalaIcon name="deposit" size={20} />} onPress={() => void exportFile('csv')} />
+        <Button title="PDF" variant="outline" fullWidth={false} style={{ flex: 1, minHeight: 40 }} icon={<DalaIcon name="details" size={20} />} onPress={() => void exportFile('pdf')} />
       </View>
       {q.isLoading ? (
         <Loading />
@@ -79,7 +94,7 @@ export default function Transactions() {
             ItemSeparatorComponent={() => <View style={styles.sep} />}
             refreshing={q.isRefetching}
             onRefresh={() => void q.refetch()}
-            ListEmptyComponent={<EmptyState title="Aucune transaction" body="Modifiez les filtres ou la recherche." />}
+            ListEmptyComponent={<EmptyState icon={<DalaIcon name="tx-all" size={64} />} title="Aucune transaction" body="Modifiez les filtres ou la recherche." />}
           />
         </Card>
       )}
@@ -92,6 +107,8 @@ export default function Transactions() {
 
 const styles = StyleSheet.create({
   chips: { gap: SPACING.sm, paddingBottom: SPACING.sm },
+  filter: { alignItems: 'center', gap: 2, paddingVertical: SPACING.xs, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.md, minWidth: 72 },
+  filterActive: { backgroundColor: COLORS.white, ...SHADOW.card },
   exports: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: COLORS.lightGray },
 });

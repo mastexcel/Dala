@@ -1,8 +1,7 @@
 import { Image, StyleSheet, View } from 'react-native';
-import { CalendarBlank, Diamond, Users } from 'phosphor-react-native';
 import { daysBetween, formatCompact, formatPercent, type ProjectDTO } from '@dala/shared';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
-import { AppText, Badge, Button, Card, ProgressBar } from '@/components/ui';
+import { AppText, Badge, Button, Card, DalaIcon, ProgressBar } from '@/components/ui';
 import { SECTOR_COLOR, sectorLabel } from '@/utils/meta';
 import { ValidatedBadge } from './ValidatedBadge';
 
@@ -37,9 +36,9 @@ export function ProjectCard({ project, onPress }: { project: ProjectDTO; onPress
           </View>
         </View>
         <View style={styles.meta}>
-          <Meta icon={<Users size={16} color={COLORS.midGray} />} text={`${project.investorCount} investisseurs`} />
-          <Meta icon={<CalendarBlank size={16} color={COLORS.midGray} />} text={`${days} jours restants`} />
-          <Meta icon={<Diamond size={16} color={COLORS.midGray} />} text={`Equity : ${formatPercent(project.equityMin, 0)}–${formatPercent(project.equityMax, 0)}`} />
+          <Meta icon={<DalaIcon name="investors" size={20} />} text={`${project.investorCount} investisseurs`} />
+          <Meta icon={<DalaIcon name="schedule" size={20} />} text={`${days} jours restants`} />
+          <Meta icon={<DalaIcon name="portfolio" size={20} />} text={`Equity : ${formatPercent(project.equityMin, 0)}–${formatPercent(project.equityMax, 0)}`} />
         </View>
         <Button title="Investir" variant="secondary" onPress={onPress} />
       </View>

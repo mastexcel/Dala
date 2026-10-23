@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { formatPercent, type FundDTO } from '@dala/shared';
 import { SPACING, TEXT_ON_WHITE } from '@/theme';
-import { AppText, Badge, Card } from '@/components/ui';
+import { AppText, Badge, Card, DalaIcon } from '@/components/ui';
 
 const RISK = { FAIBLE: { label: 'Risque faible', color: TEXT_ON_WHITE.green }, MOYEN: { label: 'Risque moyen', color: TEXT_ON_WHITE.orange }, ELEVE: { label: 'Risque élevé', color: TEXT_ON_WHITE.red } };
 
@@ -9,6 +9,7 @@ export function FundRow({ fund, onPress }: { fund: FundDTO; onPress: () => void 
   return (
     <Card onPress={onPress} style={{ marginBottom: SPACING.sm }} accessibilityLabel={`${fund.name}, performance ${formatPercent(fund.ytdPerformance)}`}>
       <View style={styles.row}>
+        <DalaIcon name={fund.isHalal ? 'sukuk' : 'fcp'} size={40} />
         <View style={{ flex: 1, gap: 4 }}>
           <AppText weight="bold">{fund.name}</AppText>
           <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>

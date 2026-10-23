@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { LockKey } from 'phosphor-react-native';
 import { VAULT_OPTIONS, addMonths, formatDate, formatFCFA, formatPercent } from '@dala/shared';
-import { AppText, AmountSlider, Button, Card, Header, KeyValue, LegalNotice, Screen } from '@/components/ui';
+import { AppText, AmountSlider, Button, Card, DalaIcon, Header, KeyValue, LegalNotice, Screen } from '@/components/ui';
 import { savingsApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { qk, useFinancialMutation, useSummary } from '@/hooks/queries';
@@ -33,7 +32,10 @@ export default function VaultScreen() {
   };
 
   return (
-    <Screen header={<Header title="Coffre-fort" />} footer={<Button title={`Bloquer ${formatFCFA(amount)}`} icon={<LockKey size={18} color={COLORS.navy} weight="bold" />} onPress={submit} loading={create.isPending} disabled={amount < 5_000 || amount > (summary.data?.main ?? 0)} />}>
+    <Screen header={<Header title="Coffre-fort" />} footer={<Button title={`Bloquer ${formatFCFA(amount)}`} icon={<DalaIcon name="vault" size={24} />} onPress={submit} loading={create.isPending} disabled={amount < 5_000 || amount > (summary.data?.main ?? 0)} />}>
+      <View style={{ alignItems: 'center', marginBottom: SPACING.sm }}>
+        <DalaIcon name="vault" size={88} />
+      </View>
       <AppText color={TEXT_ON_WHITE.muted} style={{ marginBottom: SPACING.md }}>
         Mettez votre argent à l'abri des tentations et profitez d'un taux bonus. Les fonds sont débloqués automatiquement à l'échéance.
       </AppText>
@@ -65,6 +67,10 @@ export default function VaultScreen() {
         })}
       </View>
       <Card style={{ marginTop: SPACING.lg }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.xs }}>
+          <DalaIcon name="interest" size={28} />
+          <AppText weight="bold">Vos gains</AppText>
+        </View>
         <KeyValue label="Intérêts estimés" value={`+${formatFCFA(interest)}`} color={TEXT_ON_WHITE.green} />
         <KeyValue label="Montant à l'échéance" value={formatFCFA(amount + interest)} strong />
         <KeyValue label="Date de déblocage" value={formatDate(unlock)} />

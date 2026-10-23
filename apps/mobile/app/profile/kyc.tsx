@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useQueryClient } from '@tanstack/react-query';
-import { Camera, CheckCircle, FileArrowUp, LockSimple } from 'phosphor-react-native';
 import { KYC_LIMITS, KYC_REQUIREMENTS, formatFCFA, type KycLevel } from '@dala/shared';
-import { AppText, Badge, Button, Card, Chip, Header, Input, LegalNotice, Screen } from '@/components/ui';
+import { AppText, Badge, Button, Card, Chip, DalaIcon, Header, Input, LegalNotice, Screen } from '@/components/ui';
 import { useMe, qk } from '@/hooks/queries';
 import { userApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
@@ -64,7 +63,7 @@ export default function Kyc() {
   const DocButton = ({ k, label, camera, video }: { k: DocKey; label: string; camera?: boolean; video?: boolean }) => (
     <Card onPress={() => void capture(k, { camera, video }).catch((e) => setError(errorMessage(e)))} style={{ marginBottom: SPACING.sm }} accessibilityLabel={label}>
       <View style={styles.row}>
-        {files[k] ? <CheckCircle size={24} color={COLORS.green} weight="fill" /> : camera ? <Camera size={24} color={COLORS.blue} weight="duotone" /> : <FileArrowUp size={24} color={COLORS.blue} weight="duotone" />}
+        <DalaIcon name={files[k] ? 'success' : camera ? 'scan' : 'deposit'} size={30} />
         <AppText weight="semibold" style={{ flex: 1 }}>{label}</AppText>
         <AppText variant="small" color={files[k] ? TEXT_ON_WHITE.green : TEXT_ON_WHITE.muted}>{files[k] ? 'Ajouté' : 'Ajouter'}</AppText>
       </View>
@@ -73,13 +72,16 @@ export default function Kyc() {
 
   return (
     <Screen header={<Header title="Vérification d'identité" />} footer={level < 3 && !status ? <Button title={`Valider le niveau ${target}`} disabled={!ready} loading={loading} onPress={submit} /> : undefined}>
+      <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
+        <DalaIcon name="kyc" size={88} />
+      </View>
       {([1, 2, 3] as KycLevel[]).map((l) => {
         const lim = KYC_LIMITS[l];
         const done = l <= level;
         return (
           <Card key={l} style={[{ marginBottom: SPACING.sm, gap: 4 }, l === target && !done ? { borderWidth: 2, borderColor: COLORS.gold } : {}]}>
             <View style={styles.row}>
-              {done ? <CheckCircle size={22} color={COLORS.green} weight="fill" /> : <LockSimple size={22} color={COLORS.midGray} />}
+              <DalaIcon name={done ? 'success' : 'kyc'} size={28} dimmed={!done && l !== target} />
               <AppText weight="bold" style={{ flex: 1 }}>Niveau {l} · {lim.label}</AppText>
               <Badge label={lim.monthlyLimit ? `${formatFCFA(lim.monthlyLimit, { compact: true })}/mois` : 'Sans plafond'} color={TEXT_ON_WHITE.blue} />
             </View>

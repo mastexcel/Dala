@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
-import { Plus } from 'phosphor-react-native';
 import { LEGAL_NOTICE_INVEST, formatFCFA, formatPercent } from '@dala/shared';
-import { AppText, Button, Card, Header, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, Header, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
 import { LineChart } from '@/components/charts/LineChart';
 import { BondCard } from '@/components/invest/BondCard';
 import { FundRow } from '@/components/invest/FundRow';
@@ -23,9 +22,12 @@ export default function Invest() {
       header={<Header title="Investissement" />}
       onRefresh={() => [portfolio, bonds, funds].forEach((q) => void q.refetch())}
       refreshing={portfolio.isRefetching}
-      footer={<Button title="Investir" icon={<Plus size={18} color={COLORS.navy} weight="bold" />} onPress={() => router.push(`/invest/${bonds.data?.[0]?.id ?? 'bt-ci-364'}`)} />}
+      footer={<Button title="Investir" icon={<DalaIcon name="add" size={24} />} onPress={() => router.push(`/invest/${bonds.data?.[0]?.id ?? 'bt-ci-364'}`)} />}
     >
       <Card style={{ backgroundColor: COLORS.navy, gap: 4 }}>
+        <View style={styles.cardIcon}>
+          <DalaIcon name="performance" size={34} />
+        </View>
         <AppText variant="caption" color={COLORS.lightGray}>
           Valeur du portefeuille
         </AppText>
@@ -50,6 +52,7 @@ export default function Invest() {
       </Card>
 
       <View style={styles.halal}>
+        <DalaIcon name="sukuk" size={40} />
         <View style={{ flex: 1 }}>
           <AppText weight="bold">Finance islamique uniquement</AppText>
           <AppText variant="small" color={TEXT_ON_WHITE.muted}>
@@ -59,7 +62,7 @@ export default function Invest() {
         <Switch value={halal} onValueChange={setHalal} trackColor={{ true: COLORS.green }} accessibilityLabel="Afficher uniquement les placements Halal" />
       </View>
 
-      <SectionTitle title="Bons du Trésor UEMOA" />
+      <SectionTitle title="Bons du Trésor UEMOA" icon="bonds" />
       {bonds.isLoading ? (
         <Loading />
       ) : (
@@ -73,12 +76,12 @@ export default function Invest() {
         />
       )}
 
-      <SectionTitle title="Fonds communs de placement" />
+      <SectionTitle title="Fonds communs de placement" icon="fcp" />
       {funds.data?.map((f) => <FundRow key={f.id} fund={f} onPress={() => router.push({ pathname: '/invest/flow', params: { instrumentId: f.id } })} />)}
 
       {p?.investments.length ? (
         <>
-          <SectionTitle title="Mes placements" />
+          <SectionTitle title="Mes placements" icon="portfolio" />
           <Card>
             {p.investments.map((i) => (
               <View key={i.id} style={styles.position}>
@@ -100,6 +103,7 @@ export default function Invest() {
 }
 
 const styles = StyleSheet.create({
+  cardIcon: { position: 'absolute', right: SPACING.md, top: SPACING.md, backgroundColor: COLORS.white, borderRadius: 12, padding: 6 },
   halal: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, marginTop: SPACING.lg },
   position: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.lightGray },
 });

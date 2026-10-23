@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { CheckCircle, Circle } from 'phosphor-react-native';
 import { LEGAL_NOTICE_CREDIT, formatDate, formatFCFA, formatPercent } from '@dala/shared';
-import { AppText, Badge, Button, Card, Chip, ErrorState, Header, Input, KeyValue, LegalNotice, Loading, ProgressBar, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Badge, Button, Card, Chip, DalaIcon, ErrorState, Header, Input, KeyValue, LegalNotice, Loading, ProgressBar, Screen, SectionTitle } from '@/components/ui';
 import { loanApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { qk, useFinancialMutation, useLoan } from '@/hooks/queries';
@@ -44,7 +43,12 @@ export default function LoanDetail() {
     >
       <Card style={{ backgroundColor: COLORS.navy, gap: SPACING.sm }}>
         <View style={styles.between}>
-          <AppText variant="caption" color={COLORS.lightGray}>Reste à rembourser</AppText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+            <View style={{ backgroundColor: COLORS.white, borderRadius: 10, padding: 3 }}>
+              <DalaIcon name="status" size={24} />
+            </View>
+            <AppText variant="caption" color={COLORS.lightGray}>Reste à rembourser</AppText>
+          </View>
           <Badge label={st.label} color={COLORS.white} background={st.color} />
         </View>
         <AppText variant="h1" serif color={COLORS.white}>{formatFCFA(remaining)}</AppText>
@@ -65,7 +69,7 @@ export default function LoanDetail() {
         <KeyValue label="Échéance finale" value={formatDate(l.dueDate)} />
       </Card>
 
-      <SectionTitle title="Échéancier" />
+      <SectionTitle title="Échéancier" icon="schedule" />
       <Card>
         <View style={[styles.row, styles.head]}>
           <AppText variant="small" weight="bold" style={{ width: 30 }}>N°</AppText>
@@ -79,7 +83,7 @@ export default function LoanDetail() {
             <AppText variant="caption" style={{ flex: 1 }}>{formatDate(s.dueDate)}</AppText>
             <AppText variant="caption" weight="semibold" style={{ flex: 1, textAlign: 'right' }}>{formatFCFA(s.amount)}</AppText>
             <View style={{ width: 32, alignItems: 'flex-end' }}>
-              {s.paid ? <CheckCircle size={20} color={COLORS.green} weight="fill" /> : <Circle size={20} color={COLORS.midGray} />}
+              <DalaIcon name={s.paid ? 'success' : 'pending'} size={24} />
             </View>
           </View>
         ))}
@@ -87,7 +91,7 @@ export default function LoanDetail() {
 
       {canRepay ? (
         <>
-          <SectionTitle title="Rembourser" />
+          <SectionTitle title="Rembourser" icon="repay" />
           <View style={{ flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md }}>
             <Chip label="Totalité" active={mode === 'full'} onPress={() => setMode('full')} color={COLORS.orange} />
             <Chip label="Montant partiel" active={mode === 'partial'} onPress={() => setMode('partial')} color={COLORS.orange} />

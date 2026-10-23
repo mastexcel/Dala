@@ -1,12 +1,22 @@
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { BellSimple } from 'phosphor-react-native';
 import { formatRelative } from '@dala/shared';
-import { AppText, Card, EmptyState, Header, Loading, Screen } from '@/components/ui';
+import { AppText, Card, DalaIcon, EmptyState, Header, Loading, Screen, type DalaIconName } from '@/components/ui';
 import { qk, useNotifications } from '@/hooks/queries';
 import { notificationApi } from '@/services/api';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
+
+const TYPE_ICON: Record<string, DalaIconName> = {
+  TRANSACTION: 'transfers',
+  SAVINGS: 'tx-savings',
+  INVEST: 'tx-invest',
+  CROWDFUND: 'tx-crowdfund',
+  CREDIT: 'tx-credit',
+  SECURITY: 'security',
+  KYC: 'kyc',
+  SYSTEM: 'info',
+};
 
 export default function NotificationsScreen() {
   const q = useNotifications();
@@ -28,7 +38,10 @@ export default function NotificationsScreen() {
       ) : q.data?.items.length ? (
         q.data.items.map((n) => (
           <Card key={n.id} style={styles.card}>
-            {!n.isRead ? <View style={styles.dot} accessibilityLabel="Non lue" /> : null}
+            <View>
+              <DalaIcon name={TYPE_ICON[n.type] ?? 'notifications'} size={36} />
+              {!n.isRead ? <View style={styles.dot} accessibilityLabel="Non lue" /> : null}
+            </View>
             <View style={{ flex: 1, gap: 2 }}>
               <AppText weight="bold">{n.title}</AppText>
               <AppText variant="caption" color={COLORS.darkGray}>{n.body}</AppText>
@@ -37,7 +50,7 @@ export default function NotificationsScreen() {
           </Card>
         ))
       ) : (
-        <EmptyState icon={<BellSimple size={48} color={COLORS.gold} weight="duotone" />} title="Aucune notification" />
+        <EmptyState icon={<DalaIcon name="notifications" size={72} />} title="Aucune notification" />
       )}
     </Screen>
   );
@@ -45,5 +58,5 @@ export default function NotificationsScreen() {
 
 const styles = StyleSheet.create({
   card: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
-  dot: { width: 10, height: 10, borderRadius: RADIUS.full, backgroundColor: COLORS.gold, marginTop: 6 },
+  dot: { position: 'absolute', top: -2, right: -2, width: 12, height: 12, borderRadius: RADIUS.full, backgroundColor: COLORS.red, borderWidth: 2, borderColor: COLORS.white },
 });

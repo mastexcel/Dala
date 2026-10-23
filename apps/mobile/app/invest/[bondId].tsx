@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LEGAL_NOTICE_INVEST, formatDate, formatFCFA, formatPercent, simulateBond } from '@dala/shared';
-import { AmountSlider, AppText, Badge, Button, Card, ErrorState, Header, KeyValue, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
+import { AmountSlider, AppText, Badge, Button, Card, DalaIcon, ErrorState, Header, KeyValue, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
 import { useBond } from '@/hooks/queries';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 import { countryFlag, countryName } from '@/utils/meta';
@@ -24,7 +24,10 @@ export default function BondDetail() {
       footer={<Button title={`Investir ${formatFCFA(sim.amount)}`} onPress={() => router.push({ pathname: '/invest/flow', params: { instrumentId: b.id, amount: String(sim.amount) } })} />}
     >
       <View style={{ alignItems: 'center', gap: SPACING.xs, marginVertical: SPACING.md }}>
-        <AppText style={{ fontSize: 48, lineHeight: 56 }}>{countryFlag(b.issuerCountry)}</AppText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+          <DalaIcon name={b.isHalal ? 'sukuk' : 'bonds'} size={64} />
+          <AppText style={{ fontSize: 48, lineHeight: 56 }}>{countryFlag(b.issuerCountry)}</AppText>
+        </View>
         <AppText variant="h3" weight="bold" align="center">
           {b.issuerName}
         </AppText>
@@ -39,7 +42,7 @@ export default function BondDetail() {
       </View>
       <AppText color={COLORS.darkGray}>{b.description}</AppText>
 
-      <SectionTitle title="Simulation de rendement" />
+      <SectionTitle title="Simulation de rendement" icon="simulation" />
       <Card style={{ gap: SPACING.sm }}>
         <AmountSlider value={amount} onChange={setAmount} min={b.minAmount} max={2_000_000} step={5_000} color={COLORS.blue} label="Montant investi" />
         <KeyValue label="Intérêts à l'échéance" value={`+${formatFCFA(sim.interest)}`} color={TEXT_ON_WHITE.green} />
@@ -47,7 +50,7 @@ export default function BondDetail() {
         <KeyValue label="Date d'échéance" value={formatDate(maturity)} />
       </Card>
 
-      <SectionTitle title="Caractéristiques" />
+      <SectionTitle title="Caractéristiques" icon="details" />
       <Card>
         <KeyValue label="Émetteur" value={b.issuerName} />
         <KeyValue label="Type" value={b.type === 'SUKUK' ? 'Sukuk (finance islamique)' : 'Bon assimilable du Trésor'} />
