@@ -71,7 +71,7 @@ export default function Kyc() {
   );
 
   return (
-    <Screen header={<Header title="Vérification d'identité" />} footer={level < 3 && !status ? <Button title={`Valider le niveau ${target}`} disabled={!ready} loading={loading} onPress={submit} /> : undefined}>
+    <Screen wallpaper="profile" header={<Header title="Vérification d'identité" />} footer={level < 3 && !status ? <Button title={`Valider le niveau ${target}`} disabled={!ready} loading={loading} onPress={submit} /> : undefined}>
       <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
         <DalaIcon name="kyc" size={88} />
       </View>

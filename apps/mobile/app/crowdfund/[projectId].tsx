@@ -34,8 +34,8 @@ export default function ProjectDetail() {
   const strongAuth = useStrongAuth();
   const invest = useFinancialMutation(({ pin }: { pin?: string }) => crowdfundApi.invest(projectId, amount, pin), [qk.project(projectId), qk.cfPortfolio, ['projects']]);
 
-  if (q.isLoading) return <Screen header={<Header title="Projet" />}><Loading /></Screen>;
-  if (!q.data) return <Screen header={<Header title="Projet" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
+  if (q.isLoading) return <Screen wallpaper="crowdfund" header={<Header title="Projet" />}><Loading /></Screen>;
+  if (!q.data) return <Screen wallpaper="crowdfund" header={<Header title="Projet" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
   const p = q.data;
   const ratio = p.fundingRaised / p.fundingGoal;
   const remaining = p.fundingGoal - p.fundingRaised;
@@ -57,7 +57,7 @@ export default function ProjectDetail() {
   };
 
   return (
-    <Screen
+    <Screen wallpaper="crowdfund"
       padded={false}
       header={<Header title={p.name} />}
       footer={

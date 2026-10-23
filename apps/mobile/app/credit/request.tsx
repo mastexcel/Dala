@@ -42,7 +42,7 @@ export default function LoanRequest() {
 
   // Devis calculé localement avec la même fonction que le serveur (transparence immédiate).
   const quote = useMemo(() => (credit.data ? quoteLoan(amount, duration, credit.data.score) : null), [amount, duration, credit.data]);
-  if (!credit.data || !quote) return <Screen header={<Header title="Demander un prêt" />}><Loading /></Screen>;
+  if (!credit.data || !quote) return <Screen wallpaper="credit" header={<Header title="Demander un prêt" />}><Loading /></Screen>;
 
   const submit = async () => {
     setError(undefined);
@@ -85,7 +85,7 @@ export default function LoanRequest() {
   }
 
   return (
-    <Screen
+    <Screen wallpaper="credit"
       header={<Header title="Demander un prêt" />}
       footer={<Button title={scoring ? 'Analyse de votre profil…' : 'Soumettre la demande'} disabled={!accepted || amount > eligible} loading={scoring} onPress={submit} />}
     >

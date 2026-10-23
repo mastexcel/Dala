@@ -12,7 +12,7 @@ const LANGS = [
 export default function Language() {
   const { i18n } = useTranslation();
   return (
-    <Screen header={<Header title="Langue" />}>
+    <Screen wallpaper="profile" header={<Header title="Langue" />}>
       <Card padded={false}>
         {LANGS.map((l) => {
           const active = i18n.language === l.code;

@@ -42,7 +42,7 @@ export default function NotificationSettings() {
   };
 
   return (
-    <Screen header={<Header title="Notifications" />}>
+    <Screen wallpaper="profile" header={<Header title="Notifications" />}>
       <Card style={{ marginBottom: SPACING.md }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
           <DalaIcon name="notifications" size={40} />

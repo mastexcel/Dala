@@ -15,7 +15,7 @@ export default function Credit() {
   const active = c?.loans.find((l) => l.status === 'DISBURSED' || l.status === 'OVERDUE' || l.status === 'PENDING');
 
   return (
-    <Screen onRefresh={() => void q.refetch()} refreshing={q.isRefetching}>
+    <Screen wallpaper="credit" onRefresh={() => void q.refetch()} refreshing={q.isRefetching}>
       <AppText variant="h1" color={COLORS.navy}>
         Micro-crédit
       </AppText>

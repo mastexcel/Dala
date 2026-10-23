@@ -26,7 +26,7 @@ export default function Home() {
   };
 
   return (
-    <Screen refreshing={summary.isRefetching} onRefresh={refresh}>
+    <Screen wallpaper="home" refreshing={summary.isRefetching} onRefresh={refresh}>
       <View style={styles.header}>
         <View style={{ gap: 2 }}>
           <Logo variant="colorLight" width={96} />

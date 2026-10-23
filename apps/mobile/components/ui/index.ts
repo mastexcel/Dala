@@ -21,3 +21,4 @@ export * from './PhoneInput';
 export * from './CodeInput';
 export * from './AuthBackground';
 export * from './DalaIcon';
+export * from './wallpapers';

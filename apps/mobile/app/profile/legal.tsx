@@ -16,7 +16,7 @@ const SECTIONS = [
 
 export default function Legal() {
   return (
-    <Screen header={<Header title="Mentions légales & CGU" />}>
+    <Screen wallpaper="profile" header={<Header title="Mentions légales & CGU" />}>
       <Logo variant="black" width={140} style={{ alignSelf: 'center', marginBottom: SPACING.md }} />
       {SECTIONS.map((s) => (
         <Card key={s.title} style={{ marginBottom: SPACING.sm }}>

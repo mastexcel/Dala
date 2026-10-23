@@ -35,7 +35,7 @@ export default function InvestFlow() {
     return null;
   }, [bonds.data, funds.data, params.instrumentId]);
 
-  if (!inst) return <Screen header={<Header title="Investir" />}><Loading /></Screen>;
+  if (!inst) return <Screen wallpaper="invest" header={<Header title="Investir" />}><Loading /></Screen>;
   const value = Number(amount) || 0;
   const available = summary.data?.main ?? 0;
   const sim = simulateBond(value, inst.rate, inst.days);
@@ -79,7 +79,7 @@ export default function InvestFlow() {
 
   if (step === 'confirm') {
     return (
-      <Screen header={<Header title="Récapitulatif" onBack={() => setStep('amount')} />} footer={<Button title="Confirmer l'investissement" disabled={!accepted} loading={invest.isPending} onPress={confirm} />}>
+      <Screen wallpaper="invest" header={<Header title="Récapitulatif" onBack={() => setStep('amount')} />} footer={<Button title="Confirmer l'investissement" disabled={!accepted} loading={invest.isPending} onPress={confirm} />}>
         <Card>
           <View style={{ alignItems: 'center', marginBottom: SPACING.sm }}>
             <DalaIcon name="details" size={56} />
@@ -106,7 +106,7 @@ export default function InvestFlow() {
   }
 
   return (
-    <Screen header={<Header title="Investir" />} footer={<Button title="Continuer" disabled={!value || !!amountError} onPress={() => setStep('confirm')} />}>
+    <Screen wallpaper="invest" header={<Header title="Investir" />} footer={<Button title="Continuer" disabled={!value || !!amountError} onPress={() => setStep('confirm')} />}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
         <DalaIcon name={inst.isBond ? 'bonds' : 'fcp'} size={40} />
         <AppText variant="h3" weight="bold" style={{ flex: 1 }}>

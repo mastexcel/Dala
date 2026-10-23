@@ -1,9 +1,10 @@
-import { RefreshControl, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import { ImageBackground, RefreshControl, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { ReactNode } from 'react';
 import { COLORS, SPACING } from '@/theme';
 import { OfflineBanner } from './OfflineBanner';
+import { WALLPAPER_IMAGE, WALLPAPERS, type WallpaperName } from './wallpapers';
 
 interface Props {
   children: ReactNode;
@@ -17,12 +18,14 @@ interface Props {
   refreshing?: boolean;
   onRefresh?: () => void;
   contentStyle?: ViewStyle;
+  /** Fond d'écran de la section (fixe, ne défile pas avec le contenu). */
+  wallpaper?: WallpaperName;
 }
 
-export function Screen({ children, scroll = true, background = COLORS.offWhite, dark, padded = true, edges = ['top'], header, footer, refreshing, onRefresh, contentStyle }: Props) {
+export function Screen({ children, scroll = true, background = COLORS.offWhite, dark, padded = true, edges = ['top'], header, footer, refreshing, onRefresh, contentStyle, wallpaper }: Props) {
   const inner = [padded && styles.padded, contentStyle];
-  return (
-    <SafeAreaView style={[styles.flex, { backgroundColor: background }]} edges={edges}>
+  const screen = (
+    <SafeAreaView style={[styles.flex, { backgroundColor: wallpaper ? 'transparent' : background }]} edges={edges}>
       <StatusBar style={dark ? 'light' : 'dark'} />
       <OfflineBanner />
       {header}
@@ -41,10 +44,17 @@ export function Screen({ children, scroll = true, background = COLORS.offWhite, 
       {footer ? <View style={styles.footer}>{footer}</View> : null}
     </SafeAreaView>
   );
+  if (!wallpaper) return screen;
+  return (
+    <ImageBackground source={WALLPAPERS[wallpaper]} resizeMode="cover" style={[styles.flex, styles.clip, { backgroundColor: background }]} imageStyle={WALLPAPER_IMAGE} accessibilityIgnoresInvertColors>
+      {screen}
+    </ImageBackground>
+  );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  clip: { overflow: 'hidden' },
   padded: { paddingHorizontal: SPACING.md, paddingTop: SPACING.sm },
   footer: { padding: SPACING.md, borderTopWidth: 1, borderTopColor: COLORS.lightGray, backgroundColor: COLORS.white },
 });

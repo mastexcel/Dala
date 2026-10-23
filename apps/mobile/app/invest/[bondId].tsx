@@ -12,14 +12,14 @@ export default function BondDetail() {
   const q = useBond(bondId);
   const [amount, setAmount] = useState(100_000);
 
-  if (q.isLoading) return <Screen header={<Header title="Bon du Trésor" />}><Loading /></Screen>;
-  if (!q.data) return <Screen header={<Header title="Bon du Trésor" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
+  if (q.isLoading) return <Screen wallpaper="invest" header={<Header title="Bon du Trésor" />}><Loading /></Screen>;
+  if (!q.data) return <Screen wallpaper="invest" header={<Header title="Bon du Trésor" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
   const b = q.data;
   const sim = simulateBond(Math.max(amount, b.minAmount), b.rate, b.maturityDays);
   const maturity = new Date(Date.now() + b.maturityDays * 86_400_000);
 
   return (
-    <Screen
+    <Screen wallpaper="invest"
       header={<Header title={b.type === 'SUKUK' ? 'Sukuk' : 'Bon du Trésor'} />}
       footer={<Button title={`Investir ${formatFCFA(sim.amount)}`} onPress={() => router.push({ pathname: '/invest/flow', params: { instrumentId: b.id, amount: String(sim.amount) } })} />}
     >

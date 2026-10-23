@@ -19,7 +19,7 @@ export default function Savings() {
   const vaults = useVaults();
 
   return (
-    <Screen onRefresh={() => [goals, tontines, vaults, summary].forEach((q) => void q.refetch())} refreshing={goals.isRefetching}>
+    <Screen wallpaper="savings" onRefresh={() => [goals, tontines, vaults, summary].forEach((q) => void q.refetch())} refreshing={goals.isRefetching}>
       <AppText variant="h1" color={COLORS.navy}>
         Épargne
       </AppText>

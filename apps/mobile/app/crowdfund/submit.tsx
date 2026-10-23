@@ -99,7 +99,7 @@ export default function SubmitProject() {
 
   if (submitted) {
     return (
-      <Screen header={<Header title="Projet soumis" />}>
+      <Screen wallpaper="crowdfund" header={<Header title="Projet soumis" />}>
         <View style={{ alignItems: 'center', gap: SPACING.md, marginTop: SPACING.xl }}>
           <DalaIcon name="validated-projects" size={110} />
           <AppText variant="h2" align="center">Merci !</AppText>
@@ -133,7 +133,7 @@ export default function SubmitProject() {
   );
 
   return (
-    <Screen
+    <Screen wallpaper="crowdfund"
       header={<Header title="Soumettre un projet" onBack={step ? () => setStep(step - 1) : undefined} />}
       footer={<Button title={step === 3 ? 'Soumettre au comité' : 'Continuer'} variant="secondary" onPress={next} loading={formState.isSubmitting} />}
     >

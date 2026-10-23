@@ -19,8 +19,8 @@ export default function TontineDetail() {
   const [error, setError] = useState<string>();
   const contribute = useFinancialMutation((pin: string) => savingsApi.contribute(id, pin), [qk.tontines]);
 
-  if (q.isLoading) return <Screen header={<Header title="Tontine" />}><Loading /></Screen>;
-  if (!q.data) return <Screen header={<Header title="Tontine" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
+  if (q.isLoading) return <Screen wallpaper="savings" header={<Header title="Tontine" />}><Loading /></Screen>;
+  if (!q.data) return <Screen wallpaper="savings" header={<Header title="Tontine" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
   const t = q.data;
   const me = t.members.find((m) => m.position === t.myPosition);
   const beneficiary = t.members.find((m) => m.position === t.currentCycle);
@@ -39,7 +39,7 @@ export default function TontineDetail() {
   };
 
   return (
-    <Screen
+    <Screen wallpaper="savings"
       header={<Header title="Tontine" />}
       footer={
         t.status === 'ACTIVE' ? (

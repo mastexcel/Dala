@@ -1,15 +1,15 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { ReactNode } from 'react';
 import { COLORS, SPACING } from '@/theme';
+import { WALLPAPER_IMAGE, WALLPAPERS } from './wallpapers';
 
-/** Fond dégradé navy → navy clair des écrans d'authentification. */
+/** Fond des écrans de connexion et d'inscription (wallpaper « auth », thème clair). */
 export function AuthBackground({ children }: { children: ReactNode }) {
   return (
-    <LinearGradient colors={[COLORS.navy, '#1A2E5A']} style={{ flex: 1 }}>
-      <StatusBar style="light" />
+    <ImageBackground source={WALLPAPERS.auth} resizeMode="cover" style={{ flex: 1, overflow: 'hidden', backgroundColor: COLORS.white }} imageStyle={WALLPAPER_IMAGE} accessibilityIgnoresInvertColors>
+      <StatusBar style="dark" />
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -17,7 +17,7 @@ export function AuthBackground({ children }: { children: ReactNode }) {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </LinearGradient>
+    </ImageBackground>
   );
 }
 

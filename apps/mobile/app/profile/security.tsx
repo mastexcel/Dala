@@ -56,7 +56,7 @@ export default function Security() {
 
   const l = limits.data;
   return (
-    <Screen header={<Header title="Sécurité" />}>
+    <Screen wallpaper="profile" header={<Header title="Sécurité" />}>
       <Card style={{ gap: SPACING.sm }}>
         <View style={styles.row}>
           <DalaIcon name="security" size={44} />

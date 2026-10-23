@@ -23,7 +23,7 @@ export default function Crowdfund() {
   const portfolio = useCrowdfundPortfolio();
 
   return (
-    <Screen onRefresh={() => [projects, portfolio].forEach((q) => void q.refetch())} refreshing={projects.isRefetching}>
+    <Screen wallpaper="crowdfund" onRefresh={() => [projects, portfolio].forEach((q) => void q.refetch())} refreshing={projects.isRefetching}>
       <AppText variant="h1" color={COLORS.navy}>
         Crowdfunding
       </AppText>

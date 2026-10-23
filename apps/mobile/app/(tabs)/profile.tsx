@@ -44,7 +44,7 @@ export default function Profile() {
     ]);
 
   return (
-    <Screen>
+    <Screen wallpaper="profile">
       <View style={styles.head}>
         <View style={styles.avatar}>
           <AppText variant="h2" serif color={COLORS.navy}>

@@ -48,7 +48,7 @@ export default function Support() {
   };
 
   return (
-    <Screen header={<Header title="Support" />}>
+    <Screen wallpaper="profile" header={<Header title="Support" />}>
       <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
         <Button title="Appeler" variant="outline" fullWidth={false} style={{ flex: 1 }} icon={<Phone size={18} color={COLORS.navy} />} onPress={() => void Linking.openURL('tel:+2250000000000')} />
         <Button title="WhatsApp" variant="outline" fullWidth={false} style={{ flex: 1 }} icon={<ChatCircleText size={18} color={COLORS.navy} />} onPress={() => void Linking.openURL('https://wa.me/2250000000000')} />

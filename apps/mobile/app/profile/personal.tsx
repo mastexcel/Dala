@@ -39,7 +39,7 @@ export default function Personal() {
   };
 
   return (
-    <Screen header={<Header title="Informations personnelles" />} footer={<Button title="Enregistrer" onPress={save} loading={saving} />}>
+    <Screen wallpaper="profile" header={<Header title="Informations personnelles" />} footer={<Button title="Enregistrer" onPress={save} loading={saving} />}>
       <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
         <DalaIcon name="user" size={80} />
       </View>

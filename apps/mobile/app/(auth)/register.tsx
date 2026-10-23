@@ -9,7 +9,7 @@ import { AppText, AuthBackground, Button, CodeInput, Header, Input, PhoneInput, 
 import { authApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { useRegistrationStore } from '@/stores/registration';
-import { COLORS, SPACING } from '@/theme';
+import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const schema = z
   .object({
@@ -54,36 +54,36 @@ export default function Register() {
   return (
     <AuthBackground>
       <View style={{ marginHorizontal: -SPACING.lg }}>
-        <Header title="Créer un compte" light />
+        <Header title="Créer un compte" />
       </View>
-      <AppText color={COLORS.lightGray} style={{ marginBottom: SPACING.md }}>
+      <AppText color={TEXT_ON_WHITE.muted} style={{ marginBottom: SPACING.md }}>
         Ouvrez votre compte DALA en 2 minutes. Niveau 1 : nom, prénom et téléphone vérifié.
       </AppText>
-      <Controller control={control} name="firstName" render={({ field, fieldState }) => <Input dark label="Prénom" autoComplete="given-name" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
-      <Controller control={control} name="lastName" render={({ field, fieldState }) => <Input dark label="Nom" autoComplete="family-name" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
-      <Controller control={control} name="phone" render={({ field, fieldState }) => <PhoneInput dark country={country} onCountryChange={setCountry} value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
-      <Controller control={control} name="email" render={({ field, fieldState }) => <Input dark label="E-mail (facultatif)" keyboardType="email-address" autoCapitalize="none" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
+      <Controller control={control} name="firstName" render={({ field, fieldState }) => <Input label="Prénom" autoComplete="given-name" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
+      <Controller control={control} name="lastName" render={({ field, fieldState }) => <Input label="Nom" autoComplete="family-name" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
+      <Controller control={control} name="phone" render={({ field, fieldState }) => <PhoneInput country={country} onCountryChange={setCountry} value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
+      <Controller control={control} name="email" render={({ field, fieldState }) => <Input label="E-mail (facultatif)" keyboardType="email-address" autoCapitalize="none" value={field.value} onChangeText={field.onChange} error={fieldState.error?.message} />} />
       <Controller control={control} name="pin" render={({ field, fieldState }) => (
         <View>
-          <CodeInput dark secure label="Choisissez un code PIN" length={4} value={field.value} onChange={field.onChange} />
-          {fieldState.error ? <AppText variant="small" color="#FF8A80">{fieldState.error.message}</AppText> : null}
+          <CodeInput secure label="Choisissez un code PIN" length={4} value={field.value} onChange={field.onChange} />
+          {fieldState.error ? <AppText variant="small" color={TEXT_ON_WHITE.red}>{fieldState.error.message}</AppText> : null}
         </View>
       )} />
       <Controller control={control} name="pinConfirm" render={({ field, fieldState }) => (
         <View>
-          <CodeInput dark secure label="Confirmez le code PIN" length={4} value={field.value} onChange={field.onChange} />
-          {fieldState.error ? <AppText variant="small" color="#FF8A80">{fieldState.error.message}</AppText> : null}
+          <CodeInput secure label="Confirmez le code PIN" length={4} value={field.value} onChange={field.onChange} />
+          {fieldState.error ? <AppText variant="small" color={TEXT_ON_WHITE.red}>{fieldState.error.message}</AppText> : null}
         </View>
       )} />
-      <Controller control={control} name="referralCode" render={({ field }) => <Input dark label="Code de parrainage (facultatif)" autoCapitalize="characters" value={field.value} onChangeText={field.onChange} />} />
-      {error ? <AppText color="#FF8A80" align="center">{error}</AppText> : null}
+      <Controller control={control} name="referralCode" render={({ field }) => <Input label="Code de parrainage (facultatif)" autoCapitalize="characters" value={field.value} onChangeText={field.onChange} />} />
+      {error ? <AppText color={TEXT_ON_WHITE.red} align="center">{error}</AppText> : null}
       <Button title="Recevoir le code OTP" onPress={onSubmit} loading={formState.isSubmitting} />
-      <AppText variant="small" color={COLORS.lightGray} align="center">
+      <AppText variant="small" color={TEXT_ON_WHITE.muted} align="center">
         En continuant, vous acceptez les Conditions générales d'utilisation et la politique de confidentialité de DALA Finance.
       </AppText>
       <Pressable onPress={() => router.replace('/(auth)/login')} accessibilityRole="button" style={{ padding: SPACING.md }}>
-        <AppText align="center" color={COLORS.lightGray}>
-          Déjà inscrit ? <AppText weight="bold" color={COLORS.gold}>Se connecter</AppText>
+        <AppText align="center" color={TEXT_ON_WHITE.muted}>
+          Déjà inscrit ? <AppText weight="bold" color={TEXT_ON_WHITE.gold}>Se connecter</AppText>
         </AppText>
       </Pressable>
     </AuthBackground>

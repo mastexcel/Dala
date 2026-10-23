@@ -66,7 +66,7 @@ export default function CreateGoal() {
   });
 
   return (
-    <Screen header={<Header title="Nouvel objectif" />} footer={<Button title="Créer l'objectif" onPress={submit} loading={formState.isSubmitting} />}>
+    <Screen wallpaper="savings" header={<Header title="Nouvel objectif" />} footer={<Button title="Créer l'objectif" onPress={submit} loading={formState.isSubmitting} />}>
       <AppText variant="caption" weight="semibold" color={COLORS.darkGray} style={{ marginBottom: SPACING.xs }}>
         Icône
       </AppText>

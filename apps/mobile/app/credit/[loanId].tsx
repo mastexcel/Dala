@@ -20,8 +20,8 @@ export default function LoanDetail() {
   const strongAuth = useStrongAuth();
   const repay = useFinancialMutation(({ value, pin }: { value: number; pin?: string }) => loanApi.repay(loanId, value, pin), [qk.loan(loanId), qk.credit]);
 
-  if (q.isLoading) return <Screen header={<Header title="Détail du prêt" />}><Loading /></Screen>;
-  if (!q.data) return <Screen header={<Header title="Détail du prêt" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
+  if (q.isLoading) return <Screen wallpaper="credit" header={<Header title="Détail du prêt" />}><Loading /></Screen>;
+  if (!q.data) return <Screen wallpaper="credit" header={<Header title="Détail du prêt" />}><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Screen>;
   const l = q.data;
   const remaining = l.totalDue - l.amountPaid;
   const canRepay = l.status === 'DISBURSED' || l.status === 'OVERDUE';
@@ -39,7 +39,7 @@ export default function LoanDetail() {
   };
 
   return (
-    <Screen
+    <Screen wallpaper="credit"
       header={<Header title="Détail du prêt" />}
       footer={canRepay ? <Button title={`Rembourser ${formatFCFA(value)}`} disabled={value < 100} loading={repay.isPending} onPress={submit} /> : undefined}
     >

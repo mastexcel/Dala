@@ -22,7 +22,7 @@ export default function GoalDetail() {
   const strongAuth = useStrongAuth();
   const deposit = useFinancialMutation(({ value, pin }: { value: number; pin?: string }) => savingsApi.depositGoal(id, value, pin), [qk.goals]);
 
-  if (!goal) return <Screen header={<Header title="Objectif" />}>{goals.isLoading ? <Loading /> : <AppText>Objectif introuvable</AppText>}</Screen>;
+  if (!goal) return <Screen wallpaper="savings" header={<Header title="Objectif" />}>{goals.isLoading ? <Loading /> : <AppText>Objectif introuvable</AppText>}</Screen>;
 
   const ratio = progressRatio(goal.currentAmount, goal.targetAmount);
   const value = Number(amount) || 0;
@@ -41,7 +41,7 @@ export default function GoalDetail() {
   };
 
   return (
-    <Screen header={<Header title={goal.name} />} footer={<Button title={`Épargner ${value ? formatFCFA(value) : ''}`} disabled={value < 100} loading={deposit.isPending} onPress={submit} />}>
+    <Screen wallpaper="savings" header={<Header title={goal.name} />} footer={<Button title={`Épargner ${value ? formatFCFA(value) : ''}`} disabled={value < 100} loading={deposit.isPending} onPress={submit} />}>
       <View style={{ alignItems: 'center', marginVertical: SPACING.lg, gap: SPACING.sm }}>
         <CircularProgress value={ratio} size={150} stroke={14} color={ratio >= 1 ? COLORS.gold : COLORS.green}>
           <AppText variant="h2" serif>

@@ -8,7 +8,7 @@ import { errorMessage } from '@/services/errors';
 import { track, amountBucket } from '@/services/monitoring';
 import { useAuthStore } from '@/stores/auth';
 import { useRegistrationStore } from '@/stores/registration';
-import { COLORS, SPACING } from '@/theme';
+import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 60;
@@ -57,19 +57,19 @@ export default function Otp() {
   return (
     <AuthBackground>
       <View style={{ marginHorizontal: -SPACING.lg }}>
-        <Header title="Vérification" light />
+        <Header title="Vérification" />
       </View>
-      <AppText variant="h2" color={COLORS.white}>
+      <AppText variant="h2" color={COLORS.navy}>
         Entrez le code reçu
       </AppText>
-      <AppText color={COLORS.lightGray} style={{ marginBottom: SPACING.lg }}>
+      <AppText color={TEXT_ON_WHITE.muted} style={{ marginBottom: SPACING.lg }}>
         Un SMS a été envoyé au {maskPhone(pending.phone)}.
       </AppText>
-      <CodeInput dark label="Code OTP" length={OTP_LENGTH} value={otp} onChange={setOtp} autoFocus />
-      {error ? <AppText color="#FF8A80" align="center">{error}</AppText> : null}
+      <CodeInput label="Code OTP" length={OTP_LENGTH} value={otp} onChange={setOtp} autoFocus />
+      {error ? <AppText color={TEXT_ON_WHITE.red} align="center">{error}</AppText> : null}
       <Button title="Valider et créer mon compte" onPress={verify} loading={loading} disabled={otp.length !== OTP_LENGTH} />
       <Pressable disabled={countdown > 0} onPress={resend} accessibilityRole="button" style={{ padding: SPACING.md, alignSelf: 'center' }}>
-        <AppText color={countdown > 0 ? COLORS.lightGray : COLORS.gold} weight="semibold">
+        <AppText color={countdown > 0 ? TEXT_ON_WHITE.muted : TEXT_ON_WHITE.gold} weight="semibold">
           {countdown > 0 ? `Renvoyer le code dans ${countdown} s` : 'Renvoyer le code'}
         </AppText>
       </Pressable>

@@ -11,7 +11,7 @@ import { errorMessage } from '@/services/errors';
 import { track, amountBucket } from '@/services/monitoring';
 import { useAuthStore } from '@/stores/auth';
 import { useBiometrics } from '@/hooks/useBiometrics';
-import { COLORS, RADIUS, SPACING } from '@/theme';
+import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const OTP_LENGTH = 6;
 
@@ -80,23 +80,23 @@ export default function Login() {
   return (
     <AuthBackground>
       <View style={styles.logo}>
-        <Logo width={200} />
-        <AppText variant="h2" color={COLORS.white} align="center" style={{ marginTop: SPACING.lg }}>
+        <Logo variant="colorLight" width={200} />
+        <AppText variant="h2" color={COLORS.navy} align="center" style={{ marginTop: SPACING.lg }}>
           Bon retour 👋
         </AppText>
       </View>
 
-      <PhoneInput dark country={country} onCountryChange={setCountry} value={phone} onChangeText={setPhone} />
+      <PhoneInput country={country} onCountryChange={setCountry} value={phone} onChangeText={setPhone} />
 
       {!otpSent ? (
         <Button title={t('auth.sendOtp')} onPress={sendOtp} loading={loading} disabled={!phoneValid} />
       ) : (
         <>
-          <CodeInput dark label={t('auth.otp')} length={OTP_LENGTH} value={otp} onChange={setOtp} autoFocus />
-          <CodeInput dark secure label={t('auth.pin')} length={4} value={pin} onChange={setPin} />
+          <CodeInput label={t('auth.otp')} length={OTP_LENGTH} value={otp} onChange={setOtp} autoFocus />
+          <CodeInput secure label={t('auth.pin')} length={4} value={pin} onChange={setPin} />
           <Button title={t('auth.login')} onPress={login} loading={loading} disabled={otp.length !== OTP_LENGTH || pin.length < 4} />
           <Pressable onPress={sendOtp} accessibilityRole="button" style={{ alignSelf: 'center', padding: SPACING.sm }}>
-            <AppText variant="caption" color={COLORS.gold} weight="semibold">
+            <AppText variant="caption" color={TEXT_ON_WHITE.gold} weight="semibold">
               {t('auth.resend')}
             </AppText>
           </Pressable>
@@ -104,7 +104,7 @@ export default function Login() {
       )}
 
       {error ? (
-        <AppText color="#FF8A80" align="center" accessibilityLiveRegion="assertive">
+        <AppText color={TEXT_ON_WHITE.red} align="center" accessibilityLiveRegion="assertive">
           {error}
         </AppText>
       ) : null}
@@ -112,7 +112,7 @@ export default function Login() {
       {(bio.available || USE_MOCKS) && (hasStoredSession || biometricEnabled) ? (
         <Pressable onPress={biometricLogin} style={styles.bio} accessibilityRole="button">
           <BioIcon size={26} color={COLORS.gold} weight="duotone" />
-          <AppText weight="semibold" color={COLORS.white}>
+          <AppText weight="semibold" color={COLORS.navy}>
             {t('auth.biometric', { method: bio.label })}
           </AppText>
         </Pressable>
@@ -120,13 +120,13 @@ export default function Login() {
 
       <View style={{ flex: 1 }} />
       {USE_MOCKS ? (
-        <AppText variant="small" align="center" color={COLORS.lightGray}>
+        <AppText variant="small" align="center" color={TEXT_ON_WHITE.muted}>
           {t('auth.demoHint')}
         </AppText>
       ) : null}
       <Pressable onPress={() => router.push('/(auth)/register')} accessibilityRole="button" style={{ padding: SPACING.md }}>
-        <AppText align="center" color={COLORS.lightGray}>
-          {t('auth.noAccount')} <AppText weight="bold" color={COLORS.gold}>{t('auth.createAccount')}</AppText>
+        <AppText align="center" color={TEXT_ON_WHITE.muted}>
+          {t('auth.noAccount')} <AppText weight="bold" color={TEXT_ON_WHITE.gold}>{t('auth.createAccount')}</AppText>
         </AppText>
       </Pressable>
     </AuthBackground>
@@ -135,5 +135,5 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   logo: { alignItems: 'center', marginVertical: SPACING.xl },
-  bio: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', marginTop: SPACING.md },
+  bio: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.lightGray, backgroundColor: COLORS.white, marginTop: SPACING.md },
 });

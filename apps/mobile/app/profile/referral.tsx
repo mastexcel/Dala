@@ -8,7 +8,7 @@ export default function Referral() {
   const q = useReferrals();
   const r = q.data;
   return (
-    <Screen header={<Header title="Parrainage" />}>
+    <Screen wallpaper="profile" header={<Header title="Parrainage" />}>
       <View style={{ alignItems: 'center', gap: SPACING.sm, marginVertical: SPACING.lg }}>
         <DalaIcon name="referral" size={96} />
         <AppText variant="h2" align="center">Invitez vos proches</AppText>

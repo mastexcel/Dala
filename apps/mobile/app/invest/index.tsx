@@ -18,7 +18,7 @@ export default function Invest() {
   const p = portfolio.data;
 
   return (
-    <Screen
+    <Screen wallpaper="invest"
       header={<Header title="Investissement" />}
       onRefresh={() => [portfolio, bonds, funds].forEach((q) => void q.refetch())}
       refreshing={portfolio.isRefetching}

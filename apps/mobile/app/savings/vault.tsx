@@ -36,7 +36,7 @@ export default function VaultScreen() {
   };
 
   return (
-    <Screen header={<Header title="Coffre-fort" />} footer={<Button title={`Bloquer ${formatFCFA(amount)}`} icon={<DalaIcon name="vault" size={24} />} onPress={submit} loading={create.isPending} disabled={amount < 5_000 || amount > (summary.data?.main ?? 0)} />}>
+    <Screen wallpaper="savings" header={<Header title="Coffre-fort" />} footer={<Button title={`Bloquer ${formatFCFA(amount)}`} icon={<DalaIcon name="vault" size={24} />} onPress={submit} loading={create.isPending} disabled={amount < 5_000 || amount > (summary.data?.main ?? 0)} />}>
       <View style={{ alignItems: 'center', marginBottom: SPACING.sm }}>
         <DalaIcon name="vault" size={88} />
       </View>
