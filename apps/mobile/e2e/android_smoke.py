@@ -38,19 +38,21 @@ def nodes(xml):
         yield attrs
 
 
-def find(pattern, xml):
+def find(pattern, xml, cls=None):
     rx = re.compile(pattern)
     for n in nodes(xml):
+        if cls and n.get("class") != cls:
+            continue
         if rx.search(n.get("text", "")) or rx.search(n.get("content-desc", "")):
             return n
     return None
 
 
-def wait_for(pattern, timeout=40):
+def wait_for(pattern, timeout=40, cls=None):
     deadline = time.time() + timeout
     while time.time() < deadline:
         xml = dump()
-        n = find(pattern, xml)
+        n = find(pattern, xml, cls)
         if n:
             return n
         crashed()
@@ -123,14 +125,15 @@ wait_for(r"Bon retour")
 ok("Écran de connexion")
 shot("connexion")
 
-tap(wait_for(r"^Numéro de téléphone$"))
+tap(wait_for(r"^Numéro de téléphone$", cls="android.widget.EditText"))
 type_text("0707000000")
 hide_keyboard()
+wait_for(r"^07 ?07 ?00 ?00 ?00$|^0707000000$", timeout=10)
 tap(wait_for(r"^Recevoir le code OTP$"))
 
-tap(wait_for(r"^Code reçu par SMS"))
+tap(wait_for(r"^Code reçu par SMS, \d+ chiffres sur 6"))
 type_text("123456")
-tap(wait_for(r"^Code PIN"))
+tap(wait_for(r"^Code PIN, \d+ chiffres sur 4"))
 type_text("1234")
 hide_keyboard()
 shot("otp-pin")
