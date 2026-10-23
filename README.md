@@ -64,6 +64,10 @@ cp .env.example .env                        # EXPO_PUBLIC_API_URL=http://<ip-loc
 npx expo start
 ```
 
+### Tester sur un téléphone
+
+Le workflow GitHub Actions **« APK Android de test »** produit un APK installable directement, sans compte Expo. Le guide pas à pas et la check-list sont dans [`docs/TEST-TERRAIN.md`](docs/TEST-TERRAIN.md).
+
 ### Mode démo (sans backend)
 
 Si `EXPO_PUBLIC_API_URL` est vide, l'app tourne sur un backend simulé en mémoire (`apps/mobile/services/mock`). Ce backend applique les mêmes règles que l'API : PIN au-delà de 50 000 FCFA, plafonds, scoring, rétractation. Identifiants : n'importe quel numéro, OTP `123456`, PIN `1234`.
