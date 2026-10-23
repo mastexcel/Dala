@@ -1,0 +1,57 @@
+name: APK Android de test
+
+# Construit un APK installable directement sur un téléphone Android (sans compte Expo).
+# - Sans « api_url » : mode démo (backend simulé, OTP 123456, PIN 1234).
+# - Avec « api_url » : l'app parle à l'API DALA déployée à cette adresse.
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: "URL de l'API DALA (laisser vide pour le mode démo)"
+        required: false
+        default: ''
+  push:
+    branches: ['claude/**']
+    paths: ['apps/mobile/**', 'packages/shared/**', '.github/workflows/android-apk.yml']
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EXPO_PUBLIC_API_URL: ${{ inputs.api_url }}
+      # Pas d'envoi des source maps vers Sentry depuis la CI de test.
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - name: Génère le projet Android natif
+        working-directory: apps/mobile
+        run: npx expo prebuild --platform android --no-install
+      - name: Compile l'APK (release signé avec la clé de debug)
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
+      - name: Renomme l'APK
+        run: |
+          mode=$([ -n "$EXPO_PUBLIC_API_URL" ] && echo "api" || echo "demo")
+          cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk "DALA-Finance-${mode}-${GITHUB_SHA::7}.apk"
+          ls -la *.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DALA-Finance-apk
+          path: DALA-Finance-*.apk
+          retention-days: 30
