@@ -5,6 +5,7 @@ import { LEGAL_NOTICE_CREDIT, formatDate, formatFCFA, formatPercent } from '@dal
 import { AppText, Badge, Button, Card, Chip, DalaIcon, ErrorState, Header, Input, KeyValue, LegalNotice, Loading, ProgressBar, Screen, SectionTitle } from '@/components/ui';
 import { loanApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { qk, useFinancialMutation, useLoan } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -30,7 +31,8 @@ export default function LoanDetail() {
   const submit = async () => {
     setError(undefined);
     try {
-      await strongAuth((pin) => repay.mutateAsync({ value, pin }), { amount: value, title: `Rembourser ${formatFCFA(value)}` });
+      const r = await strongAuth((pin) => repay.mutateAsync({ value, pin }), { amount: value, title: `Rembourser ${formatFCFA(value)}` });
+      if (r) track('loan_repaid', { full: value >= remaining });
     } catch (e) {
       setError(errorMessage(e));
     }

@@ -5,6 +5,7 @@ import { formatDate, formatFCFA, progressRatio } from '@dala/shared';
 import { AppText, Button, Card, Chip, CircularProgress, Header, Input, KeyValue, LegalNotice, Loading, Screen } from '@/components/ui';
 import { savingsApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { qk, useFinancialMutation, useGoals } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -30,7 +31,10 @@ export default function GoalDetail() {
     setError(undefined);
     try {
       const r = await strongAuth((pin) => deposit.mutateAsync({ value, pin }), { amount: value });
-      if (r) router.back();
+      if (r) {
+        track('savings_deposit', { amount: amountBucket(value) });
+        router.back();
+      }
     } catch (e) {
       setError(errorMessage(e));
     }

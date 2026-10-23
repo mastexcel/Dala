@@ -21,12 +21,10 @@ export function PillarRow({ icon, color, title, amount, subtitle, progress, onPr
           <DalaIcon name={icon} size={32} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <View style={styles.between}>
-            <AppText weight="semibold" numberOfLines={1} style={{ flexShrink: 1 }}>
-              {title}
-            </AppText>
-            <Amount value={amount} maskable weight="bold" numberOfLines={1} />
-          </View>
+          <AppText variant="caption" weight="semibold" color={TEXT_ON_WHITE.muted}>
+            {title}
+          </AppText>
+          <Amount value={amount} maskable variant="h4" weight="bold" color={COLORS.navy} />
           <AppText variant="small" color={TEXT_ON_WHITE.muted}>
             {subtitle}
           </AppText>
@@ -45,6 +43,5 @@ export function PillarRow({ icon, color, title, amount, subtitle, progress, onPr
 const styles = StyleSheet.create({
   card: { marginBottom: SPACING.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SPACING.sm },
   icon: { width: 48, height: 48, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
 });

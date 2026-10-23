@@ -7,6 +7,7 @@ import { AppText, Button, Card, DalaIcon, Header, Input, KeyValue, LegalNotice, 
 import { Confetti } from '@/components/charts/Confetti';
 import { investApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { qk, useBonds, useFinancialMutation, useFunds, useSummary } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -44,7 +45,10 @@ export default function InvestFlow() {
     setError(undefined);
     try {
       const r = await strongAuth((pin) => invest.mutateAsync({ value, pin }), { amount: value });
-      if (r) setStep('success');
+      if (r) {
+        track('investment_made', { instrument: params.instrumentId, kind: inst.isBond ? 'bond' : 'fund', amount: amountBucket(value) });
+        setStep('success');
+      }
     } catch (e) {
       setError(errorMessage(e));
     }

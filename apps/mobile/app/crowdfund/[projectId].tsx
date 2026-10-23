@@ -16,6 +16,7 @@ import { ValidatedBadge } from '@/components/crowdfund/ValidatedBadge';
 import { Confetti } from '@/components/charts/Confetti';
 import { crowdfundApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { qk, useFinancialMutation, useProject, useSummary } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -46,7 +47,10 @@ export default function ProjectDetail() {
     setError(undefined);
     try {
       const r = await strongAuth((pin) => invest.mutateAsync({ pin }), { amount });
-      if (r) setDone(r.equityPct);
+      if (r) {
+        track('crowdfund_investment', { sector: p.sector, amount: amountBucket(amount) });
+        setDone(r.equityPct);
+      }
     } catch (e) {
       setError(errorMessage(e));
     }

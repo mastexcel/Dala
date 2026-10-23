@@ -1,5 +1,10 @@
 import { createServer } from 'node:http';
 import { config } from './config';
+import { initMonitoring } from './lib/monitoring';
+
+// Initialisé avant le chargement de l’application pour que Sentry instrumente Express.
+initMonitoring();
+
 import { createApp } from './app';
 import { logger } from './lib/logger';
 import { prisma } from './lib/prisma';

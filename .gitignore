@@ -16,3 +16,6 @@ __pycache__/
 .pytest_cache/
 packages/ml-scoring/model/*.joblib
 !packages/ml-scoring/model/.gitkeep
+dist-web/
+test-results/
+playwright-report/

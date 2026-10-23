@@ -10,6 +10,7 @@ import { AppText, Button, Card, Chip, DalaIcon, Header, Input, LegalNotice, Scre
 import { GOAL_ICONS } from '@/components/savings/GoalCard';
 import { savingsApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { qk } from '@/hooks/queries';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 import { FREQUENCY_LABEL } from '@/utils/meta';
@@ -56,6 +57,7 @@ export default function CreateGoal() {
         autoAmount: v.autoSave ? Number(v.autoAmount) : undefined,
         icon,
       });
+      track('goal_created', { autoSave: v.autoSave, frequency: v.autoSave ? frequency : 'none', target: amountBucket(Number(v.target)) });
       await qc.invalidateQueries({ queryKey: qk.goals });
       router.back();
     } catch (e) {

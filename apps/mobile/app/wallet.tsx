@@ -6,6 +6,7 @@ import { UEMOA_COUNTRIES, formatFCFA, toE164 } from '@dala/shared';
 import { AppText, Button, Card, Chip, DalaIcon, Header, Input, LegalNotice, PhoneInput, Screen, SegmentedTabs, type Country } from '@/components/ui';
 import { accountApi, type MobileMoneyProvider } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { useFinancialMutation, useSummary } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -47,16 +48,21 @@ export default function Wallet() {
   const send = useFinancialMutation((pin?: string) => accountApi.transfer(toE164(country.dialCode, phone), value, pin));
   const pending = deposit.isPending || withdraw.isPending || send.isPending;
 
+  const succeed = (message: string) => {
+    track('wallet_operation', { mode, provider: mode === 'send' ? 'dala' : provider, amount: amountBucket(value) });
+    setDone(message);
+  };
+
   const submit = async () => {
     setError(undefined);
     try {
       if (mode === 'deposit') {
         await deposit.mutateAsync(undefined);
-        setDone(`${formatFCFA(value)} déposés depuis ${PROVIDERS.find((p) => p.id === provider)!.name}.`);
+        succeed(`${formatFCFA(value)} déposés depuis ${PROVIDERS.find((p) => p.id === provider)!.name}.`);
       } else if (mode === 'withdraw') {
-        if (await strongAuth((pin) => withdraw.mutateAsync(pin), { amount: value })) setDone(`${formatFCFA(value)} envoyés vers votre wallet.`);
+        if (await strongAuth((pin) => withdraw.mutateAsync(pin), { amount: value })) succeed(`${formatFCFA(value)} envoyés vers votre wallet.`);
       } else {
-        if (await strongAuth((pin) => send.mutateAsync(pin), { amount: value })) setDone(`${formatFCFA(value)} envoyés.`);
+        if (await strongAuth((pin) => send.mutateAsync(pin), { amount: value })) succeed(`${formatFCFA(value)} envoyés.`);
       }
     } catch (e) {
       setError(errorMessage(e));

@@ -3,6 +3,7 @@ import type { UserProfile } from '@dala/shared';
 import { API_URL, USE_MOCKS } from '@/services/config';
 import { mockRequest } from '@/services/mock/handlers';
 import { secureStorage } from '@/utils/secureStorage';
+import { identify } from '@/services/monitoring';
 
 const REFRESH_KEY = 'dala.refreshToken';
 const BIOMETRIC_KEY = 'dala.biometricEnabled';
@@ -61,6 +62,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setSession: async ({ user, accessToken, refreshToken }) => {
     await secureStorage.setItem(REFRESH_KEY, refreshToken);
+    identify(user.id);
     set({ user, accessToken, hasStoredSession: true });
   },
 
@@ -90,6 +92,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }).catch(() => undefined);
     }
     await secureStorage.deleteItem(REFRESH_KEY);
+    identify(null);
     set({ user: null, accessToken: null, hasStoredSession: false });
   },
 

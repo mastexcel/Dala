@@ -6,6 +6,7 @@ import { formatDate, formatFCFA } from '@dala/shared';
 import { AppText, Badge, Button, Card, DalaIcon, ErrorState, Header, KeyValue, LegalNotice, Loading, ProgressBar, Screen } from '@/components/ui';
 import { savingsApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { qk, useFinancialMutation, useTontine } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -30,6 +31,7 @@ export default function TontineDetail() {
     setError(undefined);
     try {
       await strongAuth((pin) => contribute.mutateAsync(pin!), { amount: t.amount, always: true, title: `Cotiser ${formatFCFA(t.amount)}` });
+      track('tontine_contribution', { frequency: t.frequency });
       void q.refetch();
     } catch (e) {
       setError(errorMessage(e));

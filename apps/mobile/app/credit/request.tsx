@@ -17,6 +17,7 @@ import { AmountSlider, AppText, Button, Card, Chip, DalaIcon, Header, type DalaI
 import { Confetti } from '@/components/charts/Confetti';
 import { loanApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { qk, useCredit, useFinancialMutation } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -48,7 +49,10 @@ export default function LoanRequest() {
     setScoring(true);
     try {
       const r = await strongAuth((pin) => submitLoan.mutateAsync({ pin }), { amount });
-      if (r) setDecision(r.decision);
+      if (r) {
+        track('loan_requested', { decision: r.decision, duration, amount: amountBucket(amount) });
+        setDecision(r.decision);
+      }
     } catch (e) {
       setError(errorMessage(e));
     } finally {

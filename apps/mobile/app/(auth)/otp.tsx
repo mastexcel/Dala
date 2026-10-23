@@ -5,6 +5,7 @@ import { maskPhone } from '@dala/shared';
 import { AppText, AuthBackground, Button, CodeInput, Header } from '@/components/ui';
 import { authApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { useAuthStore } from '@/stores/auth';
 import { useRegistrationStore } from '@/stores/registration';
 import { COLORS, SPACING } from '@/theme';
@@ -35,6 +36,7 @@ export default function Otp() {
     try {
       await setSession(await authApi.register({ ...pending, otp }));
       clear(null);
+      track('signup_completed', { referred: !!pending.referralCode });
       router.replace('/(tabs)');
     } catch (e) {
       setError(errorMessage(e));

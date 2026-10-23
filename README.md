@@ -76,6 +76,8 @@ Si `EXPO_PUBLIC_API_URL` est vide, l'app tourne sur un backend simulé en mémoi
 | `npm run typecheck` | Vérification TypeScript |
 | `npm test -w @dala/shared` | Calculs financiers et règles de conformité |
 | `cd apps/api && npx vitest run` | Tests API (Supertest) et services |
+| `cd apps/api && TEST_DATABASE_URL=postgresql://…/dala_test npm run test:integration` | Tests d'intégration contre PostgreSQL (la base est **vidée** ; son nom doit contenir « test ») |
+| `cd apps/mobile && npm run e2e:build && npm run e2e` | Tests de bout en bout Playwright sur l'export web, en mode démo |
 | `cd apps/mobile && npm run bundle:check` | Vérifie que le bundle Android compile |
 | `cd packages/ml-scoring && pytest` | Tests du service de scoring |
 
@@ -144,6 +146,25 @@ Le modèle est un XGBoost avec contraintes monotones : plus d'épargne n'abaisse
 Le modèle est amorcé sur des données synthétiques. Il faut le ré-entraîner sur l'historique réel dès que les premiers prêts arrivent à échéance.
 
 Décision : approuvé si p ≥ 0,70, revue manuelle si p ≥ 0,50, refusé sinon. Si le service ML est indisponible, l'API utilise une régression logistique de repli.
+
+## Tests
+
+| Niveau | Contenu |
+| --- | --- |
+| `packages/shared` (Vitest) | Calculs financiers, plafonds KYC, authentification forte, détection LBC/FT |
+| API unitaires (Vitest + Supertest) | Validation, authentification, piste d'audit, scoring de repli, sanctions |
+| API intégration (PostgreSQL réel, 32 tests) | Inscription, verrouillage du PIN, rotation et réutilisation des refresh tokens ; plafonds KYC, PIN au-delà de 50 000 FCFA, rétractation 48 h, solde insuffisant, retrait refusé par l'opérateur ; objectifs, coffre-fort, tontine complète, transferts ; crowdfunding (validation du comité, equity, clôture à l'objectif) ; prêt approuvé, refusé, en revue, repli heuristique, remboursements ; gel LBC/FT et déclaration CENTIF, webhook signé, réclamations, KYC back-office, altération de la piste d'audit, reporting BCEAO |
+| App (Jest) | Backend simulé, composants, analytique |
+| E2E (Playwright, web) | Connexion, accueil, investissement avec PIN (erreur puis succès), crowdfunding, prêt, objectif d'épargne, filtres de transactions |
+| Scoring (pytest) | API, monotonie du modèle, explications |
+
+Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas un essai sur appareil (biométrie, appareil photo, notifications push) : pour ces parcours natifs, prévoir Maestro ou Detox sur un build de développement.
+
+## Monitoring
+
+- **Sentry** (erreurs) : API via `SENTRY_DSN`, app via `EXPO_PUBLIC_SENTRY_DSN`. Les en-têtes et champs sensibles (PIN, OTP, jetons, clé admin) sont retirés avant envoi.
+- **Mixpanel** (analytique) : `EXPO_PUBLIC_MIXPANEL_TOKEN`. On envoie uniquement l'identifiant interne, le nom de l'événement et des tranches de montant (`<10k`, `10k-50k`…), jamais le nom, le téléphone ni le montant exact. Événements suivis : inscription, connexion, objectif, versement, coffre-fort, cotisation, investissement, crowdfunding, soumission de projet, prêt, remboursement, opération de portefeuille.
+- Sans ces variables, rien n'est envoyé.
 
 ## Intégrations
 

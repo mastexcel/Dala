@@ -9,6 +9,7 @@ import { CROWDFUND_REVIEW_DAYS, CROWDFUND_VALIDATOR, PROJECT_SECTORS, formatFCFA
 import { AppText, Button, Card, Chip, DalaIcon, Header, Input, KeyValue, LegalNotice, Screen } from '@/components/ui';
 import { crowdfundApi, userApi, type SubmitProjectInput } from '@/services/api';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 import { sectorLabel } from '@/utils/meta';
 
@@ -89,6 +90,7 @@ export default function SubmitProject() {
         documents: docs,
         teamMembers: [{ name: v.founderName, role: v.founderRole }],
       });
+      track('project_submitted', { sector });
       setSubmitted(true);
     } catch (e) {
       setError(errorMessage(e));

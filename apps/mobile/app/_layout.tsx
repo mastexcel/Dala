@@ -19,15 +19,17 @@ import { useAuthStore } from '@/stores/auth';
 import { PinSheet } from '@/components/ui';
 import { useRealtime } from '@/hooks/useRealtime';
 import { COLORS } from '@/theme';
+import { initMonitoring, withMonitoring } from '@/services/monitoring';
 
 void SplashScreen.preventAutoHideAsync();
+initMonitoring();
 
 function Realtime() {
   useRealtime();
   return null;
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useFonts({
     'DMSerifDisplay-Regular': DMSerifDisplay_400Regular,
     'PlusJakartaSans-Regular': PlusJakartaSans_400Regular,
@@ -72,3 +74,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default withMonitoring(RootLayout);

@@ -58,7 +58,8 @@
         {
           "cameraPermission": "DALA utilise l'appareil photo pour scanner les QR codes de paiement et vérifier votre identité."
         }
-      ]
+      ],
+      "@sentry/react-native/expo"
     ]
   }
 }

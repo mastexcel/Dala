@@ -8,6 +8,7 @@ import { AppText, AuthBackground, Button, CodeInput, Logo, PhoneInput, type Coun
 import { authApi } from '@/services/api';
 import { USE_MOCKS } from '@/services/config';
 import { errorMessage } from '@/services/errors';
+import { track, amountBucket } from '@/services/monitoring';
 import { useAuthStore } from '@/stores/auth';
 import { useBiometrics } from '@/hooks/useBiometrics';
 import { COLORS, RADIUS, SPACING } from '@/theme';
@@ -48,6 +49,7 @@ export default function Login() {
     setLoading(true);
     try {
       await setSession(await authApi.login({ phone: e164, otp, pin }));
+      track('login', { country: country.code });
       router.replace('/(tabs)');
     } catch (e) {
       setError(errorMessage(e));
@@ -66,7 +68,10 @@ export default function Login() {
     setLoading(true);
     const ok = await refresh({ biometric: true });
     setLoading(false);
-    if (ok) router.replace('/(tabs)');
+    if (ok) {
+      track('login_biometric');
+      router.replace('/(tabs)');
+    }
     else setError('Session expirée. Connectez-vous avec votre code.');
   };
 
