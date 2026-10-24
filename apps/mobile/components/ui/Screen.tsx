@@ -1,8 +1,8 @@
 import { ImageBackground, RefreshControl, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import type { ReactNode } from 'react';
-import { COLORS, SPACING, centeredColumn } from '@/theme';
+import { useState, type ReactNode } from 'react';
+import { COLORS, SPACING, centeredColumn, useLayoutMode } from '@/theme';
 import { OfflineBanner } from './OfflineBanner';
 import { WALLPAPER_IMAGE, WALLPAPERS, type WallpaperName } from './wallpapers';
 import { ContentVeil } from './ContentVeil';
@@ -25,6 +25,10 @@ interface Props {
 
 export function Screen({ children, scroll = true, background = COLORS.offWhite, dark, padded = true, edges = ['top'], header, footer, refreshing, onRefresh, contentStyle, wallpaper }: Props) {
   const inner = [padded && styles.padded, contentStyle];
+  const { contentMax } = useLayoutMode();
+  // Colonne centrée : pleine largeur sur téléphone, plafonnée sur tablette et ordinateur.
+  const COLUMN = centeredColumn(contentMax);
+  const [containerWidth, setContainerWidth] = useState<number>();
   const screen = (
     <SafeAreaView style={[styles.flex, { backgroundColor: wallpaper ? 'transparent' : background }]} edges={edges}>
       <StatusBar style={dark ? 'light' : 'dark'} />
@@ -51,15 +55,12 @@ export function Screen({ children, scroll = true, background = COLORS.offWhite, 
   );
   if (!wallpaper) return screen;
   return (
-    <ImageBackground source={WALLPAPERS[wallpaper]} resizeMode="cover" style={[styles.flex, styles.clip, { backgroundColor: background }]} imageStyle={WALLPAPER_IMAGE} accessibilityIgnoresInvertColors>
-      <ContentVeil />
+    <ImageBackground source={WALLPAPERS[wallpaper]} resizeMode="cover" style={[styles.flex, styles.clip, { backgroundColor: background }]} imageStyle={WALLPAPER_IMAGE} accessibilityIgnoresInvertColors onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
+      <ContentVeil max={contentMax} containerWidth={containerWidth} />
       {screen}
     </ImageBackground>
   );
 }
-
-/** Colonne centrée : pleine largeur sur téléphone, plafonnée sur tablette et ordinateur. */
-const COLUMN = centeredColumn();
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },

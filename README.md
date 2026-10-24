@@ -109,7 +109,9 @@ Si `EXPO_PUBLIC_API_URL` est vide, l'app tourne sur un backend simulé en mémoi
 
 **Fonds d'écran.** Un fond par section (`apps/mobile/assets/backgrounds`, planche de référence `design/backgrounds/planche-fonds.png`), appliqué avec `<Screen wallpaper="savings">` et fixe pendant le défilement. Correspondance : accueil → `home` (vagues bleues), connexion/inscription → `auth` (turquoise), épargne → `savings` (vert), investissement → `invest` (bleu/pêche), crowdfunding → `crowdfund` (lavande), crédit → `credit` (pêche), transactions → `transactions` (cyan), profil → `profile` (bleu clair), notifications → `notifications` (bleu/orange), portefeuille → `portfolio` (vert). `services` (jaune) et `opportunities` (doré) sont prêts pour de futures sections.
 
-**Tablettes et ordinateurs (portrait).** L'app reste en mode portrait. Sur grand écran, le contenu s'affiche dans une colonne centrée de 600 px (480 px pour la connexion et le clavier PIN), le fond occupe tout l'écran et un voile blanc encadre la colonne (`ContentVeil`) et la barre d'onglets se recentre (`theme/layout.ts` : `MAX_CONTENT_WIDTH`, `useContentWidth`). iPad pris en charge (`supportsTablet`, plein écran portrait).
+**Orientation et grands écrans.** Le téléphone reste verrouillé en portrait. La tablette tourne librement, et le web suit la fenêtre (`hooks/useOrientationPolicy.ts`, `expo-screen-orientation`). Mise en page (`theme/layout.ts`) :
+- **Portrait sur grand écran** : colonne centrée de 600 px (480 px pour la connexion et le clavier PIN), fond sur tout l'écran, barre d'onglets recentrée, voile blanc autour de la colonne (`ContentVeil`).
+- **Paysage** (≥ 900 px de large) : la barre d'onglets du bas est remplacée par un rail latéral avec le logo (`SideRail`). La colonne s'élargit à 960 px et les cartes passent sur deux colonnes (`ResponsiveGrid`) : piliers de l'accueil, objectifs d'épargne, projets de crowdfunding, fonds.
 
 **Hors-ligne.** Le cache React Query est persisté dans AsyncStorage (solde, transactions, profil, objectifs, crédit). Les requêtes sont servies depuis le cache puis revalidées au retour du réseau, et un bandeau signale le mode hors-ligne.
 

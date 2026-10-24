@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FlatList, StyleSheet, Switch, View } from 'react-native';
 import { router } from 'expo-router';
 import { LEGAL_NOTICE_INVEST, formatFCFA, formatPercent } from '@dala/shared';
-import { AppText, Button, Card, DalaIcon, Header, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, Header, LegalNotice, Loading, Screen, SectionTitle, ResponsiveGrid } from '@/components/ui';
 import { LineChart } from '@/components/charts/LineChart';
 import { BondCard } from '@/components/invest/BondCard';
 import { FundRow } from '@/components/invest/FundRow';
@@ -77,7 +77,7 @@ export default function Invest() {
       )}
 
       <SectionTitle title="Fonds communs de placement" icon="fcp" />
-      {funds.data?.map((f) => <FundRow key={f.id} fund={f} onPress={() => router.push({ pathname: '/invest/flow', params: { instrumentId: f.id } })} />)}
+      <ResponsiveGrid>{funds.data?.map((f) => <FundRow key={f.id} fund={f} onPress={() => router.push({ pathname: '/invest/flow', params: { instrumentId: f.id } })} />)}</ResponsiveGrid>
 
       {p?.investments.length ? (
         <>

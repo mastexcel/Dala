@@ -4,7 +4,7 @@
     "slug": "dala-finance",
     "scheme": "dala",
     "version": "0.1.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#0F1B3D",
@@ -19,8 +19,7 @@
       "infoPlist": {
         "NSFaceIDUsageDescription": "DALA utilise Face ID pour sécuriser l'accès à votre compte.",
         "NSCameraUsageDescription": "DALA utilise l'appareil photo pour la vérification de votre identité (KYC)."
-      },
-      "requireFullScreen": true
+      }
     },
     "android": {
       "package": "finance.dala.app",

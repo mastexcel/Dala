@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { formatFCFA, progressRatio } from '@dala/shared';
-import { AppText, Card, DalaIcon, ErrorState, LegalNotice, Loading, Logo, SectionTitle, Screen } from '@/components/ui';
+import { AppText, Card, DalaIcon, ErrorState, LegalNotice, Loading, Logo, SectionTitle, Screen, ResponsiveGrid } from '@/components/ui';
 import { BalanceCard } from '@/components/home/BalanceCard';
 import { QuickActions } from '@/components/home/QuickActions';
 import { PillarRow } from '@/components/home/PillarRow';
@@ -54,6 +54,7 @@ export default function Home() {
         <>
           <BalanceCard summary={summary.data} />
           <QuickActions />
+          <ResponsiveGrid>
           <PillarRow
             icon="savings"
             color={PILLAR_COLORS.savings}
@@ -87,6 +88,7 @@ export default function Home() {
             subtitle={summary.data.creditEligible > 0 ? t('home.eligible', { amount: formatFCFA(summary.data.creditEligible) }) : 'Prêt en cours'}
             onPress={() => router.push('/(tabs)/credit')}
           />
+          </ResponsiveGrid>
         </>
       ) : null}
 

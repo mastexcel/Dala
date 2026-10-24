@@ -24,3 +24,5 @@ export * from './DalaIcon';
 export * from './wallpapers';
 export * from './PageTitle';
 export * from './ContentVeil';
+export * from './SideRail';
+export * from './ResponsiveGrid';

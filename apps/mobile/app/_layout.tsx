@@ -18,6 +18,7 @@ import { PERSISTED_KEYS, persister, queryClient } from '@/services/queryClient';
 import { useAuthStore } from '@/stores/auth';
 import { PinSheet } from '@/components/ui';
 import { useRealtime } from '@/hooks/useRealtime';
+import { useOrientationPolicy } from '@/hooks/useOrientationPolicy';
 import { COLORS } from '@/theme';
 import { initMonitoring, withMonitoring } from '@/services/monitoring';
 
@@ -30,6 +31,7 @@ function Realtime() {
 }
 
 function RootLayout() {
+  useOrientationPolicy();
   const [fontsLoaded] = useFonts({
     'DMSerifDisplay-Regular': DMSerifDisplay_400Regular,
     'PlusJakartaSans-Regular': PlusJakartaSans_400Regular,

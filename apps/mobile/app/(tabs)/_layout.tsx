@@ -1,15 +1,19 @@
 import { StyleSheet, View } from 'react-native';
 import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { DalaIcon, type DalaIconName } from '@/components/ui';
+import { DalaIcon, SideRail, type DalaIconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth';
-import { COLORS, FONTS, useSideGutter } from '@/theme';
+import { COLORS, FONTS, RAIL_WIDTH, useLayoutMode, useSideGutter } from '@/theme';
 
 /** Barre d'onglets claire : les icônes illustrées DALA sont conçues pour fond blanc. */
+const TAB_ICONS: Record<string, DalaIconName> = { index: 'home', savings: 'savings', crowdfund: 'crowdfund', credit: 'credit', profile: 'profile' };
+
 export default function TabsLayout() {
   const { t } = useTranslation();
   const token = useAuthStore((s) => s.accessToken);
   const gutter = useSideGutter();
+  // Paysage sur tablette ou ordinateur : rail latéral à la place de la barre d'onglets.
+  const { landscape } = useLayoutMode();
   if (!token) return <Redirect href="/(auth)/login" />;
 
   const icon =
@@ -23,6 +27,8 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      tabBar={landscape ? (props) => <SideRail {...props} icons={TAB_ICONS} /> : undefined}
+      sceneContainerStyle={landscape ? { paddingLeft: RAIL_WIDTH } : undefined}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.navy,

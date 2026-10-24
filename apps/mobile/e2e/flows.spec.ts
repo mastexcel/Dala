@@ -65,3 +65,19 @@ test('transactions : filtre par catégorie', async ({ page }) => {
   await expect(shown(page.getByText('Crowdfund · AgriTech CI'))).toBeVisible();
   await expect(page.getByText('Dépôt Orange Money').filter({ visible: true })).toHaveCount(0);
 });
+
+test.describe('paysage (tablette / ordinateur)', () => {
+  test.use({ viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false });
+
+  test('rail de navigation latéral et cartes sur deux colonnes', async ({ page }) => {
+    const rail = page.getByRole('tablist').filter({ has: page.getByRole('tab', { name: 'Épargne' }) });
+    await expect(rail).toBeVisible();
+    const pillars = [/de vos objectifs/, /Bons du Trésor · jusqu/].map((t) => shown(page.getByText(t)));
+    const [a, b] = await Promise.all(pillars.map((l) => l.boundingBox()));
+    // Deux piliers côte à côte : même hauteur, colonnes différentes.
+    expect(Math.abs((a?.y ?? 0) - (b?.y ?? 0))).toBeLessThan(5);
+    expect((b?.x ?? 0) - (a?.x ?? 0)).toBeGreaterThan(200);
+    await rail.getByRole('tab', { name: 'Épargne' }).click();
+    await expect(shown(page.getByText('Total épargné'))).toBeVisible();
+  });
+});

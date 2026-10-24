@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { formatFCFA, VAULT_OPTIONS, formatPercent } from '@dala/shared';
-import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, SegmentedTabs, Screen, PageTitle } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, SegmentedTabs, Screen, PageTitle, ResponsiveGrid } from '@/components/ui';
 import { GoalCard } from '@/components/savings/GoalCard';
 import { TontineCard } from '@/components/savings/TontineCard';
 import { VaultCard } from '@/components/savings/VaultCard';
@@ -55,7 +55,7 @@ export default function Savings() {
         ) : (
           <>
             {goals.data?.length ? (
-              goals.data.map((g) => <GoalCard key={g.id} goal={g} onPress={() => router.push(`/savings/goal/${g.id}`)} />)
+              <ResponsiveGrid>{goals.data.map((g) => <GoalCard key={g.id} goal={g} onPress={() => router.push(`/savings/goal/${g.id}`)} />)}</ResponsiveGrid>
             ) : (
               <EmptyState icon={<DalaIcon name="goals" size={72} />} title="Aucun objectif" body="Mariage, études, commerce… donnez un but à votre épargne." />
             )}

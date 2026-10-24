@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { CROWDFUND_REVIEW_DAYS, CROWDFUND_VALIDATOR, LEGAL_NOTICE_CROWDFUND, PROJECT_SECTORS, formatFCFA, formatPercent, type ProjectSector } from '@dala/shared';
-import { AppText, Badge, Button, Card, Chip, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, Screen, SegmentedTabs, PageTitle } from '@/components/ui';
+import { AppText, Badge, Button, Card, Chip, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, Screen, SegmentedTabs, PageTitle, ResponsiveGrid } from '@/components/ui';
 import { ProjectCard } from '@/components/crowdfund/ProjectCard';
 import { useCrowdfundPortfolio, useProjects } from '@/hooks/queries';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -54,7 +54,7 @@ export default function Crowdfund() {
           ) : projects.error && !projects.data ? (
             <ErrorState error={projects.error} onRetry={() => void projects.refetch()} />
           ) : projects.data?.length ? (
-            projects.data.map((p) => <ProjectCard key={p.id} project={p} onPress={() => router.push(`/crowdfund/${p.id}`)} />)
+            <ResponsiveGrid gap={SPACING.md}>{projects.data.map((p) => <ProjectCard key={p.id} project={p} onPress={() => router.push(`/crowdfund/${p.id}`)} />)}</ResponsiveGrid>
           ) : (
             <EmptyState icon={<DalaIcon name="explore" size={72} />} title="Aucun projet dans ce secteur" body="Revenez bientôt : de nouveaux projets sont validés chaque mois." />
           )}
