@@ -18,6 +18,7 @@ import { router as transactions } from './routes/transactions';
 import { router as notifications } from './routes/notifications';
 import { router as compliance } from './routes/compliance';
 import { router as webhooks } from './routes/webhooks';
+import { router as advisor, deskRouter } from './routes/advisor';
 
 export function createApp() {
   const app = express();
@@ -43,6 +44,8 @@ export function createApp() {
   v1.use('/loans', requireAuth, loans);
   v1.use('/transactions', requireAuth, transactions);
   v1.use('/notifications', requireAuth, notifications);
+  v1.use('/advisor', requireAuth, advisor);
+  v1.use('/advisor-desk', deskRouter);
   app.use('/v1', v1);
 
   app.use(notFoundHandler);

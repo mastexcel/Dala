@@ -50,6 +50,7 @@ model User {
   refreshTokens       RefreshToken[]
   amlAlerts           AmlAlert[]
   complaints          Complaint[]
+  advisorConversations AdvisorConversation[]
 }
 
 model Account {
@@ -450,4 +451,55 @@ model Complaint {
   user        User            @relation(fields: [userId], references: [id])
   @@index([userId])
   @@index([status, dueBy])
+}
+
+/// Échanges entre l'utilisateur et l'équipe commerciale DALA.
+enum AdvisorTopic {
+  INVEST
+  CROWDFUND
+  SAVINGS
+  CREDIT
+  BUSINESS
+  OTHER
+}
+
+enum AdvisorSender {
+  USER
+  ADVISOR
+  SYSTEM
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+}
+
+model AdvisorConversation {
+  id            String             @id @default(cuid())
+  userId        String
+  topic         AdvisorTopic
+  subject       String
+  status        ConversationStatus @default(OPEN)
+  advisorName   String?
+  lastMessageAt DateTime           @default(now())
+  /// Dernière lecture par l'utilisateur, pour compter les messages non lus.
+  userReadAt    DateTime           @default(now())
+  createdAt     DateTime           @default(now())
+
+  user          User               @relation(fields: [userId], references: [id])
+  messages      AdvisorMessage[]
+  @@index([userId, lastMessageAt])
+  @@index([status, lastMessageAt])
+}
+
+model AdvisorMessage {
+  id             String              @id @default(cuid())
+  conversationId String
+  sender         AdvisorSender
+  authorName     String?
+  body           String              @db.Text
+  createdAt      DateTime            @default(now())
+
+  conversation   AdvisorConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  @@index([conversationId, createdAt])
 }

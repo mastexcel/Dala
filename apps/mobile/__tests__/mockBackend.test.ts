@@ -26,3 +26,20 @@ describe('backend simulé (mode démo)', () => {
     expect(r.items.every((t) => t.type.startsWith('CROWDFUND'))).toBe(true);
   });
 });
+
+describe('équipe commerciale (mode démo)', () => {
+  it('accuse réception puis fait répondre une conseillère', async () => {
+    const { advisorDemo } = jest.requireActual('@/services/mock/handlers');
+    advisorDemo.delayMs = 10;
+    const c = await mockRequest<{ id: string; messages: { sender: string }[] }>('POST', '/advisor/conversations', { topic: 'CROWDFUND', message: 'Bonjour' }, {});
+    expect(c.messages.map((m) => m.sender)).toEqual(['USER', 'SYSTEM']);
+    await new Promise((r) => setTimeout(r, 50));
+    const list = await mockRequest<{ id: string; unread: number; advisorName: string }[]>('GET', '/advisor/conversations', undefined, {});
+    expect(list[0]).toMatchObject({ id: c.id, unread: 1 });
+    const detail = await mockRequest<{ messages: { sender: string; body: string }[] }>('GET', `/advisor/conversations/${c.id}`, undefined, {});
+    expect(detail.messages.at(-1)).toMatchObject({ sender: 'ADVISOR' });
+    expect(detail.messages.at(-1)!.body).toContain('uniquement en capital');
+    const after = await mockRequest<{ unread: number }[]>('GET', '/advisor/conversations', undefined, {});
+    expect(after[0].unread).toBe(0);
+  });
+});

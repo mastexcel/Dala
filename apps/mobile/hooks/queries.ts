@@ -9,7 +9,9 @@ import {
   savingsApi,
   transactionApi,
   userApi,
+  advisorApi,
 } from '@/services/api';
+import { USE_MOCKS } from '@/services/config';
 
 export const qk = {
   summary: ['summary'] as const,
@@ -31,6 +33,8 @@ export const qk = {
   notifications: ['notifications'] as const,
   limits: ['limits'] as const,
   referrals: ['referrals'] as const,
+  advisor: ['advisor'] as const,
+  conversation: (id: string) => ['advisor', id] as const,
 };
 
 export const useSummary = () => useQuery({ queryKey: qk.summary, queryFn: accountApi.summary });
@@ -66,3 +70,10 @@ export function useFinancialMutation<TVars, TResult>(fn: (vars: TVars) => Promis
     },
   });
 }
+
+/** Le WebSocket pousse les réponses des conseillers ; l'interrogation périodique sert de filet (et au mode démo). */
+const ADVISOR_POLL_MS = USE_MOCKS ? 2_000 : 20_000;
+export const useAdvisorConversations = () =>
+  useQuery({ queryKey: qk.advisor, queryFn: advisorApi.conversations, refetchInterval: ADVISOR_POLL_MS });
+export const useAdvisorConversation = (id: string) =>
+  useQuery({ queryKey: qk.conversation(id), queryFn: () => advisorApi.conversation(id), refetchInterval: ADVISOR_POLL_MS, enabled: !!id });

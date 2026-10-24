@@ -17,7 +17,11 @@ import {
   type VaultDTO,
   type InvestmentDTO,
   type CrowdfundHoldingDTO,
+  type AdvisorConversationDTO,
+  type AdvisorMessageDTO,
 } from '@dala/shared';
+
+export type MockConversation = Omit<AdvisorConversationDTO, 'lastMessage' | 'unread'> & { messages: AdvisorMessageDTO[]; readAt: string };
 
 const DAY = 86_400_000;
 const ago = (d: number) => new Date(Date.now() - d * DAY).toISOString();
@@ -92,6 +96,23 @@ export const db = {
     { id: 'tx8', type: 'INVESTMENT_BUY', amount: -25_000, currency: 'XOF', description: 'Sukuk CI 364 j', reference: 'DLA-DEMO-8', status: 'COMPLETED', createdAt: hoursAgo(820) },
     { id: 'tx9', type: 'LOAN_REPAYMENT', amount: -51_075, currency: 'XOF', description: 'Remboursement prêt DALA', reference: 'DLA-DEMO-9', status: 'COMPLETED', createdAt: ago(62) },
   ] as TransactionDTO[],
+  advisor: [
+    {
+      id: 'conv_1',
+      topic: 'SAVINGS',
+      subject: 'Épargne et tontines',
+      status: 'CLOSED',
+      advisorName: 'Mariam Traoré · Conseillère DALA',
+      createdAt: ago(6),
+      lastMessageAt: ago(5),
+      readAt: ago(5),
+      messages: [
+        { id: 'm_1', sender: 'USER', authorName: null, body: 'Bonjour, puis-je rejoindre une deuxième tontine ?', createdAt: ago(6) },
+        { id: 'm_2', sender: 'ADVISOR', authorName: 'Mariam Traoré · Conseillère DALA', body: 'Bonjour Awa, oui : vous pouvez participer à plusieurs tontines, tant que vos cotisations restent dans votre plafond mensuel.', createdAt: ago(5.9) },
+        { id: 'm_3', sender: 'SYSTEM', authorName: null, body: 'Conversation clôturée. Écrivez-nous à tout moment pour la rouvrir.', createdAt: ago(5) },
+      ],
+    },
+  ] as MockConversation[],
   notifications: [
     { id: 'n1', title: 'Coupon reçu', body: '3 125 FCFA de votre Bon du Trésor CI.', type: 'INVEST', isRead: false, createdAt: hoursAgo(26) },
     { id: 'n2', title: 'Bienvenue sur DALA 👋', body: 'Faire grandir vos ambitions.', type: 'SYSTEM', isRead: true, createdAt: ago(240) },

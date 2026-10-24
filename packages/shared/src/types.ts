@@ -287,3 +287,32 @@ export interface ApiError {
   code?: string;
   details?: unknown;
 }
+
+/* ------------------------- Échanges avec l'équipe commerciale ------------------------- */
+
+export type AdvisorTopic = 'INVEST' | 'CROWDFUND' | 'SAVINGS' | 'CREDIT' | 'BUSINESS' | 'OTHER';
+export type AdvisorSender = 'USER' | 'ADVISOR' | 'SYSTEM';
+
+export interface AdvisorMessageDTO {
+  id: string;
+  sender: AdvisorSender;
+  authorName: string | null;
+  body: string;
+  createdAt: string;
+}
+
+export interface AdvisorConversationDTO {
+  id: string;
+  topic: AdvisorTopic;
+  subject: string;
+  status: 'OPEN' | 'CLOSED';
+  advisorName: string | null;
+  lastMessage: string | null;
+  lastMessageAt: string;
+  unread: number;
+  createdAt: string;
+}
+
+export interface AdvisorConversationDetail extends AdvisorConversationDTO {
+  messages: AdvisorMessageDTO[];
+}

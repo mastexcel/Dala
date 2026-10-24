@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
+import { router } from 'expo-router';
 import { CaretDown, CaretUp, ChatCircleText, Phone } from 'phosphor-react-native';
 import { COMPLAINT_RESPONSE_DAYS } from '@dala/shared';
 import { AppText, Button, Card, Chip, DalaIcon, Header, Input, Screen, SectionTitle } from '@/components/ui';
@@ -53,6 +54,7 @@ export default function Support() {
         <Button title="Appeler" variant="outline" fullWidth={false} style={{ flex: 1 }} icon={<Phone size={18} color={COLORS.navy} />} onPress={() => void Linking.openURL('tel:+2250000000000')} />
         <Button title="WhatsApp" variant="outline" fullWidth={false} style={{ flex: 1 }} icon={<ChatCircleText size={18} color={COLORS.navy} />} onPress={() => void Linking.openURL('https://wa.me/2250000000000')} />
       </View>
+      <Button title="Écrire à un conseiller" variant="secondary" style={{ marginTop: SPACING.sm }} icon={<ChatCircleText size={18} color={COLORS.navy} />} onPress={() => router.push('/advisor')} />
 
       <SectionTitle title="Questions fréquentes" icon="info" />
       <Card padded={false}>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LEGAL_NOTICE_INVEST, formatDate, formatFCFA, formatPercent, simulateBond } from '@dala/shared';
+import { AskAiLink } from '@/components/chat';
 import { AmountSlider, AppText, Badge, Button, Card, DalaIcon, ErrorState, Header, KeyValue, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
 import { useBond } from '@/hooks/queries';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -41,6 +42,7 @@ export default function BondDetail() {
         <AppText color={TEXT_ON_WHITE.muted}>taux annuel · {b.maturityDays} jours</AppText>
       </View>
       <AppText color={COLORS.darkGray}>{b.description}</AppText>
+      <AskAiLink prompt={`Ce titre (${b.issuerName}, ${formatPercent(b.rate, 2)} sur ${b.maturityDays} jours) est-il intéressant par rapport aux autres placements disponibles ?`} />
 
       <SectionTitle title="Simulation de rendement" icon="simulation" />
       <Card style={{ gap: SPACING.sm }}>

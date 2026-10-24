@@ -106,3 +106,19 @@ export const LEGAL_NOTICE_CROWDFUND =
 export const LEGAL_NOTICE_CREDIT =
   'Un crédit vous engage et doit être remboursé. Vérifiez vos capacités de remboursement avant de vous engager. ' +
   `TAEG conforme au taux d'usure en vigueur dans l'UMOA (${USURY_RATE * 100} %).`;
+
+/** Sujets proposés pour contacter l'équipe commerciale. */
+export const ADVISOR_TOPICS = {
+  INVEST: 'Placements (bons du Trésor, FCP)',
+  CROWDFUND: 'Crowdfunding en capital',
+  SAVINGS: 'Épargne et tontines',
+  CREDIT: 'Micro-crédit',
+  BUSINESS: 'Lever des fonds pour mon entreprise',
+  OTHER: 'Autre demande',
+} as const;
+/** Heures d'ouverture de l'équipe commerciale (heure d'Abidjan, GMT). */
+export const ADVISOR_HOURS = 'du lundi au vendredi, de 8 h à 18 h';
+
+/** Avertissement affiché avec l'assistant IA. */
+export const AI_DISCLAIMER =
+  "Les réponses de l'assistant IA sont générées automatiquement à titre d'information. Elles ne constituent ni un conseil en investissement personnalisé ni une recommandation de DALA Finance. Tout placement comporte un risque de perte en capital.";

@@ -13,6 +13,7 @@ export function useRealtime() {
     if (USE_MOCKS || !token) return;
     const socket = io(API_URL, { auth: { token }, transports: ['websocket'] });
     socket.on('notification', () => void qc.invalidateQueries({ queryKey: qk.notifications }));
+    socket.on('advisor:message', () => void qc.invalidateQueries({ queryKey: qk.advisor }));
     socket.on('balance:changed', () => {
       void qc.invalidateQueries({ queryKey: qk.summary });
       void qc.invalidateQueries({ queryKey: ['transactions'] });

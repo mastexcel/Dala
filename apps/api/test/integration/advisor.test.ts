@@ -1,0 +1,63 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { ADMIN, api, bearer, prisma, register, resetDb } from './helpers';
+
+beforeAll(resetDb);
+afterAll(() => prisma.$disconnect());
+
+describe("Échanges avec l'équipe commerciale", () => {
+  it('ouvre une conversation, reçoit la réponse du conseiller et la marque comme lue', async () => {
+    const { token, userId } = await register();
+    const created = await api()
+      .post('/v1/advisor/conversations')
+      .set(bearer(token))
+      .send({ topic: 'CROWDFUND', message: 'Bonjour, comment est fixée la valorisation des projets ?' })
+      .expect(201);
+    expect(created.body.subject).toBe('Crowdfunding en capital');
+    expect(created.body.messages.map((m: { sender: string }) => m.sender)).toEqual(['USER', 'SYSTEM']);
+    const id = created.body.id as string;
+
+    const desk = await api().get('/v1/advisor-desk/conversations?status=OPEN').set(ADMIN).expect(200);
+    const row = desk.body.find((c: { id: string }) => c.id === id);
+    expect(row.awaitingReply).toBe(false); // le dernier message est l'accusé de réception
+    expect(row.user.firstName).toBe('Awa');
+
+    await api()
+      .post(`/v1/advisor-desk/conversations/${id}/messages`)
+      .set(ADMIN)
+      .send({ authorName: 'Mariam (DALA)', body: 'Bonjour Awa, la valorisation est validée par le comité.' })
+      .expect(201);
+
+    const list = await api().get('/v1/advisor/conversations').set(bearer(token)).expect(200);
+    expect(list.body[0]).toMatchObject({ id, unread: 1, advisorName: 'Mariam (DALA)' });
+    expect(await prisma.notification.count({ where: { userId, title: 'Réponse de Mariam (DALA)' } })).toBe(1);
+
+    const detail = await api().get(`/v1/advisor/conversations/${id}`).set(bearer(token)).expect(200);
+    expect(detail.body.messages.at(-1)).toMatchObject({ sender: 'ADVISOR', authorName: 'Mariam (DALA)' });
+    const after = await api().get('/v1/advisor/conversations').set(bearer(token)).expect(200);
+    expect(after.body[0].unread).toBe(0);
+
+    await api().post(`/v1/advisor/conversations/${id}/messages`).set(bearer(token)).send({ body: 'Merci !' }).expect(201);
+    const awaiting = await api().get(`/v1/advisor-desk/conversations`).set(ADMIN).expect(200);
+    expect(awaiting.body.find((c: { id: string }) => c.id === id).awaitingReply).toBe(true);
+  });
+
+  it("isole les conversations entre utilisateurs et protège le poste des conseillers", async () => {
+    const a = await register('Awa', 'Koné');
+    const b = await register('Fatou', 'Diallo');
+    const c = await api().post('/v1/advisor/conversations').set(bearer(a.token)).send({ topic: 'INVEST', message: 'Question sur les bons' }).expect(201);
+    await api().get(`/v1/advisor/conversations/${c.body.id}`).set(bearer(b.token)).expect(404);
+    await api().post(`/v1/advisor/conversations/${c.body.id}/messages`).set(bearer(b.token)).send({ body: 'intrus' }).expect(404);
+    await api().get('/v1/advisor-desk/conversations').expect(403);
+    await api().get('/v1/advisor-desk/conversations').set(bearer(a.token)).expect(403);
+  });
+
+  it('clôture une conversation puis la rouvre quand le client réécrit', async () => {
+    const { token } = await register();
+    const c = await api().post('/v1/advisor/conversations').set(bearer(token)).send({ topic: 'CREDIT', message: 'Délai de réponse ?' }).expect(201);
+    await api().post(`/v1/advisor-desk/conversations/${c.body.id}/close`).set(ADMIN).expect(204);
+    await api().post(`/v1/advisor-desk/conversations/${c.body.id}/messages`).set(ADMIN).send({ authorName: 'Yao', body: 'x' }).expect(400);
+    await api().post(`/v1/advisor/conversations/${c.body.id}/messages`).set(bearer(token)).send({ body: 'Encore une question' }).expect(201);
+    const d = await api().get(`/v1/advisor/conversations/${c.body.id}`).set(bearer(token)).expect(200);
+    expect(d.body.status).toBe('OPEN');
+  });
+});

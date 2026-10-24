@@ -3,6 +3,10 @@
  * rétractation 48 h, scoring…) pour que l'application soit utilisable sans serveur.
  */
 import {
+  ADVISOR_HOURS,
+  ADVISOR_TOPICS,
+  CROWDFUND_REVIEW_DAYS,
+  CROWDFUND_VALIDATOR,
   STRONG_AUTH_THRESHOLD,
   WITHDRAWAL_PERIOD_HOURS,
   addMonths,
@@ -18,9 +22,12 @@ import {
   type PortfolioDTO,
   type TransactionDTO,
   type TransactionType,
+  type AdvisorConversationDTO,
+  type AdvisorMessageDTO,
+  type AdvisorTopic,
 } from '@dala/shared';
 import { ApiError } from '../errors';
-import { DEMO_OTP, DEMO_PIN, bonds, db, funds, projects } from './db';
+import { DEMO_OTP, DEMO_PIN, bonds, db, funds, projects, type MockConversation } from './db';
 
 type Handler = (ctx: { params: string[]; body: any; query: URLSearchParams; headers: Record<string, string> }) => unknown;
 type Account = keyof typeof db.balances;
@@ -345,12 +352,104 @@ const routes: [string, RegExp, Handler][] = [
     return undefined;
   }],
 
+  /* ------------------------- Équipe commerciale ------------------------- */
+  ['GET', /^\/advisor\/conversations$/, () =>
+    [...db.advisor].sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt)).map(advisorSummary)],
+  ['POST', /^\/advisor\/conversations$/, ({ body }) => {
+    const now = Date.now();
+    const c: MockConversation = {
+      id: id('conv'),
+      topic: body.topic,
+      subject: body.subject || ADVISOR_TOPICS[body.topic as AdvisorTopic],
+      status: 'OPEN',
+      advisorName: null,
+      createdAt: new Date(now).toISOString(),
+      lastMessageAt: new Date(now).toISOString(),
+      readAt: new Date(now + 1).toISOString(),
+      messages: [
+        advisorMsg('USER', body.message, null, now),
+        advisorMsg('SYSTEM', `Votre demande a bien été transmise à l'équipe commerciale DALA. Un conseiller vous répond ici ${ADVISOR_HOURS}.`, null, now + 1),
+      ],
+    };
+    db.advisor.push(c);
+    scheduleAdvisorReply(c, body.message);
+    return { ...advisorSummary(c), messages: c.messages };
+  }],
+  ['GET', /^\/advisor\/conversations\/([^/]+)$/, ({ params }) => {
+    const c = findConversation(params[0]);
+    c.readAt = new Date().toISOString();
+    return { ...advisorSummary(c), messages: c.messages };
+  }],
+  ['POST', /^\/advisor\/conversations\/([^/]+)\/messages$/, ({ params, body }) => {
+    const c = findConversation(params[0]);
+    const m = advisorMsg('USER', body.body, null);
+    c.messages.push(m);
+    c.status = 'OPEN';
+    c.lastMessageAt = c.readAt = m.createdAt;
+    scheduleAdvisorReply(c, body.body);
+    return m;
+  }],
+
   /* ------------------------------ Compliance ------------------------------ */
   ['POST', /^\/compliance\/complaints$/, ({ body }) => {
     notify('Réclamation enregistrée', 'Réponse garantie sous 15 jours ouvrés.', 'SYSTEM');
     return { id: id('c'), ...body, status: 'OPEN' };
   }],
 ];
+
+function advisorMsg(sender: AdvisorMessageDTO['sender'], body: string, authorName: string | null, at = Date.now()): AdvisorMessageDTO {
+  return { id: id('m'), sender, authorName, body, createdAt: new Date(at).toISOString() };
+}
+
+function advisorSummary(c: MockConversation): AdvisorConversationDTO {
+  const { messages, readAt, ...rest } = c;
+  return {
+    ...rest,
+    lastMessage: messages.at(-1)?.body ?? null,
+    unread: messages.filter((m) => m.sender !== 'USER' && m.createdAt > readAt).length,
+  };
+}
+
+function findConversation(convId: string) {
+  const c = db.advisor.find((x) => x.id === convId);
+  if (!c) throw new ApiError(404, 'Conversation introuvable');
+  return c;
+}
+
+/** Délai de réponse du conseiller simulé (raccourci par les tests). */
+export const advisorDemo = { delayMs: 4_000 };
+const DEMO_ADVISOR = 'Mariam Traoré · Conseillère DALA';
+
+/** En mode démo, une conseillère répond automatiquement après quelques secondes. */
+function scheduleAdvisorReply(c: MockConversation, question: string) {
+  setTimeout(() => {
+    const first = !c.advisorName;
+    c.advisorName = DEMO_ADVISOR;
+    const intro = first ? `Bonjour ${db.user.firstName}, je suis Mariam, votre conseillère. ` : '';
+    const m = advisorMsg('ADVISOR', intro + demoAdvisorAnswer(c.topic, question), DEMO_ADVISOR);
+    c.messages.push(m);
+    c.lastMessageAt = m.createdAt;
+    notify(`Réponse de Mariam Traoré`, m.body.length > 120 ? `${m.body.slice(0, 117)}…` : m.body, 'SYSTEM');
+  }, advisorDemo.delayMs);
+}
+
+function demoAdvisorAnswer(topic: AdvisorTopic, question: string) {
+  if (/rendez-vous|rdv|appel|rappel/i.test(question)) return 'Je peux vous rappeler demain entre 9 h et 12 h. Cela vous convient-il ?';
+  switch (topic) {
+    case 'INVEST':
+      return "Les bons du Trésor UEMOA conviennent bien à un horizon court et à un objectif de revenu régulier. Je peux vous présenter les émissions ouvertes et simuler votre rendement selon votre montant.";
+    case 'CROWDFUND':
+      return `Sur DALA, le crowdfunding est uniquement en capital : vous devenez actionnaire. Chaque projet est validé par ${CROWDFUND_VALIDATOR}. Quel secteur vous intéresse ?`;
+    case 'SAVINGS':
+      return "Pour démarrer, un objectif avec épargne automatique hebdomadaire fonctionne très bien. Le coffre-fort à 6 ou 12 mois offre un meilleur taux si vous n'avez pas besoin des fonds.";
+    case 'CREDIT':
+      return 'Votre montant éligible dépend de votre score DALA. Régularité de l’épargne et remboursements ponctuels le font progresser. Souhaitez-vous que je regarde votre dossier ?';
+    case 'BUSINESS':
+      return `Pour lever des fonds, déposez votre projet depuis l'onglet Crowdfunding. Le comité ${CROWDFUND_VALIDATOR} l'étudie sous ${CROWDFUND_REVIEW_DAYS} jours. Je peux vous aider à préparer le dossier.`;
+    default:
+      return 'Merci pour votre message. Pouvez-vous me donner quelques précisions pour que je vous oriente au mieux ?';
+  }
+}
 
 function providerName(p: string) {
   return { ORANGE_MONEY: 'Orange Money', MTN_MOMO: 'MTN MoMo', WAVE: 'Wave', MOOV_MONEY: 'Moov Money' }[p] ?? p;

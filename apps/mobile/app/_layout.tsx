@@ -1,3 +1,4 @@
+import '@/utils/polyfills';
 import 'react-native-gesture-handler';
 import '@/i18n';
 import { useEffect } from 'react';

@@ -49,6 +49,8 @@ Les données démo (soldes, tontine, projets…) sont réinitialisées à chaque
 - [ ] Créer un objectif d'épargne avec épargne automatique.
 - [ ] Cotiser à la tontine (PIN demandé).
 - [ ] Créer un coffre-fort de 3 mois.
+- [ ] **Équipe commerciale** : *Accueil › Un conseiller*, choisir un sujet et écrire. En mode démo, une conseillère répond après environ 5 secondes. Répondre à nouveau dans la conversation.
+- [ ] **Assistant IA** : *Accueil › Assistant IA › Connecter une IA*, coller une clé Claude (console.anthropic.com) ou OpenAI, puis poser une question sur le marché ou un projet. Tester aussi *Analyser avec l'assistant IA* depuis la fiche d'un projet. Les appels sont facturés par le fournisseur sur votre clé.
 
 ### Ressenti
 - [ ] Fluidité sur un téléphone d'entrée de gamme

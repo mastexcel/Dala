@@ -20,6 +20,10 @@ import type {
   UserProfile,
   VaultDTO,
   InvestmentDTO,
+  AdvisorConversationDTO,
+  AdvisorConversationDetail,
+  AdvisorMessageDTO,
+  AdvisorTopic,
 } from '@dala/shared';
 import { request } from './client';
 
@@ -144,4 +148,12 @@ export const notificationApi = {
 
 export const complianceApi = {
   complaint: (body: { subject: string; message: string; category: string }) => request('/compliance/complaints', { method: 'POST', body }),
+};
+
+export const advisorApi = {
+  conversations: () => request<AdvisorConversationDTO[]>('/advisor/conversations'),
+  conversation: (id: string) => request<AdvisorConversationDetail>(`/advisor/conversations/${id}`),
+  start: (topic: AdvisorTopic, message: string, subject?: string) =>
+    request<AdvisorConversationDetail>('/advisor/conversations', { method: 'POST', body: { topic, message, subject } }),
+  send: (id: string, body: string) => request<AdvisorMessageDTO>(`/advisor/conversations/${id}/messages`, { method: 'POST', body: { body } }),
 };

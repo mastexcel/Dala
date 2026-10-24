@@ -71,7 +71,9 @@ export type AnalyticsEvent =
   | 'project_submitted'
   | 'loan_requested'
   | 'loan_repaid'
-  | 'wallet_operation';
+  | 'wallet_operation'
+  | 'advisor_contacted'
+  | 'assistant_reply';
 
 export function track(event: AnalyticsEvent, props: Record<string, string | number | boolean> = {}) {
   if (!cfg.mixpanelToken) return;

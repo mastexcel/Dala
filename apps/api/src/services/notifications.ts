@@ -1,6 +1,7 @@
 import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
 import type { Prisma } from '@prisma/client';
+import type { AdvisorMessageDTO } from '@dala/shared';
 import { prisma } from '../lib/prisma';
 import { verifyAccessToken } from '../lib/jwt';
 import { config } from '../config';
@@ -59,4 +60,9 @@ export async function notify(userId: string, input: NotifyInput) {
 
 export function emitBalanceChanged(userId: string) {
   io?.to(`user:${userId}`).emit('balance:changed');
+}
+
+/** Nouvelle réponse d'un conseiller : la conversation ouverte se met à jour sans attendre. */
+export function emitAdvisorMessage(userId: string, conversationId: string, message: AdvisorMessageDTO) {
+  io?.to(`user:${userId}`).emit('advisor:message', { conversationId, message });
 }

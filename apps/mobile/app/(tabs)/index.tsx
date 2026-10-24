@@ -6,6 +6,7 @@ import { AppText, Card, DalaIcon, ErrorState, LegalNotice, Loading, Logo, Sectio
 import { BalanceCard } from '@/components/home/BalanceCard';
 import { QuickActions } from '@/components/home/QuickActions';
 import { PillarRow } from '@/components/home/PillarRow';
+import { HelpCards } from '@/components/home/HelpCards';
 import { TransactionRow } from '@/components/home/TransactionRow';
 import { useNotifications, useSummary, useTransactions } from '@/hooks/queries';
 import { useAuthStore } from '@/stores/auth';
@@ -89,6 +90,7 @@ export default function Home() {
             onPress={() => router.push('/(tabs)/credit')}
           />
           </ResponsiveGrid>
+          <HelpCards />
         </>
       ) : null}
 

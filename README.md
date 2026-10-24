@@ -132,9 +132,28 @@ Préfixe : `/v1`. Authentification : `Authorization: Bearer <jwt>`.
 | Crédit | `GET /loans`, `/loans/quote`, `POST /loans`, `GET /loans/:id`, `POST /loans/:id/repay` |
 | Transactions | `GET /transactions`, `GET /transactions/export?format=csv\|pdf` |
 | Conformité | `POST /compliance/complaints` ; back-office (`x-admin-key`) : reporting BCEAO, réconciliation, vérification de la piste d'audit, alertes LBC/FT, validation KYC, revue des projets |
+| Équipe commerciale | `GET/POST /advisor/conversations`, `GET /advisor/conversations/:id`, `POST /advisor/conversations/:id/messages` ; poste des conseillers (`x-admin-key`) : `GET /advisor-desk/conversations?status=OPEN` (avec `awaitingReply`), `POST /advisor-desk/conversations/:id/messages` (`authorName`, `body`), `POST /advisor-desk/conversations/:id/close` |
 | Webhooks | `POST /webhooks/mobile-money/:provider` (signature HMAC) |
 
-WebSocket (Socket.io) : événements `notification` et `balance:changed` dans la room de l'utilisateur.
+WebSocket (Socket.io) : événements `notification`, `balance:changed` et `advisor:message` dans la room de l'utilisateur.
+
+## Échanges avec l'équipe commerciale et assistant IA
+
+**Équipe commerciale** (`app/advisor`) : l'utilisateur choisit un sujet (placements, crowdfunding en capital, épargne, crédit, levée de fonds, autre) et écrit à l'équipe. Il reçoit un accusé de réception, puis les réponses des conseillers en temps réel (WebSocket, notification et push). Une conversation clôturée se rouvre dès que le client réécrit. En mode démo, une conseillère simulée répond après quelques secondes. Accès : carte « Un conseiller » sur l'accueil, Profil, Support.
+
+**Assistant IA** (`app/assistant`, `services/ai`) : l'utilisateur connecte **sa propre clé d'API** :
+- **Claude (Anthropic)**, via le SDK officiel `@anthropic-ai/sdk`. Opus 5.5 est le modèle par défaut ; Sonnet 5.5 et Haiku 5.5 sont aussi proposés. Le repli automatique est activé en cas de refus du modèle. La recherche web, désactivable, sert pour l'actualité des marchés, avec les sources citées.
+- **OpenAI**.
+- Tout fournisseur **compatible OpenAI** : Mistral, Groq, OpenRouter, DeepSeek, Ollama…
+
+Fonctionnement :
+- La clé reste dans le trousseau sécurisé de l'appareil. Les requêtes partent directement de l'app vers le fournisseur, jamais par les serveurs DALA. La connexion est vérifiée sans consommer de jetons, via la liste des modèles.
+- Chaque question est accompagnée des offres DALA : titres publics et Sukuk, FCP, projets de crowdfunding validés par Bridge Investment Partners. La situation de l'utilisateur (soldes, placements, participations) n'est jointe que s'il l'accepte.
+- Le prompt système impose le français, les montants en FCFA, le crowdfunding en capital uniquement et l'absence de conseil personnalisé. Il renvoie vers un conseiller pour une recommandation adaptée.
+- L'assistant répond aussi à tout autre sujet.
+- Raccourci « Analyser avec l'assistant IA » sur les fiches titre et projet (question préremplie, relue avant envoi).
+
+Le polyfill `react-native-url-polyfill` est chargé sur Android et iOS : sans lui, l'implémentation `URL` de React Native corrompt l'adresse des requêtes du SDK (test `sdkOnReactNative.test.ts`).
 
 ## Conformité BCEAO — où c'est implémenté
 
@@ -163,9 +182,9 @@ Décision : approuvé si p ≥ 0,70, revue manuelle si p ≥ 0,50, refusé sinon
 | --- | --- |
 | `packages/shared` (Vitest) | Calculs financiers, plafonds KYC, authentification forte, détection LBC/FT |
 | API unitaires (Vitest + Supertest) | Validation, authentification, piste d'audit, scoring de repli, sanctions |
-| API intégration (PostgreSQL réel, 32 tests) | Inscription, verrouillage du PIN, rotation et réutilisation des refresh tokens ; plafonds KYC, PIN au-delà de 50 000 FCFA, rétractation 48 h, solde insuffisant, retrait refusé par l'opérateur ; objectifs, coffre-fort, tontine complète, transferts ; crowdfunding (validation du comité, equity, clôture à l'objectif) ; prêt approuvé, refusé, en revue, repli heuristique, remboursements ; gel LBC/FT et déclaration CENTIF, webhook signé, réclamations, KYC back-office, altération de la piste d'audit, reporting BCEAO |
-| App (Jest) | Backend simulé, composants, analytique |
-| E2E (Playwright, web) | Connexion, accueil, investissement avec PIN (erreur puis succès), crowdfunding, prêt, objectif d'épargne, filtres de transactions |
+| API intégration (PostgreSQL réel, 35 tests) | Échanges avec l'équipe commerciale (accusé de réception, réponse du conseiller, non-lus, isolation entre clients, clôture et réouverture) ; inscription, verrouillage du PIN, rotation et réutilisation des refresh tokens ; plafonds KYC, PIN au-delà de 50 000 FCFA, rétractation 48 h, solde insuffisant, retrait refusé par l'opérateur ; objectifs, coffre-fort, tontine complète, transferts ; crowdfunding (validation du comité, equity, clôture à l'objectif) ; prêt approuvé, refusé, en revue, repli heuristique, remboursements ; gel LBC/FT et déclaration CENTIF, webhook signé, réclamations, KYC back-office, altération de la piste d'audit, reporting BCEAO |
+| App (Jest) | Backend simulé (dont conseillère démo), composants, analytique ; assistant IA : contexte de marché, appel Claude (en-têtes, repli, recherche web, reprise après pause, refus, erreurs), fournisseur compatible OpenAI, SDK sous l'URL de React Native |
+| E2E (Playwright, web) | Connexion, accueil, investissement avec PIN (erreur puis succès), crowdfunding, prêt, objectif d'épargne, filtres de transactions, paysage ; échange avec une conseillère ; connexion d'une clé Claude et analyse du marché (API Anthropic simulée), question préremplie depuis une fiche projet |
 | Scoring (pytest) | API, monotonie du modèle, explications |
 
 Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas un essai sur appareil (biométrie, appareil photo, notifications push) : pour ces parcours natifs, prévoir Maestro ou Detox sur un build de développement.
@@ -173,7 +192,7 @@ Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas u
 ## Monitoring
 
 - **Sentry** (erreurs) : API via `SENTRY_DSN`, app via `EXPO_PUBLIC_SENTRY_DSN`. Les en-têtes et champs sensibles (PIN, OTP, jetons, clé admin) sont retirés avant envoi.
-- **Mixpanel** (analytique) : `EXPO_PUBLIC_MIXPANEL_TOKEN`. On envoie uniquement l'identifiant interne, le nom de l'événement et des tranches de montant (`<10k`, `10k-50k`…), jamais le nom, le téléphone ni le montant exact. Événements suivis : inscription, connexion, objectif, versement, coffre-fort, cotisation, investissement, crowdfunding, soumission de projet, prêt, remboursement, opération de portefeuille.
+- **Mixpanel** (analytique) : `EXPO_PUBLIC_MIXPANEL_TOKEN`. On envoie uniquement l'identifiant interne, le nom de l'événement et des tranches de montant (`<10k`, `10k-50k`…), jamais le nom, le téléphone ni le montant exact. Événements suivis : inscription, connexion, objectif, versement, coffre-fort, cotisation, investissement, crowdfunding, soumission de projet, prêt, remboursement, opération de portefeuille, contact de l'équipe commerciale, réponse de l'assistant IA (fournisseur uniquement, jamais le contenu).
 - Sans ces variables, rien n'est envoyé.
 
 ## Intégrations

@@ -11,6 +11,7 @@ import {
   formatFCFA,
   formatPercent,
 } from '@dala/shared';
+import { AskAiLink } from '@/components/chat';
 import { AmountSlider, AppText, Badge, Button, Card, DalaIcon, ErrorState, Header, type DalaIconName, KeyValue, LegalNotice, Loading, ProgressBar, Screen, SectionTitle } from '@/components/ui';
 import { ValidatedBadge } from '@/components/crowdfund/ValidatedBadge';
 import { Confetti } from '@/components/charts/Confetti';
@@ -85,6 +86,7 @@ export default function ProjectDetail() {
           {p.name}
         </AppText>
         <AppText color={COLORS.darkGray}>{p.description}</AppText>
+        <AskAiLink prompt={`Analyse le projet ${p.name} : potentiel, risques et part de capital pour un ticket de ${formatFCFA(amount)}.`} />
 
         <Card style={{ gap: SPACING.sm, marginTop: SPACING.md }}>
           <ProgressBar value={ratio} color={COLORS.purple} height={10} label="Montant levé" />

@@ -14,6 +14,8 @@ const ITEMS: { label: string; icon: DalaIconName; href: string }[] = [
   { label: 'Notifications', icon: 'notifications', href: '/profile/notifications' },
   { label: 'Langue', icon: 'settings', href: '/profile/language' },
   { label: 'Parrainage', icon: 'referral', href: '/profile/referral' },
+  { label: 'Échanger avec un conseiller', icon: 'investors', href: '/advisor' },
+  { label: 'Assistant IA', icon: 'performance', href: '/assistant' },
   { label: 'Support / FAQ', icon: 'info', href: '/profile/support' },
   { label: 'Mentions légales / CGU', icon: 'details', href: '/profile/legal' },
 ];
