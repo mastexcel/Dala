@@ -1,3 +1,4 @@
+import path from 'node:path';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -29,6 +30,9 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
   app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/health' } }));
   app.use(globalLimiter);
+
+  // Poste des conseillers (page statique ; les données passent par /v1/advisor-desk avec la clé back-office).
+  app.use('/desk', express.static(path.join(__dirname, '../desk'), { index: 'index.html', maxAge: '1h' }));
 
   app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'dala-api', time: new Date().toISOString() }));
 

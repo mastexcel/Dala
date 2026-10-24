@@ -135,17 +135,29 @@ deskRouter.get(
       orderBy: { lastMessageAt: 'desc' },
       take: 100,
       include: {
-        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+        // Aperçu : dernier échange réel, sans l'accusé de réception automatique.
+        messages: { where: { sender: { not: 'SYSTEM' } }, orderBy: { createdAt: 'desc' }, take: 1 },
         user: { select: { firstName: true, lastName: true, phone: true, kycLevel: true } },
       },
     });
+    // Dernier message du client et dernière réponse d'un conseiller (les messages système ne comptent pas).
+    const latest = await prisma.advisorMessage.groupBy({
+      by: ['conversationId', 'sender'],
+      where: { conversationId: { in: list.map((c) => c.id) }, sender: { in: ['USER', 'ADVISOR'] } },
+      _max: { createdAt: true },
+    });
+    const last = (id: string, sender: 'USER' | 'ADVISOR') =>
+      latest.find((l) => l.conversationId === id && l.sender === sender)?._max.createdAt ?? null;
     res.json(
-      list.map((c) => ({
-        ...conversationDTO(c, 0),
-        user: c.user,
-        // Le client attend une réponse si son message est le dernier.
-        awaitingReply: c.messages[0]?.sender === 'USER',
-      })),
+      list.map((c) => {
+        const fromUser = last(c.id, 'USER');
+        const fromAdvisor = last(c.id, 'ADVISOR');
+        return {
+          ...conversationDTO(c, 0),
+          user: c.user,
+          awaitingReply: c.status === 'OPEN' && !!fromUser && (!fromAdvisor || fromUser > fromAdvisor),
+        };
+      }),
     );
   }),
 );

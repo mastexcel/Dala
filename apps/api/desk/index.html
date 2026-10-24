@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Poste des conseillers · DALA Finance</title>
+  <link rel="stylesheet" href="desk.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo">DALA</span> Poste des conseillers</div>
+    <div class="me" id="me" hidden>
+      <span id="me-name"></span>
+      <button type="button" class="link" id="logout">Se déconnecter</button>
+    </div>
+  </header>
+
+  <main id="login" class="login" hidden>
+    <form id="login-form" class="card">
+      <h1>Connexion</h1>
+      <p class="muted">Réservé à l'équipe commerciale DALA Finance.</p>
+      <label>Votre nom (affiché aux clients)
+        <input id="login-name" required minlength="2" maxlength="60" placeholder="Mariam Traoré · Conseillère DALA" autocomplete="name" />
+      </label>
+      <label>Clé du back-office
+        <input id="login-key" type="password" required autocomplete="current-password" />
+      </label>
+      <button type="submit" class="primary">Se connecter</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+  </main>
+
+  <main id="app" class="layout" hidden>
+    <aside class="inbox">
+      <nav class="filters" role="tablist" aria-label="Filtrer les conversations">
+        <button type="button" role="tab" data-filter="AWAITING" aria-selected="true">À traiter <span class="count" id="count-awaiting"></span></button>
+        <button type="button" role="tab" data-filter="OPEN" aria-selected="false">Ouvertes</button>
+        <button type="button" role="tab" data-filter="CLOSED" aria-selected="false">Clôturées</button>
+      </nav>
+      <ul id="list" class="list" aria-label="Conversations"></ul>
+      <p id="list-empty" class="muted empty" hidden>Aucune conversation.</p>
+    </aside>
+
+    <section class="thread" aria-live="polite">
+      <div id="placeholder" class="placeholder muted">Sélectionnez une conversation.</div>
+      <div id="conversation" hidden>
+        <div class="thread-head">
+          <button type="button" class="link back" id="back">← Conversations</button>
+          <div>
+            <h2 id="c-subject"></h2>
+            <p class="muted" id="c-customer"></p>
+          </div>
+          <button type="button" class="secondary" id="close-conv">Clôturer</button>
+        </div>
+        <ol id="messages" class="messages"></ol>
+        <form id="reply-form" class="reply">
+          <div class="templates" id="templates" aria-label="Réponses types"></div>
+          <textarea id="reply" rows="3" maxlength="4000" placeholder="Votre réponse au client…" aria-label="Réponse" required></textarea>
+          <div class="reply-actions">
+            <span class="muted small">Ctrl + Entrée pour envoyer</span>
+            <button type="submit" class="primary" id="send">Envoyer</button>
+          </div>
+          <p id="reply-error" class="error" role="alert"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="desk.js"></script>
+</body>
+</html>

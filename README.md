@@ -141,6 +141,17 @@ WebSocket (Socket.io) : événements `notification`, `balance:changed` et `advis
 
 **Équipe commerciale** (`app/advisor`) : l'utilisateur choisit un sujet (placements, crowdfunding en capital, épargne, crédit, levée de fonds, autre) et écrit à l'équipe. Il reçoit un accusé de réception, puis les réponses des conseillers en temps réel (WebSocket, notification et push). Une conversation clôturée se rouvre dès que le client réécrit. En mode démo, une conseillère simulée répond après quelques secondes. Accès : carte « Un conseiller » sur l'accueil, Profil, Support.
 
+**Poste des conseillers** (`apps/api/desk`, servi par l'API sur **`/desk/`**) : page web pour l'équipe commerciale.
+- **Connexion :** avec la clé `ADMIN_API_KEY` et le nom affiché aux clients. La clé reste dans la session de l'onglet.
+- **Onglet « À traiter » :** les conversations dont le dernier message client n'a pas encore de réponse, avec un compteur dans le titre de l'onglet.
+- **Pour chaque client :** nom, téléphone et niveau KYC, puis le fil complet.
+- **Réponse :** réponses types (rappel, crowdfunding, titres, précisions), envoi par Ctrl + Entrée, clôture de la conversation.
+- **Mise à jour :** automatique toutes les 10 secondes. La page s'adapte au téléphone.
+
+Le contenu des clients est toujours affiché comme du texte, jamais interprété comme du HTML. La page est servie sous la politique de sécurité stricte de l'API (scripts de même origine uniquement).
+
+En production, réservez `/desk/` au réseau interne ou placez-le derrière le SSO de l'entreprise : la clé back-office donne aussi accès aux autres routes d'administration.
+
 **Assistant IA** (`app/assistant`, `services/ai`) : l'utilisateur connecte **sa propre clé d'API** :
 - **Claude (Anthropic)**, via le SDK officiel `@anthropic-ai/sdk`. Opus 5.5 est le modèle par défaut ; Sonnet 5.5 et Haiku 5.5 sont aussi proposés. Le repli automatique est activé en cas de refus du modèle. La recherche web, désactivable, sert pour l'actualité des marchés, avec les sources citées.
 - **OpenAI**.
@@ -182,7 +193,7 @@ Décision : approuvé si p ≥ 0,70, revue manuelle si p ≥ 0,50, refusé sinon
 | --- | --- |
 | `packages/shared` (Vitest) | Calculs financiers, plafonds KYC, authentification forte, détection LBC/FT |
 | API unitaires (Vitest + Supertest) | Validation, authentification, piste d'audit, scoring de repli, sanctions |
-| API intégration (PostgreSQL réel, 35 tests) | Échanges avec l'équipe commerciale (accusé de réception, réponse du conseiller, non-lus, isolation entre clients, clôture et réouverture) ; inscription, verrouillage du PIN, rotation et réutilisation des refresh tokens ; plafonds KYC, PIN au-delà de 50 000 FCFA, rétractation 48 h, solde insuffisant, retrait refusé par l'opérateur ; objectifs, coffre-fort, tontine complète, transferts ; crowdfunding (validation du comité, equity, clôture à l'objectif) ; prêt approuvé, refusé, en revue, repli heuristique, remboursements ; gel LBC/FT et déclaration CENTIF, webhook signé, réclamations, KYC back-office, altération de la piste d'audit, reporting BCEAO |
+| API intégration (PostgreSQL réel, 36 tests) | Échanges avec l'équipe commerciale (accusé de réception, file « à traiter », réponse du conseiller, non-lus, isolation entre clients, clôture et réouverture, page du poste des conseillers) ; inscription, verrouillage du PIN, rotation et réutilisation des refresh tokens ; plafonds KYC, PIN au-delà de 50 000 FCFA, rétractation 48 h, solde insuffisant, retrait refusé par l'opérateur ; objectifs, coffre-fort, tontine complète, transferts ; crowdfunding (validation du comité, equity, clôture à l'objectif) ; prêt approuvé, refusé, en revue, repli heuristique, remboursements ; gel LBC/FT et déclaration CENTIF, webhook signé, réclamations, KYC back-office, altération de la piste d'audit, reporting BCEAO |
 | App (Jest) | Backend simulé (dont conseillère démo), composants, analytique ; assistant IA : contexte de marché, appel Claude (en-têtes, repli, recherche web, reprise après pause, refus, erreurs), fournisseur compatible OpenAI, SDK sous l'URL de React Native |
 | E2E (Playwright, web) | Connexion, accueil, investissement avec PIN (erreur puis succès), crowdfunding, prêt, objectif d'épargne, filtres de transactions, paysage ; échange avec une conseillère ; connexion d'une clé Claude et analyse du marché (API Anthropic simulée), question préremplie depuis une fiche projet |
 | Scoring (pytest) | API, monotonie du modèle, explications |

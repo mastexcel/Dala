@@ -18,14 +18,19 @@ describe("Échanges avec l'équipe commerciale", () => {
 
     const desk = await api().get('/v1/advisor-desk/conversations?status=OPEN').set(ADMIN).expect(200);
     const row = desk.body.find((c: { id: string }) => c.id === id);
-    expect(row.awaitingReply).toBe(false); // le dernier message est l'accusé de réception
+    // L'accusé de réception automatique ne compte pas comme une réponse.
+    expect(row.awaitingReply).toBe(true);
     expect(row.user.firstName).toBe('Awa');
+    expect(row.lastMessage).toBe('Bonjour, comment est fixée la valorisation des projets ?');
 
     await api()
       .post(`/v1/advisor-desk/conversations/${id}/messages`)
       .set(ADMIN)
       .send({ authorName: 'Mariam (DALA)', body: 'Bonjour Awa, la valorisation est validée par le comité.' })
       .expect(201);
+
+    const answered = await api().get('/v1/advisor-desk/conversations').set(ADMIN).expect(200);
+    expect(answered.body.find((c: { id: string }) => c.id === id).awaitingReply).toBe(false);
 
     const list = await api().get('/v1/advisor/conversations').set(bearer(token)).expect(200);
     expect(list.body[0]).toMatchObject({ id, unread: 1, advisorName: 'Mariam (DALA)' });
@@ -59,5 +64,18 @@ describe("Échanges avec l'équipe commerciale", () => {
     await api().post(`/v1/advisor/conversations/${c.body.id}/messages`).set(bearer(token)).send({ body: 'Encore une question' }).expect(201);
     const d = await api().get(`/v1/advisor/conversations/${c.body.id}`).set(bearer(token)).expect(200);
     expect(d.body.status).toBe('OPEN');
+  });
+});
+
+describe('Poste des conseillers (page web)', () => {
+  it('sert la page et son script depuis la même origine, sous CSP stricte', async () => {
+    const page = await api().get('/desk/').expect(200);
+    expect(page.headers['content-type']).toContain('text/html');
+    expect(page.text).toContain('Poste des conseillers');
+    expect(page.headers['content-security-policy']).toContain("script-src 'self'");
+    const js = await api().get('/desk/desk.js').expect(200);
+    expect(js.text).toContain('/v1/advisor-desk');
+    // Le contenu client n'est jamais injecté comme HTML.
+    expect(js.text).not.toContain('innerHTML =');
   });
 });
