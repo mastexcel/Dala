@@ -94,7 +94,7 @@ export const db = {
   ] as TransactionDTO[],
   notifications: [
     { id: 'n1', title: 'Coupon reçu', body: '3 125 FCFA de votre Bon du Trésor CI.', type: 'INVEST', isRead: false, createdAt: hoursAgo(26) },
-    { id: 'n2', title: 'Bienvenue sur DALA 👋', body: 'Djigui — Ton avenir commence ici.', type: 'SYSTEM', isRead: true, createdAt: ago(240) },
+    { id: 'n2', title: 'Bienvenue sur DALA 👋', body: 'Faire grandir vos ambitions.', type: 'SYSTEM', isRead: true, createdAt: ago(240) },
   ] as NotificationDTO[],
 };
 

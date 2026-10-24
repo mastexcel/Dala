@@ -2,7 +2,7 @@ import type { Dict } from './fr';
 
 export const en: Dict = {
   common: { continue: 'Continue', cancel: 'Cancel', confirm: 'Confirm', back: 'Back', seeAll: 'See all', retry: 'Retry', offline: 'Offline — showing last synced data', error: 'Something went wrong' },
-  splash: { slogan: 'Djigui — Your future starts here' },
+  splash: { slogan: 'Grow your ambitions' },
   onboarding: {
     s1Title: 'Save smartly', s1Body: 'Goals, digital tontines and vaults: your money works for your plans.',
     s2Title: 'Invest in your future', s2Body: 'WAEMU Treasury bills up to 6%/yr, mutual funds and Halal options, from 5,000 FCFA.',

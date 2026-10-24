@@ -9,7 +9,7 @@ export const fr = {
     offline: 'Hors ligne — données de la dernière synchronisation',
     error: 'Une erreur est survenue',
   },
-  splash: { slogan: 'Djigui — Ton avenir commence ici' },
+  splash: { slogan: 'Faire grandir vos ambitions' },
   onboarding: {
     s1Title: 'Épargnez intelligemment',
     s1Body: 'Objectifs, tontines digitales et coffre-fort : votre argent travaille pour vos projets.',

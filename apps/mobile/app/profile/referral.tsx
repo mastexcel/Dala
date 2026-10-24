@@ -34,7 +34,7 @@ export default function Referral() {
             <Button
               title="Partager mon lien"
               icon={<ShareNetwork size={18} color={COLORS.navy} weight="bold" />}
-              onPress={() => void Share.share({ message: `Rejoins-moi sur DALA Finance pour épargner, investir et financer tes projets. Djigui — Ton avenir commence ici ! ${r.link}` })}
+              onPress={() => void Share.share({ message: `Rejoignez-moi sur DALA Finance pour épargner, investir et financer vos projets. Faire grandir vos ambitions : ${r.link}` })}
             />
           </View>
         </>

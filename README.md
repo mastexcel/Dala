@@ -1,6 +1,6 @@
 # DALA Finance
 
-> **Djigui — Ton avenir commence ici**
+> **Faire grandir vos ambitions**
 
 Super-app financière mobile pour la zone UEMOA (Côte d'Ivoire en premier lieu) réunissant quatre piliers :
 

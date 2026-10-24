@@ -154,7 +154,7 @@ async function main() {
 
   await prisma.notification.createMany({
     data: [
-      { userId: awa.id, title: 'Bienvenue sur DALA 👋', body: 'Djigui — Ton avenir commence ici.', type: 'SYSTEM' },
+      { userId: awa.id, title: 'Bienvenue sur DALA 👋', body: 'Faire grandir vos ambitions.', type: 'SYSTEM' },
       { userId: awa.id, title: 'Coupon reçu', body: '3 125 FCFA de votre Bon du Trésor CI.', type: 'INVEST' },
     ],
   });

@@ -7,7 +7,7 @@
 export const CURRENCY = 'XOF' as const;
 export const CURRENCY_LABEL = 'FCFA' as const;
 export const APP_NAME = 'DALA Finance';
-export const APP_SLOGAN = 'Djigui — Ton avenir commence ici';
+export const APP_SLOGAN = 'Faire grandir vos ambitions';
 
 /** Indicatifs téléphoniques des 8 pays de l'UEMOA. */
 export const UEMOA_COUNTRIES = [
