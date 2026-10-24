@@ -9,7 +9,7 @@ import { ContentVeil } from './ContentVeil';
 /** Fond des écrans de connexion et d'inscription (wallpaper « auth », thème clair). */
 export function AuthBackground({ children }: { children: ReactNode }) {
   return (
-    <ImageBackground source={WALLPAPERS.general} resizeMode="cover" style={{ flex: 1, overflow: 'hidden', backgroundColor: COLORS.white }} imageStyle={WALLPAPER_IMAGE} accessibilityIgnoresInvertColors>
+    <ImageBackground source={WALLPAPERS.auth} resizeMode="cover" style={{ flex: 1, overflow: 'hidden', backgroundColor: COLORS.white }} imageStyle={WALLPAPER_IMAGE} accessibilityIgnoresInvertColors>
       <ContentVeil max={MAX_FORM_WIDTH + 48} />
       <StatusBar style="dark" />
       <SafeAreaView style={{ flex: 1 }}>

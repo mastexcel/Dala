@@ -32,7 +32,7 @@ export default function NotificationsScreen() {
   }, [q.data?.unread, qc]);
 
   return (
-    <Screen wallpaper="general" header={<Header title="Notifications" />} onRefresh={() => void q.refetch()} refreshing={q.isRefetching}>
+    <Screen wallpaper="notifications" header={<Header title="Notifications" />} onRefresh={() => void q.refetch()} refreshing={q.isRefetching}>
       {q.isLoading ? (
         <Loading />
       ) : q.data?.items.length ? (

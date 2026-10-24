@@ -71,7 +71,7 @@ export default function Wallet() {
 
   if (done) {
     return (
-      <Screen wallpaper="general" header={<Header title="Opération réussie" />}>
+      <Screen wallpaper="portfolio" header={<Header title="Opération réussie" />}>
         <View style={{ alignItems: 'center', gap: SPACING.md, marginTop: SPACING.xl }}>
           <DalaIcon name="success" size={100} />
           <AppText variant="h3" weight="bold" align="center">{done}</AppText>
@@ -85,7 +85,7 @@ export default function Wallet() {
   const isMobileMoney = mode === 'deposit' || mode === 'withdraw';
 
   return (
-    <Screen wallpaper="general"
+    <Screen wallpaper="portfolio"
       header={<Header title="Portefeuille" />}
       footer={mode !== 'scan' ? <Button title="Valider" disabled={value < 100 || (mode === 'send' && phone.length < 8)} loading={pending} onPress={submit} /> : undefined}
     >
