@@ -5,9 +5,11 @@ import type { ReactNode } from 'react';
 import { COLORS, SPACING } from '@/theme';
 import { AppText } from './AppText';
 import { DalaIcon } from './DalaIcon';
+import { Logo } from './Logo';
 
 interface Props {
   title: string;
+  /** Élément à droite ; par défaut, le logo DALA (présent sur chaque page). */
   right?: ReactNode;
   light?: boolean;
   onBack?: () => void;
@@ -29,7 +31,7 @@ export function Header({ title, right, light, onBack }: Props) {
       <AppText variant="h4" weight="bold" color={color} numberOfLines={1} style={styles.title} accessibilityRole="header">
         {title}
       </AppText>
-      <View style={[styles.side, { alignItems: 'flex-end' }]}>{right}</View>
+      <View style={styles.right}>{right ?? <Logo variant={light ? 'color' : 'colorLight'} width={56} />}</View>
     </View>
   );
 }
@@ -37,5 +39,6 @@ export function Header({ title, right, light, onBack }: Props) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, minHeight: 52 },
   side: { width: 40 },
+  right: { width: 56, alignItems: 'flex-end' },
   title: { flex: 1, textAlign: 'center' },
 });

@@ -22,3 +22,4 @@ export * from './CodeInput';
 export * from './AuthBackground';
 export * from './DalaIcon';
 export * from './wallpapers';
+export * from './PageTitle';

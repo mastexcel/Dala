@@ -13,7 +13,7 @@ import {
   quoteLoan,
   type LoanDecision,
 } from '@dala/shared';
-import { AmountSlider, AppText, Button, Card, Chip, DalaIcon, Header, type DalaIconName, KeyValue, LegalNotice, Loading, Screen } from '@/components/ui';
+import { AmountSlider, AppText, Button, Card, Chip, DalaIcon, Header, type DalaIconName, KeyValue, LegalNotice, Loading, Screen, Logo } from '@/components/ui';
 import { Confetti } from '@/components/charts/Confetti';
 import { loanApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
@@ -66,6 +66,7 @@ export default function LoanRequest() {
       <Screen scroll={false} background={COLORS.navy} dark edges={['top', 'bottom']}>
         {decision === 'APPROVED' ? <Confetti /> : null}
         <View style={styles.result}>
+          <Logo variant="color" width={140} />
           <MotiView from={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 10 }}>
             <View style={{ backgroundColor: COLORS.white, borderRadius: 72, padding: 12 }}>
               <DalaIcon name={r.icon} size={96} />

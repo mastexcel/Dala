@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { CROWDFUND_REVIEW_DAYS, CROWDFUND_VALIDATOR, LEGAL_NOTICE_CROWDFUND, PROJECT_SECTORS, formatFCFA, formatPercent, type ProjectSector } from '@dala/shared';
-import { AppText, Badge, Button, Card, Chip, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, Screen, SegmentedTabs } from '@/components/ui';
+import { AppText, Badge, Button, Card, Chip, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, Screen, SegmentedTabs, PageTitle } from '@/components/ui';
 import { ProjectCard } from '@/components/crowdfund/ProjectCard';
 import { useCrowdfundPortfolio, useProjects } from '@/hooks/queries';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -24,9 +24,7 @@ export default function Crowdfund() {
 
   return (
     <Screen wallpaper="crowdfund" onRefresh={() => [projects, portfolio].forEach((q) => void q.refetch())} refreshing={projects.isRefetching}>
-      <AppText variant="h1" color={COLORS.navy}>
-        Crowdfunding
-      </AppText>
+      <PageTitle title="Crowdfunding" />
       <AppText color={TEXT_ON_WHITE.muted} style={{ marginBottom: SPACING.md }}>
         Devenez actionnaire des entreprises qui font l'Afrique de l'Ouest, dès 5 000 FCFA.
       </AppText>

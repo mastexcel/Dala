@@ -45,6 +45,7 @@ export default function Profile() {
 
   return (
     <Screen wallpaper="profile">
+      <Logo variant="colorLight" width={72} style={{ alignSelf: 'flex-end' }} />
       <View style={styles.head}>
         <View style={styles.avatar}>
           <AppText variant="h2" serif color={COLORS.navy}>
@@ -108,7 +109,7 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  head: { alignItems: 'center', gap: 4, marginVertical: SPACING.lg },
+  head: { alignItems: 'center', gap: 4, marginBottom: SPACING.lg },
   avatar: { width: 84, height: 84, borderRadius: RADIUS.full, backgroundColor: COLORS.gold, alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   item: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, padding: SPACING.md },

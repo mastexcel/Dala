@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { formatFCFA, VAULT_OPTIONS, formatPercent } from '@dala/shared';
-import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, SegmentedTabs, Screen } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, SegmentedTabs, Screen, PageTitle } from '@/components/ui';
 import { GoalCard } from '@/components/savings/GoalCard';
 import { TontineCard } from '@/components/savings/TontineCard';
 import { VaultCard } from '@/components/savings/VaultCard';
@@ -20,9 +20,7 @@ export default function Savings() {
 
   return (
     <Screen wallpaper="savings" onRefresh={() => [goals, tontines, vaults, summary].forEach((q) => void q.refetch())} refreshing={goals.isRefetching}>
-      <AppText variant="h1" color={COLORS.navy}>
-        Épargne
-      </AppText>
+      <PageTitle title="Épargne" />
       <Card style={styles.total}>
         <View style={styles.totalIcon}>
           <DalaIcon name="savings" size={40} />

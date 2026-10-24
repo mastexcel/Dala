@@ -3,7 +3,7 @@ import { StyleSheet, Switch, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MotiView } from 'moti';
 import { LEGAL_NOTICE_INVEST, WITHDRAWAL_PERIOD_HOURS, formatDate, formatFCFA, formatPercent, simulateBond } from '@dala/shared';
-import { AppText, Button, Card, DalaIcon, Header, Input, KeyValue, LegalNotice, Loading, Screen } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, Header, Input, KeyValue, LegalNotice, Loading, Screen, Logo } from '@/components/ui';
 import { Confetti } from '@/components/charts/Confetti';
 import { investApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
@@ -59,6 +59,7 @@ export default function InvestFlow() {
       <Screen scroll={false} background={COLORS.navy} dark edges={['top', 'bottom']}>
         <Confetti />
         <View style={styles.success}>
+          <Logo variant="color" width={140} />
           <MotiView from={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 10 }}>
             <View style={styles.successIcon}>
               <DalaIcon name="success" size={96} />

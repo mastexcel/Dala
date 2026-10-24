@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import { LEGAL_NOTICE_CREDIT, LOAN_MAX, LOAN_MIN, formatFCFA } from '@dala/shared';
-import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
+import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, Screen, SectionTitle, PageTitle } from '@/components/ui';
 import { ScoreGauge } from '@/components/charts/ScoreGauge';
 import { LoanRow } from '@/components/credit/LoanRow';
 import { useCredit } from '@/hooks/queries';
@@ -16,9 +16,7 @@ export default function Credit() {
 
   return (
     <Screen wallpaper="credit" onRefresh={() => void q.refetch()} refreshing={q.isRefetching}>
-      <AppText variant="h1" color={COLORS.navy}>
-        Micro-crédit
-      </AppText>
+      <PageTitle title="Micro-crédit" />
       {q.isLoading ? (
         <Loading />
       ) : !c ? (
