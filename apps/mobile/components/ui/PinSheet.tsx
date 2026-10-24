@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Backspace } from 'phosphor-react-native';
 import * as Haptics from 'expo-haptics';
 import { useStrongAuthStore } from '@/stores/strongAuth';
-import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
+import { COLORS, MAX_FORM_WIDTH, RADIUS, SPACING, TEXT_ON_WHITE, centeredColumn } from '@/theme';
 import { AppText } from './AppText';
 import { DalaIcon } from './DalaIcon';
 
@@ -79,7 +79,7 @@ export function PinSheet() {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(15,27,61,0.6)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: COLORS.white, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, gap: SPACING.sm, paddingBottom: SPACING.xl },
+  sheet: { ...centeredColumn(MAX_FORM_WIDTH), backgroundColor: COLORS.white, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.lg, gap: SPACING.sm, paddingBottom: SPACING.xl },
   icon: { alignSelf: 'center', backgroundColor: COLORS.offWhite, padding: SPACING.sm, borderRadius: RADIUS.full },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: SPACING.md, marginVertical: SPACING.md },
   dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: COLORS.navy },

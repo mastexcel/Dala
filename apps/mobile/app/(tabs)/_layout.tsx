@@ -3,12 +3,13 @@ import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { DalaIcon, type DalaIconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth';
-import { COLORS, FONTS } from '@/theme';
+import { COLORS, FONTS, useSideGutter } from '@/theme';
 
 /** Barre d'onglets claire : les icônes illustrées DALA sont conçues pour fond blanc. */
 export default function TabsLayout() {
   const { t } = useTranslation();
   const token = useAuthStore((s) => s.accessToken);
+  const gutter = useSideGutter();
   if (!token) return <Redirect href="/(auth)/login" />;
 
   const icon =
@@ -26,7 +27,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: COLORS.navy,
         tabBarInactiveTintColor: COLORS.midGray,
-        tabBarStyle: styles.bar,
+        tabBarStyle: [styles.bar, { paddingHorizontal: gutter }],
         tabBarLabelStyle: { fontFamily: FONTS.bodySemiBold, fontSize: 11 },
       }}
     >

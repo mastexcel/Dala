@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import {
   CROWDFUND_MIN_INVESTMENT,
@@ -19,13 +19,13 @@ import { errorMessage } from '@/services/errors';
 import { track, amountBucket } from '@/services/monitoring';
 import { qk, useFinancialMutation, useProject, useSummary } from '@/hooks/queries';
 import { useStrongAuth } from '@/hooks/useStrongAuth';
-import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
+import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE, useContentWidth } from '@/theme';
 import { SECTOR_COLOR, sectorLabel } from '@/utils/meta';
 
 export default function ProjectDetail() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const q = useProject(projectId);
-  const { width } = useWindowDimensions();
+  const width = useContentWidth();
   const summary = useSummary();
   const [amount, setAmount] = useState(25_000);
   const [accepted, setAccepted] = useState(false);

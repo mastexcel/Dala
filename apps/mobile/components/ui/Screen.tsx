@@ -2,9 +2,10 @@ import { ImageBackground, RefreshControl, ScrollView, StyleSheet, View, type Vie
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { ReactNode } from 'react';
-import { COLORS, SPACING } from '@/theme';
+import { COLORS, SPACING, centeredColumn } from '@/theme';
 import { OfflineBanner } from './OfflineBanner';
 import { WALLPAPER_IMAGE, WALLPAPERS, type WallpaperName } from './wallpapers';
+import { ContentVeil } from './ContentVeil';
 
 interface Props {
   children: ReactNode;
@@ -28,29 +29,37 @@ export function Screen({ children, scroll = true, background = COLORS.offWhite, 
     <SafeAreaView style={[styles.flex, { backgroundColor: wallpaper ? 'transparent' : background }]} edges={edges}>
       <StatusBar style={dark ? 'light' : 'dark'} />
       <OfflineBanner />
-      {header}
+      {header ? <View style={COLUMN}>{header}</View> : null}
       {scroll ? (
         <ScrollView
           style={styles.flex}
-          contentContainerStyle={[inner, { paddingBottom: SPACING.xxl }]}
+          contentContainerStyle={[COLUMN, inner, { paddingBottom: SPACING.xxl }]}
           keyboardShouldPersistTaps="handled"
           refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={COLORS.gold} /> : undefined}
         >
           {children}
         </ScrollView>
       ) : (
-        <View style={[styles.flex, inner]}>{children}</View>
+        <View style={[styles.flex, COLUMN, inner]}>{children}</View>
       )}
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
+      {footer ? (
+        <View style={styles.footer}>
+          <View style={COLUMN}>{footer}</View>
+        </View>
+      ) : null}
     </SafeAreaView>
   );
   if (!wallpaper) return screen;
   return (
     <ImageBackground source={WALLPAPERS[wallpaper]} resizeMode="cover" style={[styles.flex, styles.clip, { backgroundColor: background }]} imageStyle={WALLPAPER_IMAGE} accessibilityIgnoresInvertColors>
+      <ContentVeil />
       {screen}
     </ImageBackground>
   );
 }
+
+/** Colonne centrée : pleine largeur sur téléphone, plafonnée sur tablette et ordinateur. */
+const COLUMN = centeredColumn();
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },

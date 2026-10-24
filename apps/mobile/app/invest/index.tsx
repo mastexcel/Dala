@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, Switch, View, useWindowDimensions } from 'react-native';
+import { FlatList, StyleSheet, Switch, View } from 'react-native';
 import { router } from 'expo-router';
 import { LEGAL_NOTICE_INVEST, formatFCFA, formatPercent } from '@dala/shared';
 import { AppText, Button, Card, DalaIcon, Header, LegalNotice, Loading, Screen, SectionTitle } from '@/components/ui';
@@ -7,10 +7,10 @@ import { LineChart } from '@/components/charts/LineChart';
 import { BondCard } from '@/components/invest/BondCard';
 import { FundRow } from '@/components/invest/FundRow';
 import { useBonds, useFunds, usePortfolio } from '@/hooks/queries';
-import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
+import { COLORS, SPACING, TEXT_ON_WHITE, useContentWidth } from '@/theme';
 
 export default function Invest() {
-  const { width } = useWindowDimensions();
+  const width = useContentWidth();
   const [halal, setHalal] = useState(false);
   const portfolio = usePortfolio();
   const bonds = useBonds(halal);

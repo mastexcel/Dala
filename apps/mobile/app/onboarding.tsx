@@ -7,7 +7,7 @@ import { MotiView } from 'moti';
 import { useTranslation } from 'react-i18next';
 import { AppText, Button, DalaIcon, Logo, type DalaIconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth';
-import { COLORS, RADIUS, SPACING } from '@/theme';
+import { COLORS, MAX_FORM_WIDTH, RADIUS, SPACING, centeredColumn } from '@/theme';
 
 const SLIDES: { key: string; color: string; main: DalaIconName; accent: DalaIconName; accent2: DalaIconName }[] = [
   { key: 's1', color: COLORS.green, main: 'savings', accent: 'vault', accent2: 'goals' },
@@ -52,7 +52,7 @@ export default function Onboarding() {
         keyExtractor={(s) => s.key}
         onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
         renderItem={({ item, index: i }) => (
-          <View style={[styles.slide, { width }]}>
+          <View style={[styles.slide, { width, paddingHorizontal: Math.max(SPACING.lg, (width - MAX_FORM_WIDTH) / 2) }]}>
             <MotiView
               key={`${item.key}-${index === i}`}
               from={{ opacity: 0, scale: 0.8 }}
@@ -98,10 +98,10 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.navy },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: SPACING.md },
   skip: { padding: SPACING.md },
-  slide: { alignItems: 'center', justifyContent: 'center', gap: SPACING.lg, paddingHorizontal: SPACING.lg },
+  slide: { alignItems: 'center', justifyContent: 'center', gap: SPACING.lg },
   illustration: { width: 240, height: 240, borderRadius: 120, borderWidth: 6, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.lg },
   bubble: { position: 'absolute', width: 68, height: 68, borderRadius: RADIUS.full, borderWidth: 3, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center' },
-  footer: { padding: SPACING.lg, gap: SPACING.md },
+  footer: { padding: SPACING.lg, gap: SPACING.md, ...centeredColumn(MAX_FORM_WIDTH) },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: SPACING.sm },
   dot: { height: 8, borderRadius: 4 },
 });

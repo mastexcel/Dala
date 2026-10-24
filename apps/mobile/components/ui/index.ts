@@ -23,3 +23,4 @@ export * from './AuthBackground';
 export * from './DalaIcon';
 export * from './wallpapers';
 export * from './PageTitle';
+export * from './ContentVeil';

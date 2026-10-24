@@ -48,7 +48,7 @@ export default function Transactions() {
   };
 
   return (
-    <Screen wallpaper="transactions" scroll={false} header={<Header title="Transactions" />}>
+    <Screen wallpaper="general" scroll={false} header={<Header title="Transactions" />}>
       <Input
         placeholder="Rechercher une transaction"
         value={search}
