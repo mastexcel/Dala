@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { CaretRight } from 'phosphor-react-native';
 import { KYC_LIMITS, formatFCFA, maskPhone, type KycLevel } from '@dala/shared';
-import { AppText, Badge, Card, DalaIcon, Logo, ProgressBar, Screen, type DalaIconName } from '@/components/ui';
+import { AppText, Badge, Card, DalaIcon, Logo, ProgressBar, Screen, TestPhaseNotice, type DalaIconName } from '@/components/ui';
 import { useMe } from '@/hooks/queries';
 import { useAuthStore } from '@/stores/auth';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
@@ -105,6 +105,7 @@ export default function Profile() {
         <AppText variant="small" align="center" color={TEXT_ON_WHITE.muted}>
           DALA Finance v0.1.0
         </AppText>
+        <TestPhaseNotice />
       </View>
     </Screen>
   );

@@ -91,9 +91,15 @@ export const PROJECT_SECTORS = {
   OTHER: { label: 'Autre', emoji: '✨' },
 } as const;
 
-export const LEGAL_NOTICE =
-  "DALA Finance — Établissement de paiement soumis à l'Instruction BCEAO N°001-01-2024. " +
-  "Les fonds des clients sont cantonnés sur des comptes dédiés, distincts des fonds propres de l'établissement.";
+/** Statut réglementaire à afficher dans l'application : DALA n'est pas présentée comme un établissement de paiement. */
+export const TEST_PHASE_NOTICE = 'Service en phase de test au sein du LIF-BCEAO';
+
+/** Mention propre à la version de démonstration (backend simulé). */
+export const DEMO_NOTICE = "Version de démonstration : aucune opération réelle n'est effectuée et aucun fonds n'est déposé.";
+
+export const REGULATORY_FRAMEWORK = "Le service est conçu dans le respect de l'Instruction BCEAO N°001-01-2024 relative aux services de paiement dans l'UMOA.";
+
+export const LEGAL_NOTICE = `DALA Finance — ${TEST_PHASE_NOTICE}. ${REGULATORY_FRAMEWORK}`;
 
 export const LEGAL_NOTICE_INVEST =
   "Tout investissement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. " +

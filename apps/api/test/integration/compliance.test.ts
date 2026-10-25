@@ -61,8 +61,10 @@ describe('LBC/FT, tontines, audit et back-office', () => {
 
   it('enregistre une réclamation avec échéance à 15 jours ouvrés', async () => {
     const { token } = await register();
+    // Mesuré depuis l'instant précédant la requête : un dimanche, 15 jours ouvrés font exactement 19 jours.
+    const before = Date.now();
     const c = await api().post('/v1/compliance/complaints').set(bearer(token)).send({ subject: 'Dépôt non crédité', message: 'Mon dépôt Orange Money de ce matin est absent.', category: 'TRANSACTION' }).expect(201);
-    const days = (new Date(c.body.dueBy).getTime() - Date.now()) / 86_400_000;
+    const days = (new Date(c.body.dueBy).getTime() - before) / 86_400_000;
     expect(days).toBeGreaterThanOrEqual(19);
     expect(days).toBeLessThanOrEqual(22);
   });

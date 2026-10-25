@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { MotiView } from 'moti';
 import { APP_SLOGAN } from '@dala/shared';
-import { AppText, Logo } from '@/components/ui';
+import { AppText, Logo, TestPhaseNotice } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth';
 import { COLORS, SPACING } from '@/theme';
 
@@ -36,6 +36,9 @@ export default function Splash() {
           {APP_SLOGAN}
         </AppText>
       </MotiView>
+      <View style={styles.notice}>
+        <TestPhaseNotice dark />
+      </View>
     </View>
   );
 }
@@ -43,4 +46,5 @@ export default function Splash() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.navy, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   circle: { position: 'absolute', backgroundColor: COLORS.gold },
+  notice: { position: 'absolute', bottom: SPACING.xl, left: SPACING.md, right: SPACING.md },
 });

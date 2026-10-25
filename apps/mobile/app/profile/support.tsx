@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import { CaretDown, CaretUp, ChatCircleText, Phone } from 'phosphor-react-native';
-import { COMPLAINT_RESPONSE_DAYS } from '@dala/shared';
+import { COMPLAINT_RESPONSE_DAYS, REGULATORY_FRAMEWORK, TEST_PHASE_NOTICE } from '@dala/shared';
 import { AppText, Button, Card, Chip, DalaIcon, Header, Input, Screen, SectionTitle } from '@/components/ui';
 import { complianceApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const FAQ = [
-  { q: 'Mon argent est-il en sécurité ?', a: "Oui. Vos fonds sont cantonnés sur des comptes bancaires dédiés, séparés des fonds propres de DALA, conformément à l'Instruction BCEAO N°001-01-2024." },
+  { q: 'Quel est le statut de DALA ?', a: `${TEST_PHASE_NOTICE}. ${REGULATORY_FRAMEWORK} Ce cadre prévoit le cantonnement des fonds des utilisateurs sur des comptes dédiés, séparés des fonds propres de DALA.` },
   { q: 'Comment recharger mon compte ?', a: 'Depuis l’accueil, touchez « Recevoir » puis choisissez Orange Money, MTN MoMo, Wave ou Moov Money.' },
   { q: 'Puis-je annuler un investissement ?', a: 'Oui, vous disposez d’un droit de rétractation de 48 h sur les placements et les investissements en capital.' },
   { q: 'Comment est calculé mon score DALA ?', a: 'Il tient compte de la régularité de votre épargne, de l’ancienneté de votre compte, de vos remboursements et de votre ponctualité en tontine.' },

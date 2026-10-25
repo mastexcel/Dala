@@ -1,10 +1,11 @@
-import { ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import type { ReactNode } from 'react';
 import { COLORS, MAX_FORM_WIDTH, SPACING, centeredColumn } from '@/theme';
 import { WALLPAPER_IMAGE, WALLPAPERS } from './wallpapers';
 import { ContentVeil } from './ContentVeil';
+import { TestPhaseNotice } from './TestPhaseNotice';
 
 /** Fond des écrans de connexion et d'inscription (wallpaper « auth », thème clair). */
 export function AuthBackground({ children }: { children: ReactNode }) {
@@ -16,6 +17,9 @@ export function AuthBackground({ children }: { children: ReactNode }) {
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
             {children}
+            <View style={{ marginTop: SPACING.lg }}>
+              <TestPhaseNotice />
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { MotiView } from 'moti';
 import { useTranslation } from 'react-i18next';
-import { AppText, Button, DalaIcon, Logo, type DalaIconName } from '@/components/ui';
+import { AppText, Button, DalaIcon, Logo, TestPhaseNotice, type DalaIconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth';
 import { COLORS, MAX_FORM_WIDTH, RADIUS, SPACING, centeredColumn } from '@/theme';
 
@@ -89,6 +89,7 @@ export default function Onboarding() {
             {t('auth.haveAccount')} <AppText weight="bold" color={COLORS.gold}>{t('auth.login')}</AppText>
           </AppText>
         </Pressable>
+        <TestPhaseNotice dark />
       </View>
     </SafeAreaView>
   );

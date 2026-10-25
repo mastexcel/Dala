@@ -168,6 +168,13 @@ Le polyfill `react-native-url-polyfill` est chargé sur Android et iOS : sans lu
 
 ## Conformité BCEAO — où c'est implémenté
 
+**Statut affiché.** L'application affiche **« Service en phase de test au sein du LIF-BCEAO »** à ces endroits :
+- l'écran de démarrage, l'accueil de bienvenue, la connexion et l'inscription ;
+- la mention légale de chaque écran financier, le profil et les mentions légales ;
+- le relevé PDF.
+
+Elle ne présente jamais DALA comme un établissement de paiement. L'APK de démonstration ajoute « Version de démonstration : aucune opération réelle n'est effectuée et aucun fonds n'est déposé ». Le texte est centralisé dans `packages/shared/src/constants.ts` (`TEST_PHASE_NOTICE`, `LEGAL_NOTICE`). Un test (`apps/mobile/__tests__/legalStatus.test.ts`) bloque toute réapparition de la mention « établissement de paiement » dans l'app. Le tableau ci-dessous décrit les mécanismes prévus par l'Instruction N°001-01-2024, pas un agrément.
+
 | Exigence | Implémentation |
 | --- | --- |
 | **Authentification forte (art. 84)** | Connexion OTP (possession) + PIN (connaissance), ou biométrie (inhérence) sur appareil enrôlé. Le PIN (`x-transaction-pin`) est exigé au-delà de 50 000 FCFA et pour toute modification de profil ou de plafond : `middleware/auth.ts › requireStrongAuth`. Verrouillage après 5 PIN erronés. Les refresh tokens tournent à chaque usage ; la réutilisation d'un jeton révoqué révoque toute la famille. |

@@ -1,10 +1,11 @@
 import { StyleSheet, View } from 'react-native';
-import { LEGAL_NOTICE } from '@dala/shared';
+import { DEMO_NOTICE, REGULATORY_FRAMEWORK, TEST_PHASE_NOTICE } from '@dala/shared';
+import { USE_MOCKS } from '@/services/config';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 import { AppText } from './AppText';
 import { DalaIcon } from './DalaIcon';
 
-/** Mentions légales BCEAO affichées sur chaque écran financier. */
+/** Mentions légales affichées sur chaque écran financier : statut (phase de test au sein du LIF-BCEAO) et cadre BCEAO. */
 export function LegalNotice({ text, extra }: { text?: string; extra?: string }) {
   return (
     <View style={styles.box} accessibilityRole="text">
@@ -21,7 +22,11 @@ export function LegalNotice({ text, extra }: { text?: string; extra?: string }) 
           </AppText>
         ) : null}
         <AppText variant="small" color={TEXT_ON_WHITE.muted}>
-          {LEGAL_NOTICE}
+          <AppText variant="small" weight="bold" color={TEXT_ON_WHITE.muted}>
+            {TEST_PHASE_NOTICE}.
+          </AppText>{' '}
+          {REGULATORY_FRAMEWORK}
+          {USE_MOCKS ? ` ${DEMO_NOTICE}` : ''}
         </AppText>
       </View>
     </View>
