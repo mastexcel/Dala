@@ -20,6 +20,18 @@ Compatibilité : Android 7 (API 24) ou plus récent, processeurs ARM 32 et 64 bi
 
 > L'APK est signé avec une clé de test. Il sert aux essais internes, pas à la publication sur le Play Store. Pour le Play Store et l'iPhone, il faudra un compte Expo (EAS Build) et les comptes développeur Google et Apple.
 
+### Si l'installation échoue
+
+| Message | Cause probable | Solution |
+| --- | --- | --- |
+| « Problème lors de l'analyse du package » | Fichier incomplet (transfert interrompu ou coupé par la messagerie) | Télécharger l'APK directement depuis le lien, dans Chrome, sur le téléphone |
+| « Application non installée » | Fichier incomplet, ou version déjà installée provenant d'une autre source | Retélécharger ; si besoin, désinstaller DALA puis réinstaller |
+| « Bloquée par Play Protect » / « Application dangereuse » | APK de test signé avec une clé de développement | Toucher « Plus de détails » puis « Installer quand même » |
+| « Espace insuffisant » | Moins de 200 Mo libres | Libérer de l'espace |
+| Rien ne se passe | Installation d'applications inconnues non autorisée | Autoriser la source (Chrome, Fichiers…) dans les réglages |
+
+L'APK pèse environ 55 Mo. Chaque nouvelle version porte un numéro plus élevé et s'installe par-dessus la précédente, sans perdre la connexion.
+
 ## 3. Identifiants du mode démo
 
 | Champ | Valeur |
