@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { formatFCFA, VAULT_OPTIONS, formatPercent } from '@dala/shared';
+import { formatFCFA, VAULT_OPTIONS, formatPercent, TEST_PHASE } from '@dala/shared';
 import { AppText, Button, Card, DalaIcon, EmptyState, ErrorState, LegalNotice, Loading, SegmentedTabs, Screen, PageTitle, ResponsiveGrid } from '@/components/ui';
 import { GoalCard } from '@/components/savings/GoalCard';
 import { TontineCard } from '@/components/savings/TontineCard';
@@ -89,9 +89,14 @@ export default function Savings() {
             <Card style={{ marginBottom: SPACING.md, gap: SPACING.sm }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
                 <DalaIcon name="interest" size={32} />
-                <AppText weight="bold">Bloquez, gagnez plus</AppText>
+                <AppText weight="bold">{TEST_PHASE.vaultInterest ? 'Bloquez, gagnez plus' : 'Bloquez pour ne pas dépenser'}</AppText>
               </View>
-              <View style={styles.rates}>
+              {TEST_PHASE.vaultInterest ? null : (
+                <AppText variant="caption" color={TEXT_ON_WHITE.muted}>
+                  Épargne bloquée 3, 6 ou 12 mois, sans rémunération pendant la phase de test.
+                </AppText>
+              )}
+              <View style={[styles.rates, !TEST_PHASE.vaultInterest && { display: 'none' }]}>
                 {VAULT_OPTIONS.map((o) => (
                   <View key={o.months} style={styles.rate}>
                     <AppText variant="h3" serif color={TEXT_ON_WHITE.gold}>

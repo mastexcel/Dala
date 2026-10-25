@@ -25,6 +25,7 @@ export default defineConfig({
       ML_SERVICE_URL: 'http://127.0.0.1:18765',
       MOBILE_MONEY_MODE: 'sandbox',
       WAVE_API_KEY: 'wave-webhook-secret',
+      ORANGE_MONEY_API_KEY: 'orange-webhook-secret',
     },
   },
 });

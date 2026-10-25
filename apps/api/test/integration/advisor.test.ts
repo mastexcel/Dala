@@ -10,9 +10,9 @@ describe("Échanges avec l'équipe commerciale", () => {
     const created = await api()
       .post('/v1/advisor/conversations')
       .set(bearer(token))
-      .send({ topic: 'CROWDFUND', message: 'Bonjour, comment est fixée la valorisation des projets ?' })
+      .send({ topic: 'SAVINGS', message: 'Bonjour, comment fonctionne le coffre-fort ?' })
       .expect(201);
-    expect(created.body.subject).toBe('Crowdfunding en capital');
+    expect(created.body.subject).toBe('Épargne et tontines');
     expect(created.body.messages.map((m: { sender: string }) => m.sender)).toEqual(['USER', 'SYSTEM']);
     const id = created.body.id as string;
 
@@ -21,12 +21,12 @@ describe("Échanges avec l'équipe commerciale", () => {
     // L'accusé de réception automatique ne compte pas comme une réponse.
     expect(row.awaitingReply).toBe(true);
     expect(row.user.firstName).toBe('Awa');
-    expect(row.lastMessage).toBe('Bonjour, comment est fixée la valorisation des projets ?');
+    expect(row.lastMessage).toBe('Bonjour, comment fonctionne le coffre-fort ?');
 
     await api()
       .post(`/v1/advisor-desk/conversations/${id}/messages`)
       .set(ADMIN)
-      .send({ authorName: 'Mariam (DALA)', body: 'Bonjour Awa, la valorisation est validée par le comité.' })
+      .send({ authorName: 'Mariam (DALA)', body: 'Bonjour Awa, le coffre-fort bloque votre épargne pour la durée choisie.' })
       .expect(201);
 
     const answered = await api().get('/v1/advisor-desk/conversations').set(ADMIN).expect(200);
@@ -46,10 +46,17 @@ describe("Échanges avec l'équipe commerciale", () => {
     expect(awaiting.body.find((c: { id: string }) => c.id === id).awaitingReply).toBe(true);
   });
 
+  it("refuse les sujets d'investissement et de levée de fonds pendant la phase de test", async () => {
+    const { token } = await register();
+    for (const topic of ['INVEST', 'CROWDFUND', 'BUSINESS']) {
+      await api().post('/v1/advisor/conversations').set(bearer(token)).send({ topic, message: 'Bonjour' }).expect(400);
+    }
+  });
+
   it("isole les conversations entre utilisateurs et protège le poste des conseillers", async () => {
     const a = await register('Awa', 'Koné');
     const b = await register('Fatou', 'Diallo');
-    const c = await api().post('/v1/advisor/conversations').set(bearer(a.token)).send({ topic: 'INVEST', message: 'Question sur les bons' }).expect(201);
+    const c = await api().post('/v1/advisor/conversations').set(bearer(a.token)).send({ topic: 'PAYMENTS', message: 'Question sur les retraits' }).expect(201);
     await api().get(`/v1/advisor/conversations/${c.body.id}`).set(bearer(b.token)).expect(404);
     await api().post(`/v1/advisor/conversations/${c.body.id}/messages`).set(bearer(b.token)).send({ body: 'intrus' }).expect(404);
     await api().get('/v1/advisor-desk/conversations').expect(403);

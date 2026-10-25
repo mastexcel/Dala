@@ -3,6 +3,14 @@
  * rétractation 48 h, scoring…) pour que l'application soit utilisable sans serveur.
  */
 import {
+  ADVISOR_OPEN_TOPICS,
+  DATA_RETENTION_POLICY,
+  MIN_AGE,
+  RETENTION_YEARS_AFTER_CLOSURE,
+  TEST_PHASE,
+  VAULT_OPTIONS,
+  ageOn,
+  formatFCFA,
   ADVISOR_HOURS,
   ADVISOR_TOPICS,
   CROWDFUND_REVIEW_DAYS,
@@ -87,6 +95,10 @@ const routes: [string, RegExp, Handler][] = [
     return authResponse();
   }],
   ['POST', /^\/auth\/register$/, ({ body }) => {
+    if (body.consent?.version !== TEST_PHASE.consentVersion || body.consent?.accepted !== true) throw new ApiError(400, "Acceptation de l'avertissement requise", 'VALIDATION');
+    const age = ageOn(body.dateOfBirth ?? '');
+    if (Number.isNaN(age)) throw new ApiError(400, 'Date de naissance invalide', 'INVALID_BIRTH_DATE');
+    if (age < MIN_AGE) throw new ApiError(403, `L'ouverture d'un compte est réservée aux personnes de ${MIN_AGE} ans ou plus.`, 'UNDERAGE');
     if (body.otp !== DEMO_OTP) throw new ApiError(400, 'Code incorrect', 'OTP_INVALID');
     Object.assign(db.user, { phone: body.phone, firstName: body.firstName, lastName: body.lastName, kycLevel: 1 });
     currentPin = body.pin;
@@ -117,7 +129,8 @@ const routes: [string, RegExp, Handler][] = [
     return body;
   }],
   ['POST', /^\/users\/me\/kyc\/upload-url$/, ({ body }) => ({ uploadUrl: `sandbox://storage/${body.fileName}`, path: `demo/${body.fileName}` })],
-  ['POST', /^\/users\/me\/kyc$/, () => {
+  ['POST', /^\/users\/me\/kyc$/, ({ body }) => {
+    if (body.targetLevel > TEST_PHASE.limits.maxKycLevel) throw new ApiError(403, `Le niveau KYC ${body.targetLevel} n'est pas ouvert pendant la phase de test`, 'TEST_LIMIT_REACHED');
     notify('Documents reçus', 'Votre vérification est en cours (24 à 48 h).', 'KYC');
     return { status: 'PENDING_REVIEW' };
   }],
@@ -150,11 +163,13 @@ const routes: [string, RegExp, Handler][] = [
     return summary;
   }],
   ['POST', /^\/accounts\/deposit$/, ({ body }) => {
+    requireProvider(body.provider);
     post('DEPOSIT', body.amount, `Dépôt ${providerName(body.provider)}`, null, 'MAIN');
     notify('Dépôt reçu', `${body.amount} FCFA via ${providerName(body.provider)}`, 'TRANSACTION');
     return { status: 'SUCCESS' };
   }],
   ['POST', /^\/accounts\/withdraw$/, ({ body, headers }) => {
+    requireProvider(body.provider);
     requirePin(headers, body.amount);
     post('WITHDRAWAL', body.amount, `Retrait ${providerName(body.provider)}`, 'MAIN', null);
     return { status: 'SUCCESS' };
@@ -199,6 +214,7 @@ const routes: [string, RegExp, Handler][] = [
     return t;
   }],
   ['POST', /^\/savings\/tontines$/, ({ body }) => {
+    if (body.maxMembers > TEST_PHASE.limits.maxTontineMembers) throw new ApiError(400, `${TEST_PHASE.limits.maxTontineMembers} membres au maximum pendant la phase de test`, 'VALIDATION');
     const t = {
       id: id('t'), ...body, currentCycle: 1, totalCycles: body.maxMembers, status: 'PENDING', myPosition: 1,
       nextContributionDate: new Date(Date.now() + 7 * 86_400_000).toISOString(),
@@ -207,7 +223,7 @@ const routes: [string, RegExp, Handler][] = [
     db.tontines.push(t);
     return t;
   }],
-  ['GET', /^\/savings\/vaults$/, () => ({ options: [{ months: 3, rate: 0.035 }, { months: 6, rate: 0.045 }, { months: 12, rate: 0.06 }], vaults: db.vaults })],
+  ['GET', /^\/savings\/vaults$/, () => ({ options: VAULT_OPTIONS, vaults: db.vaults })],
   ['POST', /^\/savings\/vaults$/, ({ body, headers }) => {
     requirePin(headers, body.amount);
     post('SAVINGS_IN', body.amount, `Coffre-fort ${body.months} mois`, 'MAIN', 'VAULT');
@@ -356,6 +372,7 @@ const routes: [string, RegExp, Handler][] = [
   ['GET', /^\/advisor\/conversations$/, () =>
     [...db.advisor].sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt)).map(advisorSummary)],
   ['POST', /^\/advisor\/conversations$/, ({ body }) => {
+    if (!(ADVISOR_OPEN_TOPICS as readonly string[]).includes(body.topic)) throw new ApiError(400, 'Sujet non disponible pendant la phase de test', 'VALIDATION');
     const now = Date.now();
     const c: MockConversation = {
       id: id('conv'),
@@ -388,6 +405,29 @@ const routes: [string, RegExp, Handler][] = [
     c.lastMessageAt = c.readAt = m.createdAt;
     scheduleAdvisorReply(c, body.body);
     return m;
+  }],
+
+  /* ------------------------- Droits des utilisateurs ------------------------- */
+  ['GET', /^\/users\/me\/data\/retention$/, () => ({ policy: DATA_RETENTION_POLICY, yearsAfterClosure: RETENTION_YEARS_AFTER_CLOSURE })],
+  ['GET', /^\/users\/me\/data\/export$/, () => ({
+    exportedAt: new Date().toISOString(),
+    retention: DATA_RETENTION_POLICY,
+    user: db.user,
+    balances: db.balances,
+    transactions: db.transactions,
+    savings: db.goals,
+    vaults: db.vaults,
+    tontines: db.tontines,
+    loans: db.loans,
+    notifications: db.notifications,
+    conversations: db.advisor,
+  })],
+  ['POST', /^\/users\/me\/close$/, ({ headers }) => {
+    requirePin(headers, 0, true);
+    const total = Object.values(db.balances).reduce((a, b) => a + b, 0);
+    if (total > 0) throw new ApiError(409, 'Retirez d’abord le solde de tous vos comptes (épargne et coffre-fort compris).', 'BALANCE_NOT_EMPTY');
+    if (hasOpenLoan()) throw new ApiError(409, 'Remboursez votre prêt en cours avant de clôturer le compte.', 'LOAN_OPEN');
+    return { status: 'CLOSED', retentionYears: RETENTION_YEARS_AFTER_CLOSURE };
   }],
 
   /* ------------------------------ Compliance ------------------------------ */
@@ -436,20 +476,26 @@ function scheduleAdvisorReply(c: MockConversation, question: string) {
 function demoAdvisorAnswer(topic: AdvisorTopic, question: string) {
   if (/rendez-vous|rdv|appel|rappel/i.test(question)) return 'Je peux vous rappeler demain entre 9 h et 12 h. Cela vous convient-il ?';
   switch (topic) {
-    case 'INVEST':
-      return "Les bons du Trésor UEMOA conviennent bien à un horizon court et à un objectif de revenu régulier. Je peux vous présenter les émissions ouvertes et simuler votre rendement selon votre montant.";
-    case 'CROWDFUND':
-      return `Sur DALA, le crowdfunding est uniquement en capital : vous devenez actionnaire. Chaque projet est validé par ${CROWDFUND_VALIDATOR}. Quel secteur vous intéresse ?`;
+    case 'PAYMENTS':
+      return 'Vous pouvez déposer et retirer avec Orange Money, MTN MoMo et Moov Money. Au-delà de 50 000 FCFA, votre code PIN vous est demandé. Avez-vous rencontré un souci sur une opération ?';
     case 'SAVINGS':
-      return "Pour démarrer, un objectif avec épargne automatique hebdomadaire fonctionne très bien. Le coffre-fort à 6 ou 12 mois offre un meilleur taux si vous n'avez pas besoin des fonds.";
+      return "Pour démarrer, un objectif avec épargne automatique hebdomadaire fonctionne très bien. Le coffre-fort bloque votre épargne pour la durée choisie ; il n'est pas rémunéré pendant la phase de test.";
     case 'CREDIT':
-      return 'Votre montant éligible dépend de votre score DALA. Régularité de l’épargne et remboursements ponctuels le font progresser. Souhaitez-vous que je regarde votre dossier ?';
-    case 'BUSINESS':
-      return `Pour lever des fonds, déposez votre projet depuis l'onglet Crowdfunding. Le comité ${CROWDFUND_VALIDATOR} l'étudie sous ${CROWDFUND_REVIEW_DAYS} jours. Je peux vous aider à préparer le dossier.`;
+      return `Pendant la phase de test, un prêt est limité à ${formatFCFA(TEST_PHASE.limits.loanMax)}. Votre montant éligible dépend de votre score DALA, qui progresse avec une épargne régulière et des remboursements à l’heure. Souhaitez-vous que je regarde votre dossier ?`;
     default:
       return 'Merci pour votre message. Pouvez-vous me donner quelques précisions pour que je vous oriente au mieux ?';
   }
 }
+
+function requireProvider(provider: string) {
+  if (TEST_PHASE.disabledProviders.includes(provider)) throw new ApiError(400, 'Opérateur non disponible pendant la phase de test', 'VALIDATION');
+}
+
+/** Modules fermés pendant la phase de test : mêmes réponses que l'API. */
+const CLOSED_PREFIXES = [
+  ...(TEST_PHASE.modules.invest ? [] : ['/investments']),
+  ...(TEST_PHASE.modules.crowdfund ? [] : ['/crowdfund']),
+];
 
 function providerName(p: string) {
   return { ORANGE_MONEY: 'Orange Money', MTN_MOMO: 'MTN MoMo', WAVE: 'Wave', MOOV_MONEY: 'Moov Money' }[p] ?? p;
@@ -458,6 +504,7 @@ function providerName(p: string) {
 export async function mockRequest<T>(method: string, fullPath: string, body: unknown, headers: Record<string, string>): Promise<T> {
   await sleep(250);
   const [path, qs = ''] = fullPath.split('?');
+  if (CLOSED_PREFIXES.some((p) => path.startsWith(p))) throw new ApiError(404, 'Service non disponible pendant la phase de test', 'MODULE_DISABLED');
   for (const [m, re, handler] of routes) {
     if (m !== method) continue;
     const match = path.match(re);

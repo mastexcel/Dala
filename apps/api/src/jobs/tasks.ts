@@ -1,4 +1,4 @@
-import { WITHDRAWAL_PERIOD_HOURS, formatFCFA } from '@dala/shared';
+import { RETENTION_YEARS_AFTER_CLOSURE, WITHDRAWAL_PERIOD_HOURS, formatFCFA } from '@dala/shared';
 import type { Frequency } from '@prisma/client';
 import { prisma, num } from '../lib/prisma';
 import { logger } from '../lib/logger';
@@ -6,6 +6,7 @@ import { post } from '../services/ledger';
 import { notify } from '../services/notifications';
 import { refreshCreditScore } from '../services/scoring';
 import { reconcileSafeguarding } from '../services/reporting';
+import { appendAudit } from '../services/audit';
 import { frequencyDays } from '../services/tontine';
 import { bondInterest } from '@dala/shared';
 
@@ -108,4 +109,29 @@ export async function dailyReconciliation() {
   const r = await reconcileSafeguarding();
   if (!r.ok) logger.error({ r }, 'ÉCART DE CANTONNEMENT détecté');
   return r;
+}
+
+/**
+ * Fin de la durée légale de conservation (LBC/FT) : les comptes clôturés depuis plus de
+ * RETENTION_YEARS_AFTER_CLOSURE ans sont anonymisés. Les montants restent pour les statistiques.
+ */
+export async function purgeExpiredAccounts(now = new Date()) {
+  const limit = new Date(now);
+  limit.setFullYear(limit.getFullYear() - RETENTION_YEARS_AFTER_CLOSURE);
+  const expired = await prisma.user.findMany({ where: { status: 'CLOSED', closedAt: { lt: limit }, NOT: { firstName: 'Anonymisé' } }, select: { id: true } });
+  for (const { id } of expired) {
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id },
+        data: {
+          firstName: 'Anonymisé', lastName: '-', phone: `purge-${id}`, email: null,
+          dateOfBirth: null, avatarUrl: null, pushToken: null,
+        },
+      });
+      await tx.$executeRaw`UPDATE "User" SET "kycDocuments" = NULL WHERE id = ${id}`;
+      await tx.advisorMessage.updateMany({ where: { conversation: { userId: id }, sender: 'USER' }, data: { body: '[supprimé]' } });
+      await appendAudit(tx, { userId: id, action: 'DATA_PURGED', entity: 'User', entityId: id });
+    });
+  }
+  return expired.length;
 }

@@ -9,6 +9,61 @@ export const CURRENCY_LABEL = 'FCFA' as const;
 export const APP_NAME = 'DALA Finance';
 export const APP_SLOGAN = 'Faire grandir vos ambitions';
 
+/* ------------------------------------------------------------------------------------------------
+ * Phase de test au sein du Laboratoire d'Innovation Financière (LIF) de la BCEAO.
+ * Ces valeurs reprennent les engagements du dossier de candidature : elles sont appliquées par
+ * l'API (seule source qui fait foi) et reprises à l'écran. Toute modification doit d'abord être
+ * validée avec la BCEAO.
+ * ---------------------------------------------------------------------------------------------- */
+export const TEST_PHASE = {
+  /**
+   * Modules ouverts pendant le test : épargne, crédit et paiements.
+   * Investissement et financement participatif relèvent de l'AMF-UMOA : désactivés.
+   */
+  modules: { invest: false, crowdfund: false },
+  /**
+   * Assistant IA : 'off' (désactivé), 'help' (aide à l'usage de l'application, sans données
+   * personnelles ni investissement) ou 'full'. Désactivé pendant le test : il enverrait des
+   * données hors de l'UEMOA.
+   */
+  aiAssistant: 'off' as 'off' | 'help' | 'full',
+  limits: {
+    /** Montant maximal d'un prêt (FCFA). */
+    loanMax: 100_000,
+    /** Nombre maximal d'utilisateurs inscrits. */
+    maxUsers: 500,
+    /** Niveau KYC maximal ouvert. */
+    maxKycLevel: 2 as 1 | 2 | 3,
+    /** Nombre maximal de tontines (non terminées) et de membres par tontine. */
+    maxTontines: 30,
+    maxTontineMembers: 20,
+    /** Encours total de crédit (capital restant dû, FCFA). */
+    maxCreditOutstanding: 5_000_000,
+    /** Total des fonds clients (soldes cumulés, FCFA). */
+    maxClientFunds: 30_000_000,
+  },
+  /** Seul un établissement agréé peut rémunérer l'épargne : coffre-fort sans intérêt pendant le test. */
+  vaultInterest: false,
+  /** Opérateurs mobile money désactivés tant que leur statut n'est pas vérifié. */
+  disabledProviders: ['WAVE'] as string[],
+  /** Date de fin du test (AAAA-MM-JJ), à renseigner une fois fixée avec la BCEAO. */
+  endDate: null as string | null,
+  /** Version du texte de consentement accepté à l'inscription. */
+  consentVersion: '2026-10-lif-1',
+};
+
+/** Âge minimal pour ouvrir un compte. */
+export const MIN_AGE = 18;
+
+/** Éditeur de l'application. */
+export const PUBLISHER = 'Bridge Investment Partners SARL';
+export const PUBLISHER_RCCM = 'CI-ABJ-03-2022-B12-00279';
+
+/** Contact du support client. */
+export const SUPPORT_PHONE = '+225 07 48 34 66 50';
+/** Adresse e-mail du support : à renseigner (non communiquée). */
+export const SUPPORT_EMAIL: string | null = null;
+
 /** Indicatifs téléphoniques des 8 pays de l'UEMOA. */
 export const UEMOA_COUNTRIES = [
   { code: 'CI', name: "Côte d'Ivoire", dialCode: '+225', flag: '🇨🇮', phoneLength: 10 },
@@ -40,11 +95,15 @@ export const KYC_REQUIREMENTS: Record<1 | 2 | 3, string[]> = {
 
 /** Micro-crédit */
 export const LOAN_MIN = 5_000;
-export const LOAN_MAX = 500_000;
+/** Plafond de la phase de test (le produit cible prévoit 500 000 FCFA). */
+export const LOAN_MAX = TEST_PHASE.limits.loanMax;
 export const LOAN_STEP = 5_000;
 export const LOAN_DURATIONS = [7, 14, 30, 60, 90] as const;
 export type LoanDuration = (typeof LOAN_DURATIONS)[number];
-/** Taux d'usure applicable aux SFD dans l'UMOA (annuel). À valider. */
+/**
+ * Taux d'usure applicable au prêteur (annuel). 24 % est le taux des SFD dans l'UMOA ; une banque
+ * est soumise à 15 %. À confirmer avec l'établissement agréé partenaire selon son statut.
+ */
 export const USURY_RATE = 0.24;
 /** Taux nominal annuel selon le score (meilleur score → taux le plus bas). */
 export const LOAN_RATE_BEST = 0.12;
@@ -57,16 +116,22 @@ export const LOAN_MIN_SCORE = 30;
 export const ML_APPROVE_THRESHOLD = 0.7;
 export const ML_REVIEW_THRESHOLD = 0.5;
 
-/** Coffre-fort : durées de blocage (mois) et taux bonus annuels. */
-export const VAULT_OPTIONS = [
-  { months: 3, rate: 0.035 },
-  { months: 6, rate: 0.045 },
-  { months: 12, rate: 0.06 },
-] as const;
+/** Taux du coffre-fort prévus hors phase de test (servis par un établissement agréé). */
+const VAULT_TARGET_RATES = { 3: 0.035, 6: 0.045, 12: 0.06 } as const;
+/** Coffre-fort : durées de blocage (mois) et taux annuels (nuls pendant le test). */
+export const VAULT_OPTIONS = ([3, 6, 12] as const).map((months) => ({
+  months,
+  rate: TEST_PHASE.vaultInterest ? VAULT_TARGET_RATES[months] : 0,
+}));
 
 /** Crowdfunding en capital (equity uniquement). */
 export const CROWDFUND_MIN_INVESTMENT = 5_000;
-export const CROWDFUND_VALIDATOR = 'Bridge Investment Partners';
+/**
+ * Validation des projets : le dossier prévoit un cabinet indépendant de l'éditeur.
+ * Le module ne peut pas être rouvert tant que ce cabinet n'est pas désigné (voir TEST_PHASE).
+ */
+export const CROWDFUND_VALIDATOR = 'un cabinet indépendant';
+export const CROWDFUND_VALIDATOR_DESIGNATED = false;
 export const CROWDFUND_REVIEW_DAYS = 15;
 /** Droit de rétractation sur les investissements (heures). */
 export const WITHDRAWAL_PERIOD_HOURS = 48;
@@ -91,7 +156,7 @@ export const PROJECT_SECTORS = {
   OTHER: { label: 'Autre', emoji: '✨' },
 } as const;
 
-/** Statut réglementaire à afficher dans l'application : DALA n'est pas présentée comme un établissement de paiement. */
+/** Bandeau permanent : DALA n'est pas présentée comme un établissement de paiement. */
 export const TEST_PHASE_NOTICE = 'Service en phase de test au sein du LIF-BCEAO';
 
 /** Mention propre à la version de démonstration (backend simulé). */
@@ -99,7 +164,11 @@ export const DEMO_NOTICE = "Version de démonstration : aucune opération réell
 
 export const REGULATORY_FRAMEWORK = "Le service est conçu dans le respect de l'Instruction BCEAO N°001-01-2024 relative aux services de paiement dans l'UMOA.";
 
-export const LEGAL_NOTICE = `DALA Finance — ${TEST_PHASE_NOTICE}. ${REGULATORY_FRAMEWORK}`;
+/** Mention légale (écrans financiers, mentions légales, relevés PDF, reçus). */
+export const LEGAL_NOTICE =
+  `DALA Finance, solution éditée par ${PUBLISHER} (RCCM ${PUBLISHER_RCCM}). ` +
+  "Service en phase de test au sein du Laboratoire d'Innovation Financière de la BCEAO. " +
+  'Les opérations sont réalisées en partenariat avec un établissement agréé.';
 
 export const LEGAL_NOTICE_INVEST =
   "Tout investissement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures. " +
@@ -113,18 +182,34 @@ export const LEGAL_NOTICE_CREDIT =
   'Un crédit vous engage et doit être remboursé. Vérifiez vos capacités de remboursement avant de vous engager. ' +
   `TAEG conforme au taux d'usure en vigueur dans l'UMOA (${USURY_RATE * 100} %).`;
 
-/** Sujets proposés pour contacter l'équipe commerciale. */
+/** Libellés des sujets d'échange avec l'équipe commerciale (y compris ceux des anciennes conversations). */
 export const ADVISOR_TOPICS = {
-  INVEST: 'Placements (bons du Trésor, FCP)',
-  CROWDFUND: 'Crowdfunding en capital',
+  PAYMENTS: 'Paiements et portefeuille',
   SAVINGS: 'Épargne et tontines',
   CREDIT: 'Micro-crédit',
-  BUSINESS: 'Lever des fonds pour mon entreprise',
   OTHER: 'Autre demande',
+  INVEST: 'Placements (bons du Trésor, FCP)',
+  CROWDFUND: 'Crowdfunding en capital',
+  BUSINESS: 'Lever des fonds pour mon entreprise',
 } as const;
+/**
+ * Sujets ouverts aux nouvelles demandes pendant le test : l'investissement et la levée de fonds
+ * relèvent de l'AMF-UMOA et sont exclus.
+ */
+export const ADVISOR_OPEN_TOPICS = ['PAYMENTS', 'SAVINGS', 'CREDIT', 'OTHER'] as const;
 /** Heures d'ouverture de l'équipe commerciale (heure d'Abidjan, GMT). */
 export const ADVISOR_HOURS = 'du lundi au vendredi, de 8 h à 18 h';
 
 /** Avertissement affiché avec l'assistant IA. */
 export const AI_DISCLAIMER =
   "Les réponses de l'assistant IA sont générées automatiquement à titre d'information. Elles ne constituent ni un conseil en investissement personnalisé ni une recommandation de DALA Finance. Tout placement comporte un risque de perte en capital.";
+
+/** Politique de conservation des données (affichée dans l'application). */
+export const DATA_RETENTION_POLICY = [
+  "Données d'identification (KYC) et opérations : conservées 10 ans après la clôture du compte, conformément à la loi uniforme relative à la lutte contre le blanchiment de capitaux et le financement du terrorisme.",
+  "Après ce délai, les données sont supprimées ou anonymisées.",
+  'Échanges avec le support et réclamations : conservés pendant la même durée, pour répondre à un éventuel contrôle.',
+  'Toutes les données sont hébergées dans l’UEMOA.',
+];
+/** Durée de conservation après clôture (années). */
+export const RETENTION_YEARS_AFTER_CLOSURE = 10;

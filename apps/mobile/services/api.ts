@@ -54,6 +54,9 @@ export const userApi = {
   submitKyc: (body: Record<string, unknown>) => request<{ status: string }>('/users/me/kyc', { method: 'POST', body }),
   referrals: () => request<{ code: string; link: string; count: number; referees: { firstName: string }[] }>('/users/me/referrals'),
   setPushToken: (token: string) => request('/users/me/push-token', { method: 'PUT', body: { token } }),
+  retention: () => request<{ policy: string[]; yearsAfterClosure: number }>('/users/me/data/retention'),
+  exportData: () => request<Record<string, unknown>>('/users/me/data/export'),
+  close: (pin: string) => request<{ status: 'CLOSED'; retentionYears: number }>('/users/me/close', { method: 'POST', pin }),
 };
 
 export const accountApi = {

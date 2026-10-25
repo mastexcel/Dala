@@ -1,4 +1,5 @@
 import { createServer, type Server } from 'node:http';
+import { TEST_PHASE } from '@dala/shared';
 import request from 'supertest';
 import { createApp } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
@@ -8,6 +9,7 @@ export const app = createApp();
 export const api = () => request(app);
 export const ADMIN = { 'x-admin-key': 'integration-admin-key' };
 export const PIN = '2580';
+export const CONSENT = { version: TEST_PHASE.consentVersion, accepted: true } as const;
 
 /** Vide toutes les tables (base de test uniquement). */
 export async function resetDb() {
@@ -27,7 +29,7 @@ export async function register(firstName = 'Awa', lastName = 'Koné', pin = PIN)
   const otp = await api().post('/v1/auth/otp/request').send({ phone, purpose: 'REGISTER' }).expect(200);
   const res = await api()
     .post('/v1/auth/register')
-    .send({ phone, otp: otp.body.devCode, firstName, lastName, pin })
+    .send({ phone, otp: otp.body.devCode, firstName, lastName, pin, dateOfBirth: '1990-05-14', consent: CONSENT })
     .expect(201);
   return { phone, userId: res.body.user.id as string, token: res.body.accessToken as string, refreshToken: res.body.refreshToken as string };
 }
@@ -47,7 +49,7 @@ export async function mainBalance(userId: string) {
 
 /** Dépôt sandbox (succès immédiat). */
 export async function deposit(token: string, amount: number) {
-  return api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'WAVE', amount }).expect(201);
+  return api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'ORANGE_MONEY', amount }).expect(201);
 }
 
 /** Faux service de scoring ML : probabilité pilotée par le test. */

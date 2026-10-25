@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { ADVISOR_HOURS, ADVISOR_TOPICS, type AdvisorTopic } from '@dala/shared';
+import { ADVISOR_HOURS, ADVISOR_OPEN_TOPICS, ADVISOR_TOPICS, type AdvisorTopic } from '@dala/shared';
 import { AppText, Badge, Button, Card, Chip, DalaIcon, EmptyState, Header, Input, Loading, Screen, SectionTitle } from '@/components/ui';
 import { qk, useAdvisorConversations } from '@/hooks/queries';
 import { advisorApi } from '@/services/api';
@@ -10,7 +10,8 @@ import { errorMessage } from '@/services/errors';
 import { track } from '@/services/monitoring';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
-const TOPIC_KEYS = Object.keys(ADVISOR_TOPICS) as AdvisorTopic[];
+/** Sujets ouverts pendant la phase de test (ni placements ni levée de fonds). */
+const TOPIC_KEYS: AdvisorTopic[] = [...ADVISOR_OPEN_TOPICS];
 
 const when = (iso: string) => {
   const d = new Date(iso);
@@ -23,7 +24,7 @@ const when = (iso: string) => {
 export default function AdvisorInbox() {
   const conversations = useAdvisorConversations();
   const qc = useQueryClient();
-  const [topic, setTopic] = useState<AdvisorTopic>('INVEST');
+  const [topic, setTopic] = useState<AdvisorTopic>('PAYMENTS');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string>();
@@ -53,7 +54,7 @@ export default function AdvisorInbox() {
           <View style={{ flex: 1 }}>
             <AppText weight="bold">Parlez à un conseiller DALA</AppText>
             <AppText variant="caption" color={TEXT_ON_WHITE.muted}>
-              Placements, crowdfunding, épargne, crédit ou levée de fonds : nos conseillers vous répondent {ADVISOR_HOURS}.
+              Paiements, épargne, tontines ou crédit : nos conseillers vous répondent {ADVISOR_HOURS}.
             </AppText>
           </View>
         </View>

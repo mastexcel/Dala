@@ -5,6 +5,7 @@ import { AppText, Button, Card, Chip, Header, Input, Screen, SectionTitle } from
 import { AI_PROVIDERS, verifyConnection, type AiProviderId, type AiSettings } from '@/services/ai';
 import { isAssistantConnected, useAssistantStore } from '@/stores/assistant';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
+import { FEATURES } from '@/utils/features';
 
 const PROVIDERS = Object.values(AI_PROVIDERS);
 
@@ -118,29 +119,34 @@ export default function AssistantSettings() {
         ) : null}
       </Card>
 
-      <SectionTitle title="Confidentialité" icon="security" />
-      <Card padded={false}>
-        <View style={styles.switchRow}>
-          <View style={{ flex: 1 }}>
-            <AppText weight="semibold">Partager ma situation financière</AppText>
-            <AppText variant="small" color={TEXT_ON_WHITE.muted}>
-              Soldes, placements et participations sont joints à vos questions pour des analyses adaptées. Les offres du marché sont toujours partagées.
-            </AppText>
-          </View>
-          <Switch value={draft.shareFinancialData} onValueChange={(v) => toggle({ shareFinancialData: v })} trackColor={{ true: COLORS.green }} accessibilityLabel="Partager ma situation financière" />
-        </View>
-        {draft.provider === 'anthropic' ? (
-          <View style={[styles.switchRow, styles.border]}>
-            <View style={{ flex: 1 }}>
-              <AppText weight="semibold">Recherche web</AppText>
-              <AppText variant="small" color={TEXT_ON_WHITE.muted}>
-                Claude consulte l'actualité des marchés et cite ses sources.
-              </AppText>
+      {/* Mode « aide » : aucune donnée personnelle ni recherche web, réglages masqués. */}
+      {FEATURES.assistantMode === 'help' ? null : (
+        <>
+          <SectionTitle title="Confidentialité" icon="security" />
+          <Card padded={false}>
+            <View style={styles.switchRow}>
+              <View style={{ flex: 1 }}>
+                <AppText weight="semibold">Partager ma situation financière</AppText>
+                <AppText variant="small" color={TEXT_ON_WHITE.muted}>
+                  Soldes, placements et participations sont joints à vos questions pour des analyses adaptées. Les offres du marché sont toujours partagées.
+                </AppText>
+              </View>
+              <Switch value={draft.shareFinancialData} onValueChange={(v) => toggle({ shareFinancialData: v })} trackColor={{ true: COLORS.green }} accessibilityLabel="Partager ma situation financière" />
             </View>
-            <Switch value={draft.webSearch} onValueChange={(v) => toggle({ webSearch: v })} trackColor={{ true: COLORS.green }} accessibilityLabel="Recherche web" />
-          </View>
-        ) : null}
-      </Card>
+            {draft.provider === 'anthropic' ? (
+              <View style={[styles.switchRow, styles.border]}>
+                <View style={{ flex: 1 }}>
+                  <AppText weight="semibold">Recherche web</AppText>
+                  <AppText variant="small" color={TEXT_ON_WHITE.muted}>
+                    Claude consulte l'actualité des marchés et cite ses sources.
+                  </AppText>
+                </View>
+                <Switch value={draft.webSearch} onValueChange={(v) => toggle({ webSearch: v })} trackColor={{ true: COLORS.green }} accessibilityLabel="Recherche web" />
+              </View>
+            ) : null}
+          </Card>
+        </>
+      )}
 
       {connected ? (
         <Button

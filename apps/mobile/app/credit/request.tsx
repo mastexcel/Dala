@@ -121,7 +121,7 @@ export default function LoanRequest() {
         <KeyValue label="TAEG" value={formatPercent(quote.taeg, 2)} strong color={TEXT_ON_WHITE.orange} />
       </Card>
       <AppText variant="small" color={TEXT_ON_WHITE.muted} style={{ marginTop: SPACING.xs }}>
-        TAEG calculé selon la méthode BCEAO, inférieur au taux d'usure en vigueur. Aucune pénalité en cas de remboursement anticipé.
+        TAEG calculé par la méthode actuarielle, inférieur au taux d'usure applicable au prêteur. Aucune pénalité en cas de remboursement anticipé.
       </AppText>
 
       <View style={styles.accept}>

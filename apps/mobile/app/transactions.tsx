@@ -1,3 +1,4 @@
+import { FEATURES } from '@/utils/features';
 import { useState } from 'react';
 import { Alert, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import * as FileSystem from 'expo-file-system';
@@ -12,7 +13,7 @@ import { USE_MOCKS } from '@/services/config';
 import { useAuthStore } from '@/stores/auth';
 import { COLORS, RADIUS, SHADOW, SPACING } from '@/theme';
 
-const FILTERS: { key: TransactionCategory; label: string; icon: DalaIconName }[] = [
+const ALL_FILTERS: { key: TransactionCategory; label: string; icon: DalaIconName }[] = [
   { key: 'ALL', label: 'Tout', icon: 'tx-all' },
   { key: 'SAVINGS', label: 'Épargne', icon: 'tx-savings' },
   { key: 'INVEST', label: 'Investissement', icon: 'tx-invest' },
@@ -20,6 +21,7 @@ const FILTERS: { key: TransactionCategory; label: string; icon: DalaIconName }[]
   { key: 'CREDIT', label: 'Crédit', icon: 'tx-credit' },
   { key: 'TRANSFER', label: 'Transferts', icon: 'transfers' },
 ];
+const FILTERS = ALL_FILTERS.filter((f) => (f.key !== 'INVEST' || FEATURES.invest) && (f.key !== 'CROWDFUND' || FEATURES.crowdfund));
 
 function toCsv(items: TransactionDTO[]) {
   const header = 'Date;Référence;Type;Libellé;Montant (FCFA);Statut';

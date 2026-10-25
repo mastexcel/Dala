@@ -28,10 +28,10 @@ describe('Micro-crédit et scoring', () => {
   it('approuve, décaisse, puis solde le prêt par remboursements partiels', async () => {
     ml.probability = 0.92;
     const { token, userId } = await register();
-    const r = await api().post('/v1/loans').set(bearer(token)).set('x-transaction-pin', PIN).send({ amount: 100_000, duration: 60, acceptTerms: true }).expect(201);
+    const r = await api().post('/v1/loans').set(bearer(token)).set('x-transaction-pin', PIN).send({ amount: 80_000, duration: 60, acceptTerms: true }).expect(201);
     expect(r.body.decision).toBe('APPROVED');
     expect(r.body.loan.status).toBe('DISBURSED');
-    expect(await mainBalance(userId)).toBe(100_000);
+    expect(await mainBalance(userId)).toBe(80_000);
     const loan = await prisma.loan.findUniqueOrThrow({ where: { id: r.body.loan.id } });
     expect((loan.mlFeatures as { source: string }).source).toBe('ml');
 
@@ -42,7 +42,7 @@ describe('Micro-crédit et scoring', () => {
     expect(detail.body.schedule).toHaveLength(2);
 
     const totalDue = r.body.loan.totalDue as number;
-    await deposit(token, totalDue - 100_000);
+    await deposit(token, totalDue - 80_000);
     await api().post(`/v1/loans/${r.body.loan.id}/repay`).set(bearer(token)).set('x-transaction-pin', PIN).send({ amount: 60_000 }).expect(200);
     // Montant supérieur au restant dû (PIN exigé) : le remboursement est plafonné au solde du prêt.
     const done = await api().post(`/v1/loans/${r.body.loan.id}/repay`).set(bearer(token)).set('x-transaction-pin', PIN).send({ amount: totalDue }).expect(200);

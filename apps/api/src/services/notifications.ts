@@ -4,7 +4,7 @@ import type { Prisma } from '@prisma/client';
 import type { AdvisorMessageDTO } from '@dala/shared';
 import { prisma } from '../lib/prisma';
 import { verifyAccessToken } from '../lib/jwt';
-import { config } from '../config';
+import { config, foreignProcessorAllowed } from '../config';
 import { logger } from '../lib/logger';
 import { notificationDTO } from '../lib/serialize';
 
@@ -30,7 +30,8 @@ export function attachRealtime(server: HttpServer) {
 }
 
 async function sendPush(token: string, title: string, body: string, data?: Record<string, string>) {
-  if (!config.FCM_SERVER_KEY) return;
+  // Firebase (Google) est hébergé hors de l'UEMOA : push désactivé tant qu'il n'est pas déclaré.
+  if (!config.FCM_SERVER_KEY || !foreignProcessorAllowed('fcm')) return;
   try {
     await fetch('https://fcm.googleapis.com/fcm/send', {
       method: 'POST',
@@ -54,7 +55,8 @@ export async function notify(userId: string, input: NotifyInput) {
   const n = await prisma.notification.create({ data: { userId, ...input } });
   io?.to(`user:${userId}`).emit('notification', notificationDTO(n));
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { pushToken: true } });
-  if (user?.pushToken) await sendPush(user.pushToken, input.title, input.body, { type: input.type });
+  // Le contenu (montants, noms) ne quitte pas l'UEMOA : la notification push reste générique.
+  if (user?.pushToken) await sendPush(user.pushToken, 'DALA Finance', 'Vous avez une nouvelle notification.', { type: input.type });
   return n;
 }
 

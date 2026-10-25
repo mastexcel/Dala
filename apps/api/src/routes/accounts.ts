@@ -12,6 +12,7 @@ import { balances, post } from '../services/ledger';
 import { appendAudit } from '../services/audit';
 import { getProvider, PROVIDER_IDS, type MobileMoneyProviderId } from '../services/mobileMoney';
 import { emitBalanceChanged, notify } from '../services/notifications';
+import { assertClientFundsCapacity, isProviderEnabled } from '../services/testPhase';
 import { phoneSchema } from './auth';
 
 export const router = Router();
@@ -62,7 +63,8 @@ router.get(
 );
 
 const mmSchema = z.object({
-  provider: z.enum(PROVIDER_IDS as [MobileMoneyProviderId, ...MobileMoneyProviderId[]]),
+  // Opérateurs dont le statut n'est pas vérifié (Wave) : refusés pendant la phase de test.
+  provider: z.enum(PROVIDER_IDS.filter(isProviderEnabled) as [MobileMoneyProviderId, ...MobileMoneyProviderId[]]),
   amount: z.number().int().min(100).max(10_000_000),
   phone: phoneSchema.optional(),
 });
@@ -76,6 +78,8 @@ router.post(
   asyncHandler(async (req, res) => {
     const { provider, amount, phone } = req.body as z.infer<typeof mmSchema>;
     const user = await prisma.user.findUniqueOrThrow({ where: { id: uid(req) } });
+    // Plafond des fonds clients de la phase de test, vérifié avant d'appeler l'opérateur.
+    await prisma.$transaction((tx) => assertClientFundsCapacity(tx, amount));
     const reference = transactionReference();
     const p = getProvider(provider);
     const result = await p.deposit(phone ?? user.phone, amount, reference);

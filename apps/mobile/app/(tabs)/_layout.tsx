@@ -3,10 +3,13 @@ import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { DalaIcon, SideRail, type DalaIconName } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth';
+import { FEATURES } from '@/utils/features';
 import { COLORS, FONTS, RAIL_WIDTH, useLayoutMode, useSideGutter } from '@/theme';
 
 /** Barre d'onglets claire : les icônes illustrées DALA sont conçues pour fond blanc. */
 const TAB_ICONS: Record<string, DalaIconName> = { index: 'home', savings: 'savings', crowdfund: 'crowdfund', credit: 'credit', profile: 'profile' };
+/** Onglets des modules fermés pendant la phase de test. */
+const HIDDEN_TABS = FEATURES.crowdfund ? [] : ['crowdfund'];
 
 export default function TabsLayout() {
   const { t } = useTranslation();
@@ -27,7 +30,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      tabBar={landscape ? (props) => <SideRail {...props} icons={TAB_ICONS} /> : undefined}
+      tabBar={landscape ? (props) => <SideRail {...props} icons={TAB_ICONS} hidden={HIDDEN_TABS} /> : undefined}
       sceneContainerStyle={landscape ? { paddingLeft: RAIL_WIDTH } : undefined}
       screenOptions={{
         headerShown: false,
@@ -39,7 +42,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: t('tabs.home'), tabBarIcon: icon('home') }} />
       <Tabs.Screen name="savings" options={{ title: t('tabs.savings'), tabBarIcon: icon('savings') }} />
-      <Tabs.Screen name="crowdfund" options={{ title: t('tabs.crowdfund'), tabBarIcon: icon('crowdfund') }} />
+      <Tabs.Screen name="crowdfund" options={{ title: t('tabs.crowdfund'), tabBarIcon: icon('crowdfund'), href: FEATURES.crowdfund ? undefined : null }} />
       <Tabs.Screen name="credit" options={{ title: t('tabs.credit'), tabBarIcon: icon('credit') }} />
       <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: icon('profile') }} />
     </Tabs>

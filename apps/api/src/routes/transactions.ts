@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import PDFDocument from 'pdfkit';
 import type { Prisma, TransactionType } from '@prisma/client';
-import { formatDate, formatFCFA, LEGAL_NOTICE } from '@dala/shared';
+import { formatDate, formatFCFA, LEGAL_NOTICE, TEST_PHASE_NOTICE } from '@dala/shared';
 import { prisma, num } from '../lib/prisma';
 import { asyncHandler, notFound } from '../lib/errors';
 import { transactionDTO } from '../lib/serialize';
@@ -75,7 +75,8 @@ router.get(
       );
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="dala-releve-${stamp}.csv"`);
-      return res.send(`﻿${[header, ...rows].join('\n')}`);
+      // Mention légale (éditeur, phase de test LIF-BCEAO, établissement agréé partenaire) en pied de relevé.
+      return res.send(`﻿${[header, ...rows, '', csvEscape(LEGAL_NOTICE)].join('\n')}`);
     }
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="dala-releve-${stamp}.pdf"`);
@@ -83,7 +84,8 @@ router.get(
     doc.pipe(res);
     doc.fillColor('#0F1B3D').fontSize(20).text('DALA Finance — Relevé de transactions');
     doc.moveDown(0.5).fontSize(10).fillColor('#343A40').text(`${user.firstName} ${user.lastName} · ${user.phone}`);
-    doc.text(`Édité le ${formatDate(new Date())}`).moveDown();
+    doc.text(`Édité le ${formatDate(new Date())}`);
+    doc.fillColor('#8A6608').text(TEST_PHASE_NOTICE).moveDown();
     for (const t of items) {
       const amount = num(t.amount);
       doc.fillColor('#212529').fontSize(9).text(`${formatDate(t.createdAt)}  ${t.description}`, { continued: true });

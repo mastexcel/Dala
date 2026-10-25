@@ -26,9 +26,21 @@ const schema = z.object({
   MTN_MOMO_SUBSCRIPTION_KEY: z.string().optional(),
   WAVE_API_KEY: z.string().optional(),
   MOOV_API_KEY: z.string().optional(),
-  SUPABASE_URL: z.string().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  /**
+   * Stockage des pièces KYC : 'sandbox' (aucun envoi) ou 's3', un stockage compatible S3 chez
+   * l'hébergeur d'Abidjan. Les données clients restent dans l'UEMOA (engagement du dossier LIF).
+   */
+  STORAGE_DRIVER: z.enum(['sandbox', 's3']).default('sandbox'),
   STORAGE_BUCKET: z.string().default('kyc-documents'),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_REGION: z.string().default('ci-abidjan'),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  /**
+   * Services hébergés hors de l'UEMOA déclarés à l'ARTCI, séparés par des virgules
+   * (sentry, twilio, fcm). Un service non déclaré n'est jamais appelé.
+   */
+  FOREIGN_PROCESSORS_DECLARED: z.string().default(''),
   FCM_SERVER_KEY: z.string().optional(),
   ADMIN_API_KEY: z.string().optional(),
   SAFEGUARD_BALANCE_MAIN: z.coerce.number().default(0),
@@ -38,7 +50,17 @@ const schema = z.object({
   SENTRY_DSN: z.string().optional(),
 });
 
-const parsed = schema.safeParse(process.env);
+const parsed = schema
+  .superRefine((c, ctx) => {
+    const declared = c.FOREIGN_PROCESSORS_DECLARED.split(',').map((s) => s.trim());
+    if (c.SMS_PROVIDER === 'twilio' && !declared.includes('twilio')) {
+      ctx.addIssue({ code: 'custom', path: ['SMS_PROVIDER'], message: "Twilio est hébergé hors de l'UEMOA : déclarez-le (FOREIGN_PROCESSORS_DECLARED) ou utilisez l'API SMS d'Orange." });
+    }
+    if (c.STORAGE_DRIVER === 's3' && (!c.S3_ENDPOINT || !c.S3_ACCESS_KEY_ID || !c.S3_SECRET_ACCESS_KEY)) {
+      ctx.addIssue({ code: 'custom', path: ['S3_ENDPOINT'], message: 'S3_ENDPOINT, S3_ACCESS_KEY_ID et S3_SECRET_ACCESS_KEY sont requis avec STORAGE_DRIVER=s3.' });
+    }
+  })
+  .safeParse(process.env);
 if (!parsed.success) {
   // eslint-disable-next-line no-console
   console.error('Configuration invalide :', parsed.error.flatten().fieldErrors);
@@ -46,5 +68,8 @@ if (!parsed.success) {
 }
 
 export const config = parsed.data;
+/** Un service étranger n'est utilisé que s'il a été déclaré à l'ARTCI. */
+export const foreignProcessorAllowed = (name: 'sentry' | 'twilio' | 'fcm') =>
+  config.FOREIGN_PROCESSORS_DECLARED.split(',').map((s) => s.trim()).includes(name);
 export const isProd = config.NODE_ENV === 'production';
 export const isTest = config.NODE_ENV === 'test';

@@ -290,7 +290,7 @@ export interface ApiError {
 
 /* ------------------------- Échanges avec l'équipe commerciale ------------------------- */
 
-export type AdvisorTopic = 'INVEST' | 'CROWDFUND' | 'SAVINGS' | 'CREDIT' | 'BUSINESS' | 'OTHER';
+export type AdvisorTopic = 'PAYMENTS' | 'SAVINGS' | 'CREDIT' | 'OTHER' | 'INVEST' | 'CROWDFUND' | 'BUSINESS';
 export type AdvisorSender = 'USER' | 'ADVISOR' | 'SYSTEM';
 
 export interface AdvisorMessageDTO {

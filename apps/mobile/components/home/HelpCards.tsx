@@ -2,11 +2,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { AppText, DalaIcon, type DalaIconName } from '@/components/ui';
 import { COLORS, RADIUS, SHADOW, SPACING, TEXT_ON_WHITE } from '@/theme';
+import { FEATURES } from '@/utils/features';
 
-const CARDS: { title: string; body: string; icon: DalaIconName; href: string }[] = [
-  { title: 'Assistant IA', body: 'Analyse du marché et des opportunités', icon: 'performance', href: '/assistant' },
+const ALL_CARDS: { title: string; body: string; icon: DalaIconName; href: string }[] = [
+  { title: 'Assistant IA', body: "Aide à l'utilisation de l'application", icon: 'performance', href: '/assistant' },
   { title: 'Un conseiller', body: "Échanger avec l'équipe commerciale", icon: 'investors', href: '/advisor' },
 ];
+const CARDS = ALL_CARDS.filter((c) => c.href !== '/assistant' || FEATURES.assistant);
 
 /** Accès rapide à l'assistant IA et à l'équipe commerciale. */
 export function HelpCards() {

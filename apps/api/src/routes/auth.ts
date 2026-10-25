@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import type { AuthFactor } from '@dala/shared';
+import { MIN_AGE, TEST_PHASE, ageOn, type AuthFactor } from '@dala/shared';
 import { prisma } from '../lib/prisma';
 import { asyncHandler, badRequest, conflict, forbidden, unauthorized } from '../lib/errors';
 import { signAccessToken } from '../lib/jwt';
@@ -10,6 +10,7 @@ import { config } from '../config';
 import { issueOtp, verifyOtp } from '../services/otp';
 import { ensureAccounts } from '../services/ledger';
 import { appendAudit } from '../services/audit';
+import { assertUserCapacity } from '../services/testPhase';
 import { notify } from '../services/notifications';
 import { userDTO } from '../lib/serialize';
 import { validate } from '../middleware/validate';
@@ -45,6 +46,10 @@ router.post(
     const exists = await prisma.user.findUnique({ where: { phone }, select: { id: true } });
     if (purpose === 'REGISTER' && exists) throw conflict('Ce numéro possède déjà un compte', 'PHONE_TAKEN');
     if (purpose !== 'REGISTER' && !exists) throw badRequest('Aucun compte pour ce numéro', 'UNKNOWN_PHONE');
+    // Phase de test : on prévient dès l'envoi du code si les inscriptions sont complètes.
+    if (purpose === 'REGISTER' && (await prisma.user.count({ where: { status: { not: 'CLOSED' } } })) >= TEST_PHASE.limits.maxUsers) {
+      throw conflict(`Les inscriptions sont fermées : la phase de test est limitée à ${TEST_PHASE.limits.maxUsers} utilisateurs.`, 'TEST_LIMIT_REACHED');
+    }
     const result = await issueOtp(phone, purpose);
     res.json({ sent: true, expiresAt: result.expiresAt, devCode: result.devCode });
   }),
@@ -63,25 +68,43 @@ router.post(
       email: z.string().email().optional(),
       referralCode: z.string().optional(),
       deviceId: z.string().optional(),
+      /** Date de naissance AAAA-MM-JJ : inscription réservée aux personnes majeures. */
+      dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      /** Acceptation de l'avertissement de la phase de test (version du texte affiché). */
+      consent: z.object({ version: z.literal(TEST_PHASE.consentVersion), accepted: z.literal(true) }),
     }),
   ),
   asyncHandler(async (req, res) => {
-    const b = req.body as { phone: string; otp: string; firstName: string; lastName: string; pin: string; email?: string; referralCode?: string; deviceId?: string };
+    const b = req.body as {
+      phone: string; otp: string; firstName: string; lastName: string; pin: string; email?: string; referralCode?: string; deviceId?: string;
+      dateOfBirth: string; consent: { version: string; accepted: true };
+    };
+    const age = ageOn(b.dateOfBirth);
+    if (Number.isNaN(age) || age > 120) throw badRequest('Date de naissance invalide', 'INVALID_BIRTH_DATE');
+    if (age < MIN_AGE) throw forbidden(`L'ouverture d'un compte est réservée aux personnes de ${MIN_AGE} ans ou plus.`, 'UNDERAGE');
     await verifyOtp(b.phone, b.otp, 'REGISTER');
     const referrer = b.referralCode ? await prisma.user.findUnique({ where: { referralCode: b.referralCode } }) : null;
+    const pinHash = await bcrypt.hash(b.pin, 10);
     const user = await prisma.$transaction(async (tx) => {
+      await assertUserCapacity(tx);
+      const consentAcceptedAt = new Date();
       const u = await tx.user.create({
         data: {
           phone: b.phone,
           firstName: b.firstName,
           lastName: b.lastName,
           email: b.email,
-          pin: await bcrypt.hash(b.pin, 10),
+          pin: pinHash,
           referredBy: referrer?.id,
+          dateOfBirth: new Date(`${b.dateOfBirth}T00:00:00Z`),
+          consentVersion: b.consent.version,
+          consentAcceptedAt,
         },
       });
       await ensureAccounts(tx, u.id);
       await appendAudit(tx, { userId: u.id, action: 'USER_REGISTERED', entity: 'User', entityId: u.id });
+      // Acceptation horodatée, chaînée dans la piste d'audit.
+      await appendAudit(tx, { userId: u.id, action: 'CONSENT_ACCEPTED', entity: 'User', entityId: u.id, payload: { version: b.consent.version, acceptedAt: consentAcceptedAt.toISOString() } });
       return u;
     });
     if (referrer) await notify(referrer.id, { title: 'Nouveau filleul 🎉', body: `${user.firstName} a rejoint DALA avec votre code.`, type: 'SYSTEM' });

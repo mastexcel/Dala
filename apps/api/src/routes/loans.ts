@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { z } from 'zod';
 import {
   LOAN_DURATIONS,
+  LOAN_MAX,
+  LOAN_MIN,
+  LOAN_STEP,
   eligibleLoanAmount,
   formatFCFA,
   isValidLoanAmount,
@@ -20,6 +23,7 @@ import { amlScreen } from '../middleware/aml';
 import { post } from '../services/ledger';
 import { emitBalanceChanged, notify } from '../services/notifications';
 import { buildFeatures, decide, scoreProbability } from '../services/scoring';
+import { assertCreditCapacity } from '../services/testPhase';
 import { enqueue } from '../jobs/queue';
 
 export const router = Router();
@@ -48,7 +52,7 @@ router.get(
   validate(z.object({ amount: z.coerce.number().int(), duration: durationSchema }), 'query'),
   asyncHandler(async (req, res) => {
     const { amount, duration } = req.query as unknown as { amount: number; duration: number };
-    if (!isValidLoanAmount(amount)) throw badRequest('Montant hors grille (5 000 à 500 000 FCFA, par pas de 5 000)');
+    if (!isValidLoanAmount(amount)) throw badRequest(`Montant hors grille (${formatFCFA(LOAN_MIN)} à ${formatFCFA(LOAN_MAX)}, par pas de ${formatFCFA(LOAN_STEP)})`);
     const user = await prisma.user.findUniqueOrThrow({ where: { id: uid(req) } });
     res.json(quoteLoan(amount, duration, user.creditScore));
   }),
@@ -65,7 +69,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const userId = uid(req);
     const { amount, duration, purpose } = req.body as z.infer<typeof requestSchema>;
-    if (!isValidLoanAmount(amount)) throw badRequest('Montant hors grille (5 000 à 500 000 FCFA, par pas de 5 000)');
+    if (!isValidLoanAmount(amount)) throw badRequest(`Montant hors grille (${formatFCFA(LOAN_MIN)} à ${formatFCFA(LOAN_MAX)}, par pas de ${formatFCFA(LOAN_STEP)})`);
     const open = await prisma.loan.count({ where: { userId, status: { in: ['PENDING', 'APPROVED', 'DISBURSED', 'OVERDUE'] } } });
     if (open > 0) throw conflict('Vous avez déjà un prêt en cours');
 
@@ -78,6 +82,8 @@ router.post(
 
     const quote = quoteLoan(amount, duration, score);
     const loan = await prisma.$transaction(async (tx) => {
+      // Encours total de la phase de test, vérifié sous verrou avant tout décaissement.
+      if (decision !== 'REJECTED') await assertCreditCapacity(tx, quote.totalDue);
       await tx.user.update({ where: { id: userId }, data: { creditScore: score } });
       const l = await tx.loan.create({
         data: {

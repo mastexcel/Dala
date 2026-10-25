@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState, type ReactNode } from 'react';
 import { COLORS, SPACING, centeredColumn, useLayoutMode } from '@/theme';
 import { OfflineBanner } from './OfflineBanner';
+import { TestPhaseBanner } from './TestPhaseBanner';
 import { WALLPAPER_IMAGE, WALLPAPERS, type WallpaperName } from './wallpapers';
 import { ContentVeil } from './ContentVeil';
 
@@ -32,6 +33,7 @@ export function Screen({ children, scroll = true, background = COLORS.offWhite, 
   const screen = (
     <SafeAreaView style={[styles.flex, { backgroundColor: wallpaper ? 'transparent' : background }]} edges={edges}>
       <StatusBar style={dark ? 'light' : 'dark'} />
+      <TestPhaseBanner />
       <OfflineBanner />
       {header ? <View style={COLUMN}>{header}</View> : null}
       {scroll ? (

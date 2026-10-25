@@ -2,6 +2,7 @@ import '@/utils/polyfills';
 import 'react-native-gesture-handler';
 import '@/i18n';
 import { useEffect } from 'react';
+import { View } from 'react-native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
@@ -17,7 +18,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { PERSISTED_KEYS, persister, queryClient } from '@/services/queryClient';
 import { useAuthStore } from '@/stores/auth';
-import { PinSheet } from '@/components/ui';
+import { AppText, PinSheet } from '@/components/ui';
+import { CONFIG_ERROR } from '@/services/config';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useOrientationPolicy } from '@/hooks/useOrientationPolicy';
 import { COLORS } from '@/theme';
@@ -52,6 +54,16 @@ function RootLayout() {
   }, [fontsLoaded, hydrated]);
 
   if (!fontsLoaded || !hydrated) return null;
+
+  // Version mal configurée (ni API ni démonstration, ou démonstration en production) : on ne démarre pas.
+  if (CONFIG_ERROR) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: COLORS.white }}>
+        <AppText weight="bold" align="center">Application mal configurée</AppText>
+        <AppText align="center" color={COLORS.darkGray}>{CONFIG_ERROR}</AppText>
+      </View>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

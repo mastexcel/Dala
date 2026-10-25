@@ -7,6 +7,7 @@ import { BalanceCard } from '@/components/home/BalanceCard';
 import { QuickActions } from '@/components/home/QuickActions';
 import { PillarRow } from '@/components/home/PillarRow';
 import { HelpCards } from '@/components/home/HelpCards';
+import { FEATURES } from '@/utils/features';
 import { TransactionRow } from '@/components/home/TransactionRow';
 import { useNotifications, useSummary, useTransactions } from '@/hooks/queries';
 import { useAuthStore } from '@/stores/auth';
@@ -65,22 +66,26 @@ export default function Home() {
             progress={progressRatio(summary.data.savings, summary.data.savingsTarget)}
             onPress={() => router.push('/(tabs)/savings')}
           />
-          <PillarRow
-            icon="invest"
-            color={PILLAR_COLORS.invest}
-            title={t('home.invest')}
-            amount={summary.data.investments}
-            subtitle="Bons du Trésor · jusqu'à 6,5 %/an"
-            onPress={() => router.push('/invest')}
-          />
-          <PillarRow
-            icon="crowdfund"
-            color={PILLAR_COLORS.crowdfund}
-            title={t('home.crowdfund')}
-            amount={summary.data.crowdfund}
-            subtitle={t('home.activeProjects', { count: summary.data.crowdfundActiveProjects })}
-            onPress={() => router.push('/(tabs)/crowdfund')}
-          />
+          {FEATURES.invest ? (
+            <PillarRow
+              icon="invest"
+              color={PILLAR_COLORS.invest}
+              title={t('home.invest')}
+              amount={summary.data.investments}
+              subtitle="Bons du Trésor · jusqu'à 6,5 %/an"
+              onPress={() => router.push('/invest')}
+            />
+          ) : null}
+          {FEATURES.crowdfund ? (
+            <PillarRow
+              icon="crowdfund"
+              color={PILLAR_COLORS.crowdfund}
+              title={t('home.crowdfund')}
+              amount={summary.data.crowdfund}
+              subtitle={t('home.activeProjects', { count: summary.data.crowdfundActiveProjects })}
+              onPress={() => router.push('/(tabs)/crowdfund')}
+            />
+          ) : null}
           <PillarRow
             icon="credit"
             color={PILLAR_COLORS.credit}

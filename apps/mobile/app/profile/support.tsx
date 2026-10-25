@@ -1,20 +1,20 @@
 import { useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
-import { CaretDown, CaretUp, ChatCircleText, Phone } from 'phosphor-react-native';
-import { COMPLAINT_RESPONSE_DAYS, REGULATORY_FRAMEWORK, TEST_PHASE_NOTICE } from '@dala/shared';
+import { CaretDown, CaretUp, ChatCircleText, EnvelopeSimple, Phone } from 'phosphor-react-native';
+import { COMPLAINT_RESPONSE_DAYS, LEGAL_NOTICE, SUPPORT_EMAIL, SUPPORT_PHONE, TEST_PHASE, formatFCFA } from '@dala/shared';
 import { AppText, Button, Card, Chip, DalaIcon, Header, Input, Screen, SectionTitle } from '@/components/ui';
 import { complianceApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
 import { COLORS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const FAQ = [
-  { q: 'Quel est le statut de DALA ?', a: `${TEST_PHASE_NOTICE}. ${REGULATORY_FRAMEWORK} Ce cadre prévoit le cantonnement des fonds des utilisateurs sur des comptes dédiés, séparés des fonds propres de DALA.` },
-  { q: 'Comment recharger mon compte ?', a: 'Depuis l’accueil, touchez « Recevoir » puis choisissez Orange Money, MTN MoMo, Wave ou Moov Money.' },
-  { q: 'Puis-je annuler un investissement ?', a: 'Oui, vous disposez d’un droit de rétractation de 48 h sur les placements et les investissements en capital.' },
+  { q: 'Quel est le statut de DALA ?', a: LEGAL_NOTICE },
+  { q: 'Comment recharger mon compte ?', a: 'Depuis l’accueil, touchez « Recevoir » puis choisissez Orange Money, MTN MoMo ou Moov Money.' },
+  { q: 'Pourquoi mon épargne n’est-elle pas rémunérée ?', a: 'Seul un établissement agréé peut rémunérer l’épargne. Pendant la phase de test, objectifs et coffre-fort ne produisent pas d’intérêts.' },
+  { q: 'Quels sont les plafonds du test ?', a: `Un prêt est limité à ${formatFCFA(TEST_PHASE.limits.loanMax)}. Les comptes sont ouverts aux niveaux de vérification 1 et 2. Le détail figure dans Profil › Mentions légales.` },
   { q: 'Comment est calculé mon score DALA ?', a: 'Il tient compte de la régularité de votre épargne, de l’ancienneté de votre compte, de vos remboursements et de votre ponctualité en tontine.' },
-  { q: 'Qui valide les projets de crowdfunding ?', a: 'Chaque projet est étudié et validé par le comité Bridge Investment Partners avant publication.' },
-];
+]
 
 const CATEGORIES = [
   { key: 'TRANSACTION', label: 'Opération' },
@@ -51,8 +51,24 @@ export default function Support() {
   return (
     <Screen wallpaper="profile" header={<Header title="Support" />}>
       <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
-        <Button title="Appeler" variant="outline" fullWidth={false} style={{ flex: 1 }} icon={<Phone size={18} color={COLORS.navy} />} onPress={() => void Linking.openURL('tel:+2250000000000')} />
-        <Button title="WhatsApp" variant="outline" fullWidth={false} style={{ flex: 1 }} icon={<ChatCircleText size={18} color={COLORS.navy} />} onPress={() => void Linking.openURL('https://wa.me/2250000000000')} />
+        <Button
+          title={`Appeler le ${SUPPORT_PHONE}`}
+          variant="outline"
+          fullWidth={false}
+          style={{ flex: 1 }}
+          icon={<Phone size={18} color={COLORS.navy} />}
+          onPress={() => void Linking.openURL(`tel:${SUPPORT_PHONE.replace(/\s/g, '')}`)}
+        />
+        {SUPPORT_EMAIL ? (
+          <Button
+            title="E-mail"
+            variant="outline"
+            fullWidth={false}
+            style={{ flex: 1 }}
+            icon={<EnvelopeSimple size={18} color={COLORS.navy} />}
+            onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
+          />
+        ) : null}
       </View>
       <Button title="Écrire à un conseiller" variant="secondary" style={{ marginTop: SPACING.sm }} icon={<ChatCircleText size={18} color={COLORS.navy} />} onPress={() => router.push('/advisor')} />
 

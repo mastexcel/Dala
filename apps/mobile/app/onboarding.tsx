@@ -11,8 +11,8 @@ import { COLORS, MAX_FORM_WIDTH, RADIUS, SPACING, centeredColumn } from '@/theme
 
 const SLIDES: { key: string; color: string; main: DalaIconName; accent: DalaIconName; accent2: DalaIconName }[] = [
   { key: 's1', color: COLORS.green, main: 'savings', accent: 'vault', accent2: 'goals' },
-  { key: 's2', color: COLORS.blue, main: 'invest', accent: 'bonds', accent2: 'sukuk' },
-  { key: 's3', color: COLORS.gold, main: 'crowdfund', accent: 'request-loan', accent2: 'validated-projects' },
+  { key: 's2', color: COLORS.blue, main: 'transfers', accent: 'send', accent2: 'receive' },
+  { key: 's3', color: COLORS.gold, main: 'credit', accent: 'request-loan', accent2: 'schedule' },
 ];
 
 export default function Onboarding() {

@@ -44,7 +44,8 @@ export const db = {
     referralCount: 3,
     creditScore: 72,
   } as UserProfile,
-  balances: { MAIN: 247_500, SAVINGS: 850_000, VAULT: 100_000, INVESTMENT: 125_000, CROWDFUND: 75_000 },
+  // Phase de test : ni placement ni participation (modules fermés).
+  balances: { MAIN: 247_500, SAVINGS: 850_000, VAULT: 100_000, INVESTMENT: 0, CROWDFUND: 0 },
   goals: [
     { id: 'g1', name: 'Mariage', targetAmount: 750_000, currentAmount: 520_000, deadline: inDays(180), autoSave: true, frequency: 'WEEKLY', autoAmount: 15_000, icon: 'heart' },
     { id: 'g2', name: 'Études de Kadi', targetAmount: 400_000, currentAmount: 210_000, deadline: inDays(300), autoSave: true, frequency: 'MONTHLY', autoAmount: 25_000, icon: 'graduation' },
@@ -72,28 +73,18 @@ export const db = {
     },
   ] as TontineDTO[],
   vaults: [
-    { id: 'v1', amount: 100_000, rate: 0.045, months: 6, createdAt: ago(45), unlockDate: addMonths(new Date(Date.now() - 45 * DAY), 6).toISOString(), accruedInterest: 555 },
+    { id: 'v1', amount: 100_000, rate: 0, months: 6, createdAt: ago(45), unlockDate: addMonths(new Date(Date.now() - 45 * DAY), 6).toISOString(), accruedInterest: 0 },
   ] as VaultDTO[],
-  investments: [
-    { id: 'i1', type: 'TREASURY_BOND', instrumentId: 'bt-ci-364', instrumentName: 'Bon du Trésor CI 364 j', amount: 100_000, rate: 0.06, maturityDate: inDays(300), status: 'ACTIVE', isHalal: false, createdAt: ago(64) },
-    { id: 'i2', type: 'SUKUK', instrumentId: 'sk-ci-364', instrumentName: 'Sukuk CI 364 j', amount: 25_000, rate: 0.0585, maturityDate: inDays(330), status: 'ACTIVE', isHalal: true, createdAt: ago(34) },
-  ] as InvestmentDTO[],
-  holdings: [
-    { id: 'h1', projectId: 'p1', projectName: 'AgriTech CI', sector: 'AGRITECH', amount: 50_000, equityPct: 0.0002, estimatedValue: 50_000, status: 'EN_COURS', createdAt: ago(20) },
-    { id: 'h2', projectId: 'p2', projectName: 'SolarKit Sahel', sector: 'SOLARTECH', amount: 25_000, equityPct: 0.000167, estimatedValue: 25_000, status: 'EN_COURS', createdAt: ago(4) },
-  ] as CrowdfundHoldingDTO[],
+  investments: [] as InvestmentDTO[],
+  holdings: [] as CrowdfundHoldingDTO[],
   loans: [
     { id: 'l1', amount: 50_000, interestRate: 0.14, fees: 500, totalDue: 51_075, duration: 30, dueDate: ago(60), amountPaid: 51_075, status: 'REPAID', createdAt: ago(90), disbursedAt: ago(90) },
   ] as LoanDTO[],
   transactions: [
     { id: 'tx1', type: 'SAVINGS_IN', amount: -15_000, currency: 'XOF', description: 'Épargne auto · Mariage', reference: 'DLA-DEMO-1', status: 'COMPLETED', createdAt: hoursAgo(2) },
-    { id: 'tx2', type: 'INVESTMENT_RETURN', amount: 3_125, currency: 'XOF', description: 'Coupon Bon du Trésor CI', reference: 'DLA-DEMO-2', status: 'COMPLETED', createdAt: hoursAgo(26) },
-    { id: 'tx3', type: 'CROWDFUND_IN', amount: -25_000, currency: 'XOF', description: 'Crowdfund · SolarKit Sahel', reference: 'DLA-DEMO-3', status: 'COMPLETED', createdAt: hoursAgo(96) },
     { id: 'tx4', type: 'DEPOSIT', amount: 100_000, currency: 'XOF', description: 'Dépôt Orange Money', reference: 'DLA-DEMO-4', status: 'COMPLETED', createdAt: hoursAgo(120) },
     { id: 'tx5', type: 'TRANSFER_IN', amount: 12_500, currency: 'XOF', description: 'Reçu de Moussa T.', reference: 'DLA-DEMO-5', status: 'COMPLETED', createdAt: hoursAgo(170) },
     { id: 'tx6', type: 'SAVINGS_IN', amount: -20_000, currency: 'XOF', description: 'Cotisation tontine · Treichville', reference: 'DLA-DEMO-6', status: 'COMPLETED', createdAt: hoursAgo(200) },
-    { id: 'tx7', type: 'CROWDFUND_IN', amount: -50_000, currency: 'XOF', description: 'Crowdfund · AgriTech CI', reference: 'DLA-DEMO-7', status: 'COMPLETED', createdAt: hoursAgo(480) },
-    { id: 'tx8', type: 'INVESTMENT_BUY', amount: -25_000, currency: 'XOF', description: 'Sukuk CI 364 j', reference: 'DLA-DEMO-8', status: 'COMPLETED', createdAt: hoursAgo(820) },
     { id: 'tx9', type: 'LOAN_REPAYMENT', amount: -51_075, currency: 'XOF', description: 'Remboursement prêt DALA', reference: 'DLA-DEMO-9', status: 'COMPLETED', createdAt: ago(62) },
   ] as TransactionDTO[],
   advisor: [

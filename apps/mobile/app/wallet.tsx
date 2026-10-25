@@ -1,3 +1,4 @@
+import { isProviderEnabled } from '@/utils/features';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -13,12 +14,14 @@ import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 type Mode = 'deposit' | 'send' | 'withdraw' | 'scan';
 
-const PROVIDERS: { id: MobileMoneyProvider; name: string; color: string }[] = [
+const ALL_PROVIDERS: { id: MobileMoneyProvider; name: string; color: string }[] = [
   { id: 'ORANGE_MONEY', name: 'Orange Money', color: '#FF7900' },
   { id: 'MTN_MOMO', name: 'MTN MoMo', color: '#FFCB05' },
   { id: 'WAVE', name: 'Wave', color: '#1DC8F1' },
   { id: 'MOOV_MONEY', name: 'Moov Money', color: '#0057A8' },
+  // Wave est désactivé tant que son statut d'émetteur de monnaie électronique n'est pas vérifié.
 ];
+const PROVIDERS = ALL_PROVIDERS.filter((p) => isProviderEnabled(p.id));
 
 /** QR de paiement DALA : "dala:pay?to=+2250707000000&amount=5000" */
 function parseQr(data: string): { phone: string; amount?: number } | null {

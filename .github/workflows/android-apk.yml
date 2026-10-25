@@ -27,6 +27,8 @@ jobs:
     timeout-minutes: 60
     env:
       EXPO_PUBLIC_API_URL: ${{ inputs.api_url }}
+      # Sans URL d'API : APK de démonstration (données fictives). Avec une URL : version reliée à l'API.
+      EXPO_PUBLIC_DEMO_MODE: ${{ inputs.api_url == '' && 'true' || 'false' }}
       # Pas d'envoi des source maps vers Sentry depuis la CI de test.
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
       NODE_ENV: production

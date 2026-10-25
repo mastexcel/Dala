@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node';
-import { config } from '../config';
+import { config, foreignProcessorAllowed } from '../config';
 
 const SECRET_HEADERS = ['authorization', 'x-transaction-pin', 'x-admin-key', 'x-signature', 'cookie'];
 const SECRET_FIELDS = ['pin', 'newPin', 'currentPin', 'otp', 'refreshToken'];
@@ -8,7 +8,8 @@ let enabled = false;
 
 /** Suivi des erreurs (Sentry), actif uniquement si SENTRY_DSN est défini. Aucun secret n'est transmis. */
 export function initMonitoring() {
-  if (!config.SENTRY_DSN) return;
+  // Sentry est hébergé hors de l'UEMOA : inactif tant qu'il n'est pas déclaré à l'ARTCI.
+  if (!config.SENTRY_DSN || !foreignProcessorAllowed('sentry')) return;
   Sentry.init({
     dsn: config.SENTRY_DSN,
     environment: config.NODE_ENV,

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { addMonths, formatFCFA, VAULT_OPTIONS, vaultRate, type TontineDTO } from '@dala/shared';
+import { addMonths, formatFCFA, VAULT_OPTIONS, vaultRate, type TontineDTO, TEST_PHASE } from '@dala/shared';
 import { prisma, num } from '../lib/prisma';
 import { asyncHandler, badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { goalDTO, vaultDTO } from '../lib/serialize';
@@ -8,6 +8,7 @@ import { validate } from '../middleware/validate';
 import { requireStrongAuth, type AuthedRequest } from '../middleware/auth';
 import { enforceKycLimit } from '../middleware/kyc';
 import { amlScreen } from '../middleware/aml';
+import { assertTontineCapacity } from '../services/testPhase';
 import { post } from '../services/ledger';
 import { emitBalanceChanged, notify } from '../services/notifications';
 import { beneficiaryPosition, nextContributionDate, potAmount } from '../services/tontine';
@@ -149,7 +150,7 @@ const tontineSchema = z.object({
   name: z.string().trim().min(2).max(60),
   amount: z.number().int().min(500),
   frequency,
-  maxMembers: z.number().int().min(2).max(50),
+  maxMembers: z.number().int().min(2).max(TEST_PHASE.limits.maxTontineMembers),
 });
 
 router.post(
@@ -157,8 +158,11 @@ router.post(
   validate(tontineSchema),
   asyncHandler(async (req, res) => {
     const b = req.body as z.infer<typeof tontineSchema>;
-    const t = await prisma.tontine.create({
-      data: { ...b, totalCycles: b.maxMembers, status: 'PENDING', members: { create: { userId: uid(req), position: 1 } } },
+    const t = await prisma.$transaction(async (tx) => {
+      await assertTontineCapacity(tx);
+      return tx.tontine.create({
+        data: { ...b, totalCycles: b.maxMembers, status: 'PENDING', members: { create: { userId: uid(req), position: 1 } } },
+      });
     });
     res.status(201).json(await tontineDTO(t.id, uid(req)));
   }),
@@ -246,7 +250,8 @@ router.post(
       await post(tx, { userId, type: 'SAVINGS_IN', amount, description: `Coffre-fort ${months} mois`, from: 'MAIN', to: 'VAULT', metadata: { vaultId: v.id } });
       return v;
     });
-    await notify(userId, { title: 'Coffre-fort créé 🔒', body: `${formatFCFA(amount)} bloqués ${months} mois à ${(rate * 100).toFixed(1)} %/an`, type: 'SAVINGS' });
+    const yieldText = rate > 0 ? ` à ${(rate * 100).toFixed(1)} %/an` : ', sans rémunération pendant la phase de test';
+    await notify(userId, { title: 'Coffre-fort créé 🔒', body: `${formatFCFA(amount)} bloqués ${months} mois${yieldText}`, type: 'SAVINGS' });
     emitBalanceChanged(userId);
     res.status(201).json(vaultDTO(vault));
   }),

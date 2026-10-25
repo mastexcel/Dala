@@ -9,9 +9,11 @@ import { Platform } from 'react-native';
  */
 
 // Les variables EXPO_PUBLIC_* sont inlinées au build ; configureMonitoring permet de les surcharger (tests).
+// Sentry et Mixpanel sont hébergés hors de l'UEMOA : inactifs tant qu'ils ne sont pas déclarés à l'ARTCI.
+const declared = (process.env.EXPO_PUBLIC_FOREIGN_PROCESSORS_DECLARED ?? '').split(',').map((s) => s.trim());
 const cfg = {
-  sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  mixpanelToken: process.env.EXPO_PUBLIC_MIXPANEL_TOKEN,
+  sentryDsn: declared.includes('sentry') ? process.env.EXPO_PUBLIC_SENTRY_DSN : undefined,
+  mixpanelToken: declared.includes('mixpanel') ? process.env.EXPO_PUBLIC_MIXPANEL_TOKEN : undefined,
   mixpanelUrl: process.env.EXPO_PUBLIC_MIXPANEL_URL ?? 'https://api-eu.mixpanel.com/track',
 };
 

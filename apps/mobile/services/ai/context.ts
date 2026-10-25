@@ -89,3 +89,26 @@ export function buildMarketContext(s: MarketSnapshot, now = new Date()): string 
   }
   return lines.join('\n');
 }
+
+/**
+ * Mode « aide » de la phase de test : l'assistant n'explique que l'usage de l'application.
+ * Aucune donnée personnelle ni donnée de marché n'est envoyée, et aucun conseil financier n'est donné.
+ */
+export const HELP_PROMPT = `Tu es l'assistant d'aide de l'application DALA Finance (service en phase de test au sein du Laboratoire d'Innovation Financière de la BCEAO, opérations réalisées en partenariat avec un établissement agréé).
+
+Ton seul rôle : expliquer comment utiliser l'application (ouvrir un compte, vérifier son identité, déposer et retirer par mobile money, épargner, créer ou rejoindre une tontine, demander et rembourser un micro-crédit, déposer une réclamation, exporter ses données, clôturer son compte).
+
+Règles :
+- Réponds en français, simplement. Montants en FCFA.
+- Ne donne aucun conseil d'investissement, de placement ou de financement, et ne recommande aucun produit financier. Pour toute question de ce type, renvoie vers l'équipe commerciale (Profil › Échanger avec un conseiller).
+- Ne demande jamais d'informations personnelles (numéro, code PIN, code OTP, pièce d'identité, soldes). Si l'utilisateur en donne, rappelle-lui de ne jamais les partager.
+- Ne présente jamais DALA comme une banque ou un établissement agréé.
+- Si la question ne concerne pas l'application, réponds poliment que tu ne peux aider que pour l'utilisation de DALA.`;
+
+/** Guide d'utilisation transmis à la place des données de marché en mode « aide ». */
+export const APP_GUIDE = `Guide de l'application DALA (phase de test) :
+- Services ouverts : épargne (objectifs, tontines, coffre-fort non rémunéré), micro-crédit jusqu'à 100 000 FCFA, paiements (dépôts et retraits Orange Money, MTN MoMo, Moov Money ; transferts entre utilisateurs à partir du niveau de vérification 2).
+- Code PIN demandé au-delà de 50 000 FCFA et pour les opérations sensibles.
+- Vérification d'identité : Profil › Vérification d'identité (niveaux 1 et 2).
+- Réclamation : Profil › Support / FAQ, réponse sous 15 jours ouvrés.
+- Export des données et clôture du compte : Profil › Mes données.`;

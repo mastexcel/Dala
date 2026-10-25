@@ -1,15 +1,21 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CROWDFUND_VALIDATOR } from '@dala/shared';
 import { ADMIN, api, bearer, deposit, mainBalance, prisma, register, resetDb, tokenFor } from './helpers';
+import { setModuleForTests } from '../../src/services/testPhase';
 
 let founder: Awaited<ReturnType<typeof register>>;
 let projectId: string;
 
+// Module fermé pendant la phase de test (AMF-UMOA) : rouvert ici pour vérifier son code.
 beforeAll(async () => {
   await resetDb();
+  setModuleForTests('crowdfund', true);
   founder = await register('Mariam', 'Bamba');
 });
-afterAll(() => prisma.$disconnect());
+afterAll(async () => {
+  setModuleForTests('crowdfund', false);
+  await prisma.$disconnect();
+});
 
 const project = {
   name: 'AgriTech CI',

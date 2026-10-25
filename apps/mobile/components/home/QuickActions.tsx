@@ -7,7 +7,7 @@ const ACTIONS: { label: string; icon: DalaIconName; href: string }[] = [
   { label: 'Envoyer', icon: 'send', href: '/wallet?mode=send' },
   { label: 'Recevoir', icon: 'receive', href: '/wallet?mode=deposit' },
   { label: 'Scanner', icon: 'scan', href: '/wallet?mode=scan' },
-  { label: 'Plus', icon: 'more', href: '/invest' },
+  { label: 'Historique', icon: 'tx-all', href: '/transactions' },
 ];
 
 export function QuickActions() {

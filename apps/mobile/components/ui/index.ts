@@ -27,3 +27,4 @@ export * from './ContentVeil';
 export * from './SideRail';
 export * from './ResponsiveGrid';
 export * from './TestPhaseNotice';
+export * from './TestPhaseBanner';

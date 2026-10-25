@@ -4,9 +4,9 @@ export const en: Dict = {
   common: { continue: 'Continue', cancel: 'Cancel', confirm: 'Confirm', back: 'Back', seeAll: 'See all', retry: 'Retry', offline: 'Offline — showing last synced data', error: 'Something went wrong' },
   splash: { slogan: 'Grow your ambitions' },
   onboarding: {
-    s1Title: 'Save smartly', s1Body: 'Goals, digital tontines and vaults: your money works for your plans.',
-    s2Title: 'Invest in your future', s2Body: 'WAEMU Treasury bills up to 6%/yr, mutual funds and Halal options, from 5,000 FCFA.',
-    s3Title: 'Financing at your fingertips', s3Body: 'Instant micro-loans and equity in local businesses.',
+    s1Title: 'Save smartly', s1Body: 'Goals, digital tontines and vaults: set money aside for your plans.',
+    s2Title: 'Pay and transfer easily', s2Body: 'Deposits and withdrawals with Orange Money, MTN MoMo and Moov Money, transfers between DALA users.',
+    s3Title: 'Credit at your fingertips', s3Body: 'Micro-loans up to 100,000 FCFA, total cost shown before you commit.',
     start: 'Get started', skip: 'Skip',
   },
   auth: {

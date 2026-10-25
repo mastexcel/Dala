@@ -44,7 +44,7 @@ describe('contexte de marché envoyé à l’IA', () => {
     expect(ctx).toContain('Titres publics et Sukuk');
     expect(ctx).toContain(bonds[0].issuerName);
     expect(ctx).toContain('AgriTech CI');
-    expect(ctx).toContain('Bridge Investment Partners');
+    expect(ctx).toContain('cabinet indépendant');
     expect(ctx).toMatch(/FCFA/);
     expect(ctx).not.toMatch(/€|\bEUR\b|\bUSD\b|\$/);
     expect(ctx).not.toContain("Situation de l'utilisateur");

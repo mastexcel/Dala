@@ -7,12 +7,13 @@ import { DalaIcon, type DalaIconName } from './DalaIcon';
 import { Logo } from './Logo';
 
 /** Rail de navigation latéral, utilisé à la place de la barre d'onglets en paysage (tablette, ordinateur). */
-export function SideRail({ state, descriptors, navigation, icons }: BottomTabBarProps & { icons: Record<string, DalaIconName> }) {
+export function SideRail({ state, descriptors, navigation, icons, hidden = [] }: BottomTabBarProps & { icons: Record<string, DalaIconName>; hidden?: string[] }) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.rail, { paddingTop: insets.top + SPACING.md, paddingBottom: insets.bottom + SPACING.md, paddingLeft: insets.left }]} accessibilityRole="tablist">
       <Logo variant="colorLight" width={84} style={{ marginBottom: SPACING.lg }} />
       {state.routes.map((route, index) => {
+        if (hidden.includes(route.name)) return null;
         const focused = state.index === index;
         const label = descriptors[route.key].options.title ?? route.name;
         const onPress = () => {

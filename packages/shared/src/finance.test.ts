@@ -4,6 +4,7 @@ import {
   eligibleLoanAmount,
   equityForInvestment,
   loanSchedule,
+  loanTaeg,
   quoteLoan,
   validateCrowdfundTicket,
   vaultAccruedInterest,
@@ -15,7 +16,7 @@ describe('quoteLoan', () => {
   it('respecte le taux d\'usure pour toutes les durées et tous les scores', () => {
     for (const duration of [7, 14, 30, 60, 90]) {
       for (const score of [30, 50, 75, 100]) {
-        for (const amount of [5_000, 50_000, 500_000]) {
+        for (const amount of [5_000, 50_000, 100_000]) {
           const q = quoteLoan(amount, duration, score);
           expect(q.taeg).toBeLessThanOrEqual(USURY_RATE);
           expect(q.totalDue).toBe(amount + q.interest + q.fees);
@@ -26,8 +27,29 @@ describe('quoteLoan', () => {
 
   it('rejette les montants hors grille', () => {
     expect(() => quoteLoan(7_500, 30, 80)).toThrow(RangeError);
-    expect(() => quoteLoan(600_000, 30, 80)).toThrow(RangeError);
+    // Plafond de la phase de test : 100 000 FCFA.
+    expect(() => quoteLoan(105_000, 30, 80)).toThrow(RangeError);
     expect(() => quoteLoan(50_000, 45, 80)).toThrow(RangeError);
+  });
+
+  it('calcule le TAEG actuariel des prêts à mensualités', () => {
+    // 100 000 FCFA, 3 mensualités de 35 000 : la valeur actuelle des échéances au taux de période
+    // trouvé égale le capital prêté (≈ 2,48 % par 30 jours, soit ≈ 30,2 % l'an).
+    const taeg = loanTaeg(100_000, 105_000, 90);
+    const i = (taeg * 30) / 365;
+    const pv = [1, 2, 3].reduce((sum, k) => sum + 35_000 / (1 + i) ** k, 0);
+    expect(pv).toBeCloseTo(100_000, 2);
+    expect(taeg).toBeCloseTo(0.3017, 3);
+    // L'ancien calcul « in fine » aurait donné 20,3 % : il sous-estimait le coût réel.
+    expect(loanTaeg(100_000, 105_000, 90)).toBeGreaterThan((5_000 / 100_000) * (365 / 90));
+    // In fine : coût / capital × 365 / durée.
+    expect(loanTaeg(100_000, 101_000, 30)).toBeCloseTo((1_000 / 100_000) * (365 / 30), 10);
+  });
+
+  it('réduit frais puis intérêts sur 90 jours pour rester sous l’usure', () => {
+    const q = quoteLoan(100_000, 90, 30);
+    expect(q.taeg).toBeLessThan(USURY_RATE);
+    expect(loanTaeg(100_000, q.totalDue + 1, 90)).toBeGreaterThanOrEqual(USURY_RATE * 0.999);
   });
 
   it('applique un meilleur taux aux bons scores', () => {
@@ -36,10 +58,10 @@ describe('quoteLoan', () => {
 });
 
 describe('eligibleLoanAmount', () => {
-  it('est nul sous le score minimal et plafonné à 500 000', () => {
+  it('est nul sous le score minimal et plafonné à 100 000 pendant le test', () => {
     expect(eligibleLoanAmount(10)).toBe(0);
     expect(eligibleLoanAmount(30)).toBe(5_000);
-    expect(eligibleLoanAmount(100)).toBe(500_000);
+    expect(eligibleLoanAmount(100)).toBe(100_000);
     expect(eligibleLoanAmount(65) % 5_000).toBe(0);
   });
 });

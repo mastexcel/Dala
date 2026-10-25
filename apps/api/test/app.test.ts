@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
+import { setModuleForTests } from '../src/services/testPhase';
 import request from 'supertest';
 import { createApp } from '../src/app';
 import { signAccessToken } from '../src/lib/jwt';
@@ -49,6 +50,14 @@ describe('API — authentification', () => {
     expect(res.body.code).toBe('TOKEN_EXPIRED');
   });
 
+  it('module investissement fermé pendant la phase de test', async () => {
+    const token = signAccessToken({ sub: 'u1', amr: ['POSSESSION', 'KNOWLEDGE'], kyc: 1 });
+    const res = await request(app).get('/v1/investments/bonds').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe('MODULE_DISABLED');
+    setModuleForTests('invest', true);
+  });
+
   it('catalogue des titres accessible avec un jeton valide (sans base de données)', async () => {
     const token = signAccessToken({ sub: 'u1', amr: ['POSSESSION', 'KNOWLEDGE'], kyc: 1 });
     const res = await request(app).get('/v1/investments/bonds?halal=true').set('Authorization', `Bearer ${token}`);
@@ -63,6 +72,8 @@ describe('API — authentification', () => {
     expect(res.status).toBe(200);
     expect(res.body.interest).toBe(6_067);
   });
+
+  afterAll(() => setModuleForTests('invest', false));
 
   it('back-office refusé sans clé admin', async () => {
     const res = await request(app).get('/v1/compliance/admin/reconciliation');

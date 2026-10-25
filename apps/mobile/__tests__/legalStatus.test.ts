@@ -23,12 +23,15 @@ it('aucun texte ne présente DALA comme un établissement de paiement', () => {
       .split('\n')
       // Les commentaires ne sont pas affichés ; la consigne de l'assistant IA interdit justement cette formulation.
       .filter((line) => !/^\s*(\/\/|\/?\*)/.test(line))
-      .filter((line) => /établissement de paiement|établissement agréé/i.test(line) && !/jamais/i.test(line))
+      // « en partenariat avec un établissement agréé » est autorisé : seul DALA présenté comme tel est interdit.
+      .filter((line) => (/établissement de paiement/i.test(line) || /DALA[^.]*\b(est|en tant que)\s+(une?\s+)?(banque|établissement)/i.test(line)) && !/jamais/i.test(line))
       .map((line) => `${path.relative(path.join(__dirname, '..'), file)}: ${line.trim()}`),
   );
   expect(offending).toEqual([]);
 });
 
-it('la mention légale commune porte le statut de phase de test', () => {
-  expect(LEGAL_NOTICE).toContain(TEST_PHASE_NOTICE);
+it('la mention légale commune indique la phase de test au LIF et le partenaire agréé', () => {
+  expect(TEST_PHASE_NOTICE).toBe('Service en phase de test au sein du LIF-BCEAO');
+  expect(LEGAL_NOTICE).toContain("Service en phase de test au sein du Laboratoire d'Innovation Financière de la BCEAO");
+  expect(LEGAL_NOTICE).toContain('en partenariat avec un établissement agréé');
 });

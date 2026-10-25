@@ -15,17 +15,19 @@ export function VaultCard({ vault }: { vault: VaultDTO }) {
         <View style={{ flex: 1 }}>
           <AppText weight="bold">{formatFCFA(vault.amount)}</AppText>
           <AppText variant="small" color={TEXT_ON_WHITE.muted}>
-            {vault.months} mois · {formatPercent(vault.rate)} / an
+            {vault.months} mois · {vault.rate > 0 ? `${formatPercent(vault.rate)} / an` : 'sans rémunération'}
           </AppText>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <AppText variant="small" color={TEXT_ON_WHITE.muted}>
-            Intérêts acquis
-          </AppText>
-          <AppText weight="bold" color={TEXT_ON_WHITE.green}>
-            +{formatFCFA(vault.accruedInterest)}
-          </AppText>
-        </View>
+        {vault.rate > 0 ? (
+          <View style={{ alignItems: 'flex-end' }}>
+            <AppText variant="small" color={TEXT_ON_WHITE.muted}>
+              Intérêts acquis
+            </AppText>
+            <AppText weight="bold" color={TEXT_ON_WHITE.green}>
+              +{formatFCFA(vault.accruedInterest)}
+            </AppText>
+          </View>
+        ) : null}
       </View>
       <ProgressBar value={1 - left / Math.max(1, total)} color={COLORS.gold} label="Temps écoulé avant déblocage" />
       <AppText variant="small" color={TEXT_ON_WHITE.muted}>

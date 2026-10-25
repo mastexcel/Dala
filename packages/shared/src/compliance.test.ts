@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkKycLimit, evaluateAml, isStrongAuth, requiresStrongAuth } from './compliance';
+import { ageOn, checkKycLimit, evaluateAml, isStrongAuth, requiresStrongAuth } from './compliance';
 
 describe('KYC', () => {
   it('bloque les transferts au niveau 1', () => {
@@ -40,5 +40,15 @@ describe('LBC/FT', () => {
   });
   it('vert sinon', () => {
     expect(evaluateAml({ amount: 25_000, recent: [], now }).severity).toBe('GREEN');
+  });
+});
+
+describe('ageOn', () => {
+  it('calcule l’âge révolu et refuse les dates invalides', () => {
+    const at = new Date('2026-10-25T12:00:00Z');
+    expect(ageOn('2008-10-25', at)).toBe(18);
+    expect(ageOn('2008-10-26', at)).toBe(17);
+    expect(ageOn('1990-02-30', at)).toBeNaN();
+    expect(ageOn('25/10/1990', at)).toBeNaN();
   });
 });

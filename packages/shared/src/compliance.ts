@@ -105,3 +105,15 @@ export function evaluateAml({ amount, recent, sanctionsHit, now = new Date() }: 
       : 'GREEN';
   return { severity, alerts };
 }
+
+/** Âge révolu à une date donnée, à partir d'une date de naissance « AAAA-MM-JJ ». */
+export function ageOn(dateOfBirth: string, at: Date = new Date()): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOfBirth);
+  if (!m) return NaN;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const birth = new Date(Date.UTC(y, mo - 1, d));
+  if (birth.getUTCFullYear() !== y || birth.getUTCMonth() !== mo - 1 || birth.getUTCDate() !== d) return NaN;
+  let age = at.getUTCFullYear() - y;
+  if (at.getUTCMonth() < mo - 1 || (at.getUTCMonth() === mo - 1 && at.getUTCDate() < d)) age -= 1;
+  return age;
+}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useQueryClient } from '@tanstack/react-query';
-import { KYC_LIMITS, KYC_REQUIREMENTS, formatFCFA, type KycLevel } from '@dala/shared';
+import { KYC_LIMITS, KYC_REQUIREMENTS, formatFCFA, type KycLevel, TEST_PHASE } from '@dala/shared';
 import { AppText, Badge, Button, Card, Chip, DalaIcon, Header, Input, LegalNotice, Screen } from '@/components/ui';
 import { useMe, qk } from '@/hooks/queries';
 import { userApi } from '@/services/api';
@@ -15,7 +15,9 @@ export default function Kyc() {
   const me = useMe();
   const qc = useQueryClient();
   const level = (me.data?.kycLevel ?? 1) as KycLevel;
-  const target = Math.min(3, level + 1) as KycLevel;
+  // Phase de test : niveaux 1 et 2 seulement.
+  const maxLevel = TEST_PHASE.limits.maxKycLevel;
+  const target = Math.min(maxLevel, level + 1) as KycLevel;
   const [idType, setIdType] = useState<'CNI' | 'PASSEPORT'>('CNI');
   const [idNumber, setIdNumber] = useState('');
   const [address, setAddress] = useState('');
@@ -71,11 +73,11 @@ export default function Kyc() {
   );
 
   return (
-    <Screen wallpaper="profile" header={<Header title="Vérification d'identité" />} footer={level < 3 && !status ? <Button title={`Valider le niveau ${target}`} disabled={!ready} loading={loading} onPress={submit} /> : undefined}>
+    <Screen wallpaper="profile" header={<Header title="Vérification d'identité" />} footer={level < maxLevel && !status ? <Button title={`Valider le niveau ${target}`} disabled={!ready} loading={loading} onPress={submit} /> : undefined}>
       <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
         <DalaIcon name="kyc" size={88} />
       </View>
-      {([1, 2, 3] as KycLevel[]).map((l) => {
+      {([1, 2, 3] as KycLevel[]).filter((l) => l <= maxLevel).map((l) => {
         const lim = KYC_LIMITS[l];
         const done = l <= level;
         return (
@@ -98,7 +100,7 @@ export default function Kyc() {
           <AppText weight="bold" color={TEXT_ON_WHITE.green}>Documents reçus ✓</AppText>
           <AppText variant="caption">Notre équipe conformité vérifie votre dossier (24 à 48 h). Vous serez notifié·e.</AppText>
         </Card>
-      ) : level < 3 ? (
+      ) : level < maxLevel ? (
         <View style={{ marginTop: SPACING.lg }}>
           <AppText variant="h4" weight="bold" style={{ marginBottom: SPACING.sm }}>Passer au niveau {target}</AppText>
           {target === 2 ? (

@@ -12,13 +12,13 @@ describe('LBC/FT, tontines, audit et back-office', () => {
     const token = await tokenFor(userId);
     await deposit(token, 4_500_000);
     await deposit(token, 4_600_000);
-    const third = await api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'WAVE', amount: 4_700_000 });
+    const third = await api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'ORANGE_MONEY', amount: 4_700_000 });
     expect(third.body.code).toBe('AML_BLOCKED');
     const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
     expect(user.status).toBe('FROZEN');
     const alert = await prisma.amlAlert.findFirstOrThrow({ where: { userId, severity: 'RED' } });
     expect(alert.reportedToCentif).toBe(true);
-    const frozen = await api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'WAVE', amount: 1_000 });
+    const frozen = await api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'ORANGE_MONEY', amount: 1_000 });
     expect(frozen.body.code).toBe('ACCOUNT_FROZEN');
 
     await api().post(`/v1/compliance/admin/aml/alerts/${alert.id}/resolve`).set(ADMIN).send({ unfreeze: true }).expect(200);
@@ -49,14 +49,17 @@ describe('LBC/FT, tontines, audit et back-office', () => {
 
   it('confirme un dépôt en attente uniquement avec une signature opérateur valide', async () => {
     const { userId } = await register();
-    const tx = await prisma.transaction.create({ data: { userId, type: 'DEPOSIT', amount: 15_000, description: 'Dépôt Wave', reference: 'DLA-WEBHOOK-1', status: 'PENDING' } });
+    const tx = await prisma.transaction.create({ data: { userId, type: 'DEPOSIT', amount: 15_000, description: 'Dépôt Orange Money', reference: 'DLA-WEBHOOK-1', status: 'PENDING' } });
     const body = { reference: 'DLA-WEBHOOK-1', status: 'SUCCESS' };
-    await api().post('/v1/webhooks/mobile-money/WAVE').set('x-signature', 'faux').send(body).expect(401);
-    const sig = createHmac('sha256', 'wave-webhook-secret').update(JSON.stringify(body)).digest('hex');
-    await api().post('/v1/webhooks/mobile-money/WAVE').set('x-signature', sig).send(body).expect(200);
+    await api().post('/v1/webhooks/mobile-money/ORANGE_MONEY').set('x-signature', 'faux').send(body).expect(401);
+    // Wave est désactivé pendant la phase de test : même correctement signée, sa confirmation est refusée.
+    const waveSig = createHmac('sha256', 'wave-webhook-secret').update(JSON.stringify(body)).digest('hex');
+    await api().post('/v1/webhooks/mobile-money/WAVE').set('x-signature', waveSig).send(body).expect(404);
+    const sig = createHmac('sha256', 'orange-webhook-secret').update(JSON.stringify(body)).digest('hex');
+    await api().post('/v1/webhooks/mobile-money/ORANGE_MONEY').set('x-signature', sig).send(body).expect(200);
     expect((await prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } })).status).toBe('COMPLETED');
     expect(await mainBalance(userId)).toBe(15_000);
-    await api().post('/v1/webhooks/mobile-money/WAVE').set('x-signature', sig).send(body).expect(404);
+    await api().post('/v1/webhooks/mobile-money/ORANGE_MONEY').set('x-signature', sig).send(body).expect(404);
   });
 
   it('enregistre une réclamation avec échéance à 15 jours ouvrés', async () => {
@@ -69,10 +72,12 @@ describe('LBC/FT, tontines, audit et back-office', () => {
     expect(days).toBeLessThanOrEqual(22);
   });
 
-  it('valide une montée en KYC depuis le back-office', async () => {
+  it('valide une montée en KYC depuis le back-office, sans dépasser le niveau 2 pendant le test', async () => {
     const { userId } = await register();
-    await api().post(`/v1/compliance/admin/kyc/${userId}/approve`).set(ADMIN).send({ level: 3 }).expect(400);
     await api().post(`/v1/compliance/admin/kyc/${userId}/approve`).set(ADMIN).send({ level: 2 }).expect(200);
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).kycLevel).toBe(2);
+    const three = await api().post(`/v1/compliance/admin/kyc/${userId}/approve`).set(ADMIN).send({ level: 3 }).expect(403);
+    expect(three.body.code).toBe('TEST_LIMIT_REACHED');
     expect((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).kycLevel).toBe(2);
   });
 

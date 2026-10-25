@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { AdvisorConversation, AdvisorMessage } from '@prisma/client';
-import { ADVISOR_HOURS, ADVISOR_TOPICS, type AdvisorConversationDTO, type AdvisorMessageDTO } from '@dala/shared';
+import { ADVISOR_HOURS, ADVISOR_OPEN_TOPICS, ADVISOR_TOPICS, type AdvisorConversationDTO, type AdvisorMessageDTO } from '@dala/shared';
 import { prisma } from '../lib/prisma';
 import { asyncHandler, badRequest, notFound } from '../lib/errors';
 import { validate } from '../middleware/validate';
@@ -14,7 +14,8 @@ export const router = Router();
 export const deskRouter = Router();
 const uid = (req: unknown) => (req as AuthedRequest).user.id;
 
-const TOPICS = ['INVEST', 'CROWDFUND', 'SAVINGS', 'CREDIT', 'BUSINESS', 'OTHER'] as const satisfies readonly (keyof typeof ADVISOR_TOPICS)[];
+/** Nouvelles demandes : sujets du périmètre de test uniquement (pas d'investissement ni de levée de fonds). */
+const TOPICS = ADVISOR_OPEN_TOPICS;
 const body = z.string().trim().min(1).max(4_000);
 
 type ConversationWithLast = AdvisorConversation & { messages: AdvisorMessage[]; _count?: { messages: number } };

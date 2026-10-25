@@ -5,6 +5,7 @@ import { prisma, num } from '../lib/prisma';
 import { asyncHandler, notFound, unauthorized } from '../lib/errors';
 import { validate } from '../middleware/validate';
 import { emitBalanceChanged, notify } from '../services/notifications';
+import { isProviderEnabled } from '../services/testPhase';
 import { appendAudit } from '../services/audit';
 import { config } from '../config';
 import { createHmac } from 'node:crypto';
@@ -20,6 +21,8 @@ router.post(
   '/mobile-money/:provider',
   validate(z.object({ reference: z.string(), status: z.enum(['SUCCESS', 'FAILED']), providerReference: z.string().optional() })),
   asyncHandler(async (req, res) => {
+    // Opérateur désactivé pendant la phase de test (Wave) : aucune confirmation acceptée.
+    if (!isProviderEnabled(req.params.provider)) throw notFound('Opérateur non disponible');
     const secret = {
       ORANGE_MONEY: config.ORANGE_MONEY_API_KEY,
       MTN_MOMO: config.MTN_MOMO_SUBSCRIPTION_KEY,

@@ -1,8 +1,16 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { api, bearer, deposit, mainBalance, PIN, prisma, register, resetDb, tokenFor } from './helpers';
+import { setModuleForTests } from '../../src/services/testPhase';
 
-beforeAll(resetDb);
-afterAll(() => prisma.$disconnect());
+// Le module investissement est fermé pendant la phase de test : on le rouvre ici pour vérifier son code.
+beforeAll(async () => {
+  await resetDb();
+  setModuleForTests('invest', true);
+});
+afterAll(async () => {
+  setModuleForTests('invest', false);
+  await prisma.$disconnect();
+});
 
 describe('Portefeuille, plafonds KYC et authentification forte', () => {
   it('crédite un dépôt mobile money et met à jour le tableau de bord', async () => {
@@ -17,7 +25,7 @@ describe('Portefeuille, plafonds KYC et authentification forte', () => {
   it('bloque au-delà du plafond mensuel KYC niveau 1 (200 000 FCFA)', async () => {
     const { token } = await register();
     await deposit(token, 150_000);
-    const r = await api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'WAVE', amount: 60_000 });
+    const r = await api().post('/v1/accounts/deposit').set(bearer(token)).send({ provider: 'ORANGE_MONEY', amount: 60_000 });
     expect(r.status).toBe(403);
     expect(r.body.code).toBe('KYC_LIMIT');
     expect(r.body.details.requiredLevel).toBe(2);
@@ -26,7 +34,7 @@ describe('Portefeuille, plafonds KYC et authentification forte', () => {
   it('rembourse le compte si l’opérateur refuse un retrait', async () => {
     const { token, userId } = await register();
     await deposit(token, 50_000);
-    const r = await api().post('/v1/accounts/withdraw').set(bearer(token)).send({ provider: 'WAVE', amount: 1_013 });
+    const r = await api().post('/v1/accounts/withdraw').set(bearer(token)).send({ provider: 'ORANGE_MONEY', amount: 1_013 });
     expect(r.body.code).toBe('PROVIDER_FAILED');
     expect(await mainBalance(userId)).toBe(50_000);
   });
@@ -63,7 +71,8 @@ describe('Portefeuille, plafonds KYC et authentification forte', () => {
     const goal = await api().post('/v1/savings/goals').set(bearer(token)).send({ name: 'Mariage', targetAmount: 50_000 }).expect(201);
     await api().post(`/v1/savings/goals/${goal.body.id}/deposit`).set(bearer(token)).send({ amount: 20_000 }).expect(200);
     const vault = await api().post('/v1/savings/vaults').set(bearer(token)).send({ amount: 30_000, months: 6 }).expect(201);
-    expect(vault.body.rate).toBe(0.045);
+    // Pas de rémunération de l'épargne pendant la phase de test (réservée à un établissement agréé).
+    expect(vault.body.rate).toBe(0);
     const s = await api().get('/v1/accounts/summary').set(bearer(token)).expect(200);
     expect(s.body).toMatchObject({ main: 50_000, savings: 20_000, vault: 30_000, total: 100_000 });
   });
@@ -85,7 +94,8 @@ describe('Portefeuille, plafonds KYC et authentification forte', () => {
     const { token } = await register();
     await deposit(token, 7_000);
     const csv = await api().get('/v1/transactions/export?format=csv').set(bearer(token)).expect(200);
-    expect(csv.text).toContain('DEPOSIT;Dépôt Wave;7000;COMPLETED');
+    expect(csv.text).toContain('DEPOSIT;Dépôt Orange Money;7000;COMPLETED');
+    expect(csv.text).toContain('Laboratoire d\'Innovation Financière de la BCEAO');
     const pdf = await api().get('/v1/transactions/export?format=pdf').set(bearer(token)).buffer(true).parse((res, cb) => {
       const chunks: Buffer[] = [];
       res.on('data', (c: Buffer) => chunks.push(c));

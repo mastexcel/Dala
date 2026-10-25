@@ -70,7 +70,9 @@ Le workflow GitHub Actions **« APK Android de test »** produit un APK installa
 
 ### Mode démo (sans backend)
 
-Si `EXPO_PUBLIC_API_URL` est vide, l'app tourne sur un backend simulé en mémoire (`apps/mobile/services/mock`). Ce backend applique les mêmes règles que l'API : PIN au-delà de 50 000 FCFA, plafonds, scoring, rétractation. Identifiants : n'importe quel numéro, OTP `123456`, PIN `1234`.
+Avec `EXPO_PUBLIC_DEMO_MODE=true`, l'app tourne sur un backend simulé en mémoire (`apps/mobile/services/mock`). Ce backend applique les mêmes règles que l'API : PIN au-delà de 50 000 FCFA, plafonds de la phase de test, scoring. Identifiants : n'importe quel numéro, OTP `123456`, PIN `1234`.
+
+Le mode démonstration doit être demandé explicitement. Il est refusé si `EXPO_PUBLIC_APP_ENV=production`. Sans API ni mode démo, l'app affiche « Application mal configurée » au lieu de démarrer.
 
 ## Commandes
 
@@ -139,13 +141,13 @@ WebSocket (Socket.io) : événements `notification`, `balance:changed` et `advis
 
 ## Échanges avec l'équipe commerciale et assistant IA
 
-**Équipe commerciale** (`app/advisor`) : l'utilisateur choisit un sujet (placements, crowdfunding en capital, épargne, crédit, levée de fonds, autre) et écrit à l'équipe. Il reçoit un accusé de réception, puis les réponses des conseillers en temps réel (WebSocket, notification et push). Une conversation clôturée se rouvre dès que le client réécrit. En mode démo, une conseillère simulée répond après quelques secondes. Accès : carte « Un conseiller » sur l'accueil, Profil, Support.
+**Équipe commerciale** (`app/advisor`) : l'utilisateur choisit un sujet (paiements, épargne et tontines, crédit, autre ; placements et levée de fonds sont exclus pendant la phase de test) et écrit à l'équipe. Il reçoit un accusé de réception, puis les réponses des conseillers en temps réel (WebSocket, notification et push). Une conversation clôturée se rouvre dès que le client réécrit. En mode démo, une conseillère simulée répond après quelques secondes. Accès : carte « Un conseiller » sur l'accueil, Profil, Support.
 
 **Poste des conseillers** (`apps/api/desk`, servi par l'API sur **`/desk/`**) : page web pour l'équipe commerciale.
 - **Connexion :** avec la clé `ADMIN_API_KEY` et le nom affiché aux clients. La clé reste dans la session de l'onglet.
 - **Onglet « À traiter » :** les conversations dont le dernier message client n'a pas encore de réponse, avec un compteur dans le titre de l'onglet.
 - **Pour chaque client :** nom, téléphone et niveau KYC, puis le fil complet.
-- **Réponse :** réponses types (rappel, crowdfunding, titres, précisions), envoi par Ctrl + Entrée, clôture de la conversation.
+- **Réponse :** réponses types (rappel, phase de test, crédit, précisions, hors périmètre), envoi par Ctrl + Entrée, clôture de la conversation.
 - **Mise à jour :** automatique toutes les 10 secondes. La page s'adapte au téléphone.
 
 Le contenu des clients est toujours affiché comme du texte, jamais interprété comme du HTML. La page est servie sous la politique de sécurité stricte de l'API (scripts de même origine uniquement).
@@ -165,6 +167,26 @@ Fonctionnement :
 - Raccourci « Analyser avec l'assistant IA » sur les fiches titre et projet (question préremplie, relue avant envoi).
 
 Le polyfill `react-native-url-polyfill` est chargé sur Android et iOS : sans lui, l'implémentation `URL` de React Native corrompt l'adresse des requêtes du SDK (test `sdkOnReactNative.test.ts`).
+
+## Phase de test au sein du LIF-BCEAO
+
+Les engagements du dossier sont réunis dans `TEST_PHASE` (`packages/shared/src/constants.ts`), la source unique pour l'app et l'API. L'API les applique dans `apps/api/src/services/testPhase.ts`. Les tests `apps/api/test/integration/testPhase.test.ts` et `packages/shared/src/testPhase.test.ts` les vérifient.
+
+| Engagement | Mise en œuvre |
+| --- | --- |
+| Périmètre : épargne, crédit, paiements | Investissement et crowdfunding (AMF-UMOA) fermés : routes en 404 `MODULE_DISABLED`, écrans masqués, liens directs redirigés. Le crowdfunding ne peut pas être rouvert sans cabinet de validation indépendant (`CROWDFUND_VALIDATOR_DESIGNATED`). |
+| Plafonds | Prêt ≤ 100 000 FCFA ; 500 utilisateurs ; KYC niveaux 1 et 2 ; 30 tontines en cours de 20 membres au plus ; encours de crédit total ≤ 5 M FCFA ; fonds clients ≤ 30 M FCFA. Vérifiés sous verrou transactionnel (`409 TEST_LIMIT_REACHED`). |
+| Épargne non rémunérée | Coffre-fort à 0 % : seul un établissement agréé peut rémunérer l'épargne. |
+| Consentement | Écran d'avertissement avant l'inscription (nature expérimentale, durée, plafonds, droits). Acceptation horodatée en base (`consentVersion`, `consentAcceptedAt`) et dans la piste d'audit (`CONSENT_ACCEPTED`). |
+| Majorité | Date de naissance obligatoire ; moins de 18 ans refusés (`UNDERAGE`). |
+| Mention légale et bandeau | `LEGAL_NOTICE` (éditeur, RCCM, LIF, partenaire agréé) sur les écrans financiers, les mentions légales, les relevés CSV et PDF ; bandeau « Service en phase de test au sein du LIF-BCEAO » en tête de chaque écran. |
+| Droits des utilisateurs | Profil › Mes données : export JSON, politique de conservation, clôture du compte (solde nul, pas de prêt, PIN). Données conservées 10 ans puis anonymisées (`purgeExpiredAccounts`). |
+| Données dans l'UEMOA | Pièces KYC chez l'hébergeur d'Abidjan (S3). Sentry, Twilio, Firebase et Mixpanel restent inactifs tant qu'ils ne figurent pas dans `FOREIGN_PROCESSORS_DECLARED` (API) ou `EXPO_PUBLIC_FOREIGN_PROCESSORS_DECLARED` (app). |
+| Assistant IA | Désactivé (`aiAssistant: 'off'`). Le mode `'help'` le limite à l'aide à l'usage de l'application, sans données personnelles ni conseil d'investissement. |
+| Rapport mensuel BCEAO | Ajout des indicateurs du plan de test (activation, recouvrement, réclamations dans les délais) et du suivi de chaque plafond. |
+| TAEG | Calcul actuariel pour les prêts à mensualités, plafonné sous le taux d'usure du prêteur (24 % SFD, 15 % banque : à confirmer avec le partenaire). |
+
+Valeurs à renseigner : date de fin du test (`TEST_PHASE.endDate`), e-mail du support (`SUPPORT_EMAIL`), taux d'usure et seuils LBC/FT du partenaire agréé.
 
 ## Conformité BCEAO — où c'est implémenté
 
@@ -200,9 +222,9 @@ Décision : approuvé si p ≥ 0,70, revue manuelle si p ≥ 0,50, refusé sinon
 | --- | --- |
 | `packages/shared` (Vitest) | Calculs financiers, plafonds KYC, authentification forte, détection LBC/FT |
 | API unitaires (Vitest + Supertest) | Validation, authentification, piste d'audit, scoring de repli, sanctions |
-| API intégration (PostgreSQL réel, 36 tests) | Échanges avec l'équipe commerciale (accusé de réception, file « à traiter », réponse du conseiller, non-lus, isolation entre clients, clôture et réouverture, page du poste des conseillers) ; inscription, verrouillage du PIN, rotation et réutilisation des refresh tokens ; plafonds KYC, PIN au-delà de 50 000 FCFA, rétractation 48 h, solde insuffisant, retrait refusé par l'opérateur ; objectifs, coffre-fort, tontine complète, transferts ; crowdfunding (validation du comité, equity, clôture à l'objectif) ; prêt approuvé, refusé, en revue, repli heuristique, remboursements ; gel LBC/FT et déclaration CENTIF, webhook signé, réclamations, KYC back-office, altération de la piste d'audit, reporting BCEAO |
+| API intégration (PostgreSQL réel, 46 tests) | Engagements de la phase de test LIF-BCEAO (modules fermés, consentement horodaté, majorité, 500 utilisateurs, prêt 100 000 FCFA, encours 5 M, fonds 30 M, tontines, KYC 1-2, Wave, export, clôture et purge, rapport BCEAO) ; Échanges avec l'équipe commerciale (accusé de réception, file « à traiter », réponse du conseiller, non-lus, isolation entre clients, clôture et réouverture, page du poste des conseillers) ; inscription, verrouillage du PIN, rotation et réutilisation des refresh tokens ; plafonds KYC, PIN au-delà de 50 000 FCFA, rétractation 48 h, solde insuffisant, retrait refusé par l'opérateur ; objectifs, coffre-fort, tontine complète, transferts ; crowdfunding (validation du comité, equity, clôture à l'objectif) ; prêt approuvé, refusé, en revue, repli heuristique, remboursements ; gel LBC/FT et déclaration CENTIF, webhook signé, réclamations, KYC back-office, altération de la piste d'audit, reporting BCEAO |
 | App (Jest) | Backend simulé (dont conseillère démo), composants, analytique ; assistant IA : contexte de marché, appel Claude (en-têtes, repli, recherche web, reprise après pause, refus, erreurs), fournisseur compatible OpenAI, SDK sous l'URL de React Native |
-| E2E (Playwright, web) | Connexion, accueil, investissement avec PIN (erreur puis succès), crowdfunding, prêt, objectif d'épargne, filtres de transactions, paysage ; échange avec une conseillère ; connexion d'une clé Claude et analyse du marché (API Anthropic simulée), question préremplie depuis une fiche projet |
+| E2E (Playwright, web) | Connexion, accueil (piliers du test uniquement), retrait avec PIN (erreur puis succès, Wave absent), modules fermés par lien direct, prêt, objectif d'épargne, filtres de transactions, paysage ; échange avec une conseillère ; mention légale ; inscription (avertissement accepté, mineur refusé) |
 | Scoring (pytest) | API, monotonie du modèle, explications |
 
 Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas un essai sur appareil (biométrie, appareil photo, notifications push) : pour ces parcours natifs, prévoir Maestro ou Detox sur un build de développement.
@@ -215,9 +237,9 @@ Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas u
 
 ## Intégrations
 
-- **Mobile money** : Orange Money, MTN MoMo, Wave et Moov Money (`apps/api/src/services/mobileMoney`). Le mode `sandbox` est actif par défaut ; en mode `live`, les opérateurs confirment les paiements par webhook.
+- **Mobile money** : Orange Money, MTN MoMo et Moov Money (`apps/api/src/services/mobileMoney`). Le connecteur Wave existe mais il est désactivé pendant la phase de test, tant que son statut d'émetteur de monnaie électronique n'est pas vérifié. Le mode `sandbox` est actif par défaut ; en mode `live`, les opérateurs confirment les paiements par webhook.
 - **SMS OTP** : `console` (dev), Twilio ou Orange SMS API.
-- **Push** : FCM. **Stockage KYC** : Supabase Storage (URL de dépôt signée).
+- **Push** : FCM, inactif tant qu'il n'est pas déclaré à l'ARTCI (le contenu des notifications reste générique). **Stockage KYC** : stockage compatible S3 chez l'hébergeur d'Abidjan (`STORAGE_DRIVER=s3`, URL de dépôt signée).
 - **Titres publics** : référentiel `services/treasury.ts`, à synchroniser avec le flux UMOA-Titres.
 
 ## Écarts assumés par rapport au cahier des charges

@@ -1,7 +1,7 @@
 /* Données de démonstration — `npm run db:seed` (compte : +2250707000000, PIN 1234). */
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { CROWDFUND_VALIDATOR, addMonths } from '@dala/shared';
+import { CROWDFUND_VALIDATOR, TEST_PHASE, addMonths } from '@dala/shared';
 
 const prisma = new PrismaClient();
 const day = 86_400_000;
@@ -14,7 +14,10 @@ async function main() {
     prisma.user.upsert({
       where: { phone },
       update: {},
-      create: { phone, firstName, lastName, pin, creditScore, kycLevel, createdAt: ago(240) },
+      create: {
+        phone, firstName, lastName, pin, creditScore, kycLevel, createdAt: ago(240),
+        dateOfBirth: new Date('1992-04-18T00:00:00Z'), consentVersion: TEST_PHASE.consentVersion, consentAcceptedAt: ago(240),
+      },
     });
 
   const awa = await mkUser('+2250707000000', 'Awa', 'Koné', 72, 2);

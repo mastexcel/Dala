@@ -51,6 +51,13 @@ model User {
   amlAlerts           AmlAlert[]
   complaints          Complaint[]
   advisorConversations AdvisorConversation[]
+
+  // AJOUT — phase de test LIF-BCEAO
+  dateOfBirth         DateTime?      @db.Date
+  /// Version du texte de consentement accepté et horodatage de l'acceptation.
+  consentVersion      String?
+  consentAcceptedAt   DateTime?
+  closedAt            DateTime?
 }
 
 model Account {
@@ -455,6 +462,7 @@ model Complaint {
 
 /// Échanges entre l'utilisateur et l'équipe commerciale DALA.
 enum AdvisorTopic {
+  PAYMENTS
   INVEST
   CROWDFUND
   SAVINGS

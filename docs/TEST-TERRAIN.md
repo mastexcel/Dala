@@ -43,12 +43,15 @@ Les données démo (soldes, tontine, projets…) sont réinitialisées à chaque
 - [ ] **Accessibilité** : agrandir la police système (Paramètres › Affichage) et activer TalkBack.
 
 ### Parcours métier
-- [ ] Investir plus de 50 000 FCFA dans un bon du Trésor : le PIN est demandé. Taper un mauvais PIN affiche un message d'erreur.
-- [ ] Investir dans un projet de crowdfunding : le badge « Validé par Bridge Investment Partners » et la part du capital s'affichent.
+- [ ] Retirer plus de 50 000 FCFA vers Orange Money : le PIN est demandé. Taper un mauvais PIN affiche un message d'erreur. Wave n'apparaît pas.
+- [ ] Vérifier que les placements et le crowdfunding n'apparaissent nulle part (phase de test).
+- [ ] Créer un compte : l'écran « Avant de commencer » s'affiche, puis la date de naissance est demandée (moins de 18 ans refusé).
+- [ ] Demander un prêt de plus de 100 000 FCFA : impossible.
+- [ ] *Profil › Mes données* : exporter ses données, lire la politique de conservation.
 - [ ] Demander un prêt : le TAEG et le coût total s'affichent avant validation, puis le prêt est approuvé.
 - [ ] Créer un objectif d'épargne avec épargne automatique.
 - [ ] Cotiser à la tontine (PIN demandé).
-- [ ] Créer un coffre-fort de 3 mois.
+- [ ] Créer un coffre-fort de 3 mois : il est affiché sans rémunération.
 - [ ] **Équipe commerciale** : *Accueil › Un conseiller*, choisir un sujet et écrire. En mode démo, une conseillère répond après environ 5 secondes. Répondre à nouveau dans la conversation.
 - [ ] **Assistant IA** : *Accueil › Assistant IA › Connecter une IA*, coller une clé Claude (console.anthropic.com) ou OpenAI, puis poser une question sur le marché ou un projet. Tester aussi *Analyser avec l'assistant IA* depuis la fiche d'un projet. Les appels sont facturés par le fournisseur sur votre clé.
 

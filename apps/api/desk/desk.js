@@ -6,6 +6,7 @@
   var API = '/v1/advisor-desk';
   var REFRESH_MS = 10000;
   var TOPICS = {
+    PAYMENTS: 'Paiements',
     INVEST: 'Placements',
     CROWDFUND: 'Crowdfunding en capital',
     SAVINGS: 'Épargne et tontines',
@@ -13,11 +14,13 @@
     BUSINESS: 'Levée de fonds',
     OTHER: 'Autre demande',
   };
+  // Périmètre de la phase de test LIF-BCEAO : épargne, crédit et paiements (pas d'investissement).
   var TEMPLATES = [
     ['Rappel', 'Je vous propose un rappel téléphonique. Quel créneau vous convient (entre 8 h et 18 h) ?'],
-    ['Crowdfunding', 'Sur DALA, le crowdfunding est uniquement en capital : vous devenez actionnaire. Chaque projet est validé par Bridge Investment Partners. Le ticket minimum est de 5 000 FCFA.'],
-    ['Titres', 'Les bons du Trésor UEMOA conviennent à un horizon court et à un revenu régulier. Je peux simuler votre rendement selon votre montant et la durée.'],
-    ['Précisions', 'Merci pour votre message. Pouvez-vous me préciser votre objectif, votre montant et votre horizon de placement ?'],
+    ['Phase de test', "DALA est un service en phase de test au sein du Laboratoire d'Innovation Financière de la BCEAO. Les opérations sont réalisées en partenariat avec un établissement agréé."],
+    ['Crédit', 'Pendant la phase de test, un prêt est limité à 100 000 FCFA. Votre montant éligible dépend de votre score DALA, qui progresse avec une épargne régulière et des remboursements à l’heure.'],
+    ['Précisions', 'Merci pour votre message. Pouvez-vous me préciser votre besoin (épargne, crédit ou paiement) et le montant concerné ?'],
+    ['Hors périmètre', "Les placements et le financement participatif ne sont pas proposés pendant la phase de test. Je reste à votre disposition pour l'épargne, le crédit et les paiements."],
   ];
 
   var state = { key: '', name: '', filter: 'AWAITING', list: [], current: null, timer: null };

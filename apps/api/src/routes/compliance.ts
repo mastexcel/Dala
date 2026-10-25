@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { COMPLAINT_RESPONSE_DAYS, CROWDFUND_VALIDATOR } from '@dala/shared';
+import { COMPLAINT_RESPONSE_DAYS, CROWDFUND_VALIDATOR, TEST_PHASE } from '@dala/shared';
 import { prisma } from '../lib/prisma';
-import { asyncHandler, badRequest, notFound } from '../lib/errors';
+import { asyncHandler, badRequest, notFound, forbidden } from '../lib/errors';
 import { addBusinessDays } from '../lib/businessDays';
 import { validate } from '../middleware/validate';
 import { requireAdmin, requireAuth, type AuthedRequest } from '../middleware/auth';
 import { appendAudit, verifyAuditChain } from '../services/audit';
 import { notify } from '../services/notifications';
 import { bceaoMonthlyReport, reconcileSafeguarding } from '../services/reporting';
+import { requireModule } from '../services/testPhase';
 
 export const router = Router();
 const uid = (req: unknown) => (req as AuthedRequest).user.id;
@@ -81,6 +82,7 @@ admin.post('/aml/alerts/:id/resolve', validate(z.object({ unfreeze: z.boolean() 
 
 admin.post('/kyc/:userId/approve', validate(z.object({ level: z.union([z.literal(2), z.literal(3)]) })), asyncHandler(async (req, res) => {
   const { level } = req.body as { level: 2 | 3 };
+  if (level > TEST_PHASE.limits.maxKycLevel) throw forbidden(`Niveau KYC ${level} fermé pendant la phase de test`, 'TEST_LIMIT_REACHED');
   const user = await prisma.user.findUnique({ where: { id: req.params.userId } });
   if (!user) throw notFound();
   if (level !== user.kycLevel + 1) throw badRequest('Niveau non séquentiel');
@@ -92,8 +94,8 @@ admin.post('/kyc/:userId/approve', validate(z.object({ level: z.union([z.literal
   res.json({ ok: true });
 }));
 
-/** Décision du comité Bridge Investment Partners sur un projet soumis. */
-admin.post('/projects/:id/review', validate(z.object({ decision: z.enum(['UNDER_REVIEW', 'ACTIVE', 'REJECTED']), comment: z.string().optional() })), asyncHandler(async (req, res) => {
+/** Décision du comité de validation sur un projet soumis (module fermé pendant la phase de test). */
+admin.post('/projects/:id/review', requireModule('crowdfund'), validate(z.object({ decision: z.enum(['UNDER_REVIEW', 'ACTIVE', 'REJECTED']), comment: z.string().optional() })), asyncHandler(async (req, res) => {
   const { decision, comment } = req.body as { decision: 'UNDER_REVIEW' | 'ACTIVE' | 'REJECTED'; comment?: string };
   const p = await prisma.project.update({
     where: { id: req.params.id },

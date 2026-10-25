@@ -1,3 +1,5 @@
+import { Redirect } from 'expo-router';
+import { FEATURES } from '@/utils/features';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
@@ -17,6 +19,7 @@ const HOLDING_STATUS = {
 };
 
 export default function Crowdfund() {
+  if (!FEATURES.crowdfund) return <Redirect href="/(tabs)" />;
   const [tab, setTab] = useState<Tab>('explore');
   const [sector, setSector] = useState<ProjectSector | undefined>();
   const projects = useProjects(sector);

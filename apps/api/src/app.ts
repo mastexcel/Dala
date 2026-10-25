@@ -20,6 +20,7 @@ import { router as notifications } from './routes/notifications';
 import { router as compliance } from './routes/compliance';
 import { router as webhooks } from './routes/webhooks';
 import { router as advisor, deskRouter } from './routes/advisor';
+import { requireModule } from './services/testPhase';
 
 export function createApp() {
   const app = express();
@@ -43,8 +44,9 @@ export function createApp() {
   v1.use('/users', requireAuth, users);
   v1.use('/accounts', requireAuth, accounts);
   v1.use('/savings', requireAuth, savings);
-  v1.use('/investments', requireAuth, investments);
-  v1.use('/crowdfund', requireAuth, crowdfund);
+  // Investissement et crowdfunding relèvent de l'AMF-UMOA : fermés pendant la phase de test.
+  v1.use('/investments', requireModule('invest'), requireAuth, investments);
+  v1.use('/crowdfund', requireModule('crowdfund'), requireAuth, crowdfund);
   v1.use('/loans', requireAuth, loans);
   v1.use('/transactions', requireAuth, transactions);
   v1.use('/notifications', requireAuth, notifications);

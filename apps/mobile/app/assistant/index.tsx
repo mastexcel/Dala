@@ -8,14 +8,19 @@ import { AppText, Button, Card, Chip, DalaIcon, Header, Loading, Logo, Screen } 
 import { AI_PROVIDERS, askAssistant, type ChatTurn } from '@/services/ai';
 import { isAssistantConnected, useAssistantStore } from '@/stores/assistant';
 import { track } from '@/services/monitoring';
+import { FEATURES } from '@/utils/features';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
-const SUGGESTIONS = [
-  'Analyse le marché des bons du Trésor UEMOA en ce moment',
-  'Compare les projets de crowdfunding ouverts sur DALA',
-  'Comment répartir 500 000 FCFA sur un an ?',
-  'Quelle différence entre un FCP et un Sukuk ?',
-];
+const HELP = FEATURES.assistantMode === 'help';
+
+const SUGGESTIONS = HELP
+  ? ['Comment déposer de l’argent ?', 'Comment fonctionne une tontine ?', 'Comment demander un prêt ?', 'Comment déposer une réclamation ?']
+  : [
+      'Analyse le marché des bons du Trésor UEMOA en ce moment',
+      'Compare les projets de crowdfunding ouverts sur DALA',
+      'Comment répartir 500 000 FCFA sur un an ?',
+      'Quelle différence entre un FCP et un Sukuk ?',
+    ]
 
 const turn = (role: ChatTurn['role'], content: string, sources?: ChatTurn['sources']): ChatTurn => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -88,10 +93,12 @@ export default function Assistant() {
         <Card style={{ gap: SPACING.md, alignItems: 'center' }}>
           <DalaIcon name="performance" size={64} />
           <AppText variant="h3" weight="bold" align="center">
-            Votre analyste personnel
+            {HELP ? "Aide à l'utilisation" : 'Votre analyste personnel'}
           </AppText>
           <AppText align="center" color={TEXT_ON_WHITE.muted}>
-            Connectez l'IA de votre choix (Claude, OpenAI ou un fournisseur compatible) avec votre propre clé d'API pour analyser le marché, comparer les titres et les projets de crowdfunding en capital, et discuter de tout ce qui vous intéresse.
+            {HELP
+              ? "Connectez l'IA de votre choix avec votre propre clé d'API pour obtenir de l'aide sur l'utilisation de DALA. Aucune donnée personnelle n'est transmise et l'assistant ne donne pas de conseil financier."
+              : "Connectez l'IA de votre choix (Claude, OpenAI ou un fournisseur compatible) avec votre propre clé d'API pour analyser le marché, comparer les titres et les projets de crowdfunding en capital, et discuter de tout ce qui vous intéresse."}
           </AppText>
           <Button title="Connecter une IA" variant="secondary" onPress={() => router.push('/assistant/settings')} />
           <Button title="Parler plutôt à un conseiller" variant="outline" onPress={() => router.push('/advisor')} />
@@ -130,7 +137,11 @@ export default function Assistant() {
             <ChatBubble
               mine={false}
               author="Assistant DALA"
-              body="Bonjour ! Je peux analyser le marché de l'UEMOA, comparer les titres et les projets de crowdfunding disponibles sur DALA, ou discuter de tout autre sujet. Que souhaitez-vous savoir ?"
+              body={
+                HELP
+                  ? "Bonjour ! Je peux vous expliquer comment utiliser DALA : dépôts, épargne, tontines, crédit, réclamations. Ne partagez jamais votre code PIN ni vos codes OTP."
+                  : "Bonjour ! Je peux analyser le marché de l'UEMOA, comparer les titres et les projets de crowdfunding disponibles sur DALA, ou discuter de tout autre sujet. Que souhaitez-vous savoir ?"
+              }
             />
             <View style={styles.suggestions}>
               {SUGGESTIONS.map((s) => (

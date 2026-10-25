@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { VAULT_OPTIONS, addMonths, formatDate, formatFCFA, formatPercent } from '@dala/shared';
+import { VAULT_OPTIONS, addMonths, formatDate, formatFCFA, formatPercent, TEST_PHASE } from '@dala/shared';
 import { AppText, AmountSlider, Button, Card, DalaIcon, Header, KeyValue, LegalNotice, Screen } from '@/components/ui';
 import { savingsApi } from '@/services/api';
 import { errorMessage } from '@/services/errors';
@@ -41,7 +41,8 @@ export default function VaultScreen() {
         <DalaIcon name="vault" size={88} />
       </View>
       <AppText color={TEXT_ON_WHITE.muted} style={{ marginBottom: SPACING.md }}>
-        Mettez votre argent à l'abri des tentations et profitez d'un taux bonus. Les fonds sont débloqués automatiquement à l'échéance.
+        Mettez votre argent à l'abri des tentations : il reste bloqué pendant la durée choisie et revient automatiquement à l'échéance.
+        {TEST_PHASE.vaultInterest ? '' : " Pendant la phase de test, le coffre-fort n'est pas rémunéré : seul un établissement agréé peut rémunérer l'épargne."}
       </AppText>
       <Card>
         <AmountSlider value={amount} onChange={setAmount} min={5_000} max={max} step={5_000} label="Montant à bloquer" />
@@ -60,12 +61,20 @@ export default function VaultScreen() {
               <AppText weight="bold" color={active ? COLORS.navy : COLORS.darkGray}>
                 {o.months} mois
               </AppText>
-              <AppText variant="h3" serif color={active ? COLORS.navy : TEXT_ON_WHITE.gold}>
-                {formatPercent(o.rate)}
-              </AppText>
-              <AppText variant="small" color={active ? COLORS.navy : TEXT_ON_WHITE.muted}>
-                par an
-              </AppText>
+              {o.rate > 0 ? (
+                <>
+                  <AppText variant="h3" serif color={active ? COLORS.navy : TEXT_ON_WHITE.gold}>
+                    {formatPercent(o.rate)}
+                  </AppText>
+                  <AppText variant="small" color={active ? COLORS.navy : TEXT_ON_WHITE.muted}>
+                    par an
+                  </AppText>
+                </>
+              ) : (
+                <AppText variant="small" color={active ? COLORS.navy : TEXT_ON_WHITE.muted}>
+                  Sans rémunération
+                </AppText>
+              )}
             </Pressable>
           );
         })}
@@ -73,9 +82,9 @@ export default function VaultScreen() {
       <Card style={{ marginTop: SPACING.lg }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.xs }}>
           <DalaIcon name="interest" size={28} />
-          <AppText weight="bold">Vos gains</AppText>
+          <AppText weight="bold">Récapitulatif</AppText>
         </View>
-        <KeyValue label="Intérêts estimés" value={`+${formatFCFA(interest)}`} color={TEXT_ON_WHITE.green} />
+        {rate > 0 ? <KeyValue label="Intérêts estimés" value={`+${formatFCFA(interest)}`} color={TEXT_ON_WHITE.green} /> : null}
         <KeyValue label="Montant à l'échéance" value={formatFCFA(amount + interest)} strong />
         <KeyValue label="Date de déblocage" value={formatDate(unlock)} />
         <KeyValue label="Frais" value="Aucun" />

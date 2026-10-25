@@ -6,6 +6,7 @@ import { KYC_LIMITS, formatFCFA, maskPhone, type KycLevel } from '@dala/shared';
 import { AppText, Badge, Card, DalaIcon, Logo, ProgressBar, Screen, TestPhaseNotice, type DalaIconName } from '@/components/ui';
 import { useMe } from '@/hooks/queries';
 import { useAuthStore } from '@/stores/auth';
+import { FEATURES } from '@/utils/features';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const ITEMS: { label: string; icon: DalaIconName; href: string }[] = [
@@ -15,8 +16,9 @@ const ITEMS: { label: string; icon: DalaIconName; href: string }[] = [
   { label: 'Langue', icon: 'settings', href: '/profile/language' },
   { label: 'Parrainage', icon: 'referral', href: '/profile/referral' },
   { label: 'Échanger avec un conseiller', icon: 'investors', href: '/advisor' },
-  { label: 'Assistant IA', icon: 'performance', href: '/assistant' },
+  ...(FEATURES.assistant ? [{ label: 'Assistant IA', icon: 'performance' as DalaIconName, href: '/assistant' }] : []),
   { label: 'Support / FAQ', icon: 'info', href: '/profile/support' },
+  { label: 'Mes données (export, clôture)', icon: 'details', href: '/profile/data' },
   { label: 'Mentions légales / CGU', icon: 'details', href: '/profile/legal' },
 ];
 

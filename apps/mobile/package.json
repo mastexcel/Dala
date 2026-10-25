@@ -10,8 +10,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "bundle:check": "expo export --platform android --output-dir dist-check",
-    "e2e:build": "expo export --platform web --output-dir dist-web",
+    "bundle:check": "EXPO_PUBLIC_DEMO_MODE=true expo export --platform android --output-dir dist-check",
+    "e2e:build": "EXPO_PUBLIC_DEMO_MODE=true expo export --platform web --output-dir dist-web",
     "e2e": "playwright test"
   },
   "dependencies": {
