@@ -3,10 +3,11 @@ import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { CaretRight } from 'phosphor-react-native';
 import { KYC_LIMITS, formatFCFA, maskPhone, type KycLevel } from '@dala/shared';
-import { AppText, Badge, Card, DalaIcon, Logo, ProgressBar, Screen, TestPhaseNotice, type DalaIconName } from '@/components/ui';
+import { AppText, Badge, Card, DalaIcon, Logo, ProgressBar, Screen, TestPhaseNotice, type DalaIconName, UpdateBanner } from '@/components/ui';
 import { useMe } from '@/hooks/queries';
 import { useAuthStore } from '@/stores/auth';
 import { FEATURES } from '@/utils/features';
+import { BUILD_NUMBER } from '@/hooks/useAppUpdate';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
 const ITEMS: { label: string; icon: DalaIconName; href: string }[] = [
@@ -105,9 +106,10 @@ export default function Profile() {
       <View style={{ alignItems: 'center', gap: SPACING.xs, marginTop: SPACING.md }}>
         <Logo variant="black" width={90} style={{ opacity: 0.6 }} />
         <AppText variant="small" align="center" color={TEXT_ON_WHITE.muted}>
-          DALA Finance v0.1.0
+          DALA Finance v0.1.0{BUILD_NUMBER ? ` · version ${BUILD_NUMBER}` : ''}
         </AppText>
         <TestPhaseNotice />
+        <UpdateBanner />
       </View>
     </Screen>
   );

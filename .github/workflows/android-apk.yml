@@ -29,6 +29,8 @@ jobs:
       EXPO_PUBLIC_API_URL: ${{ inputs.api_url }}
       # Sans URL d'API : APK de démonstration (données fictives). Avec une URL : version reliée à l'API.
       EXPO_PUBLIC_DEMO_MODE: ${{ inputs.api_url == '' && 'true' || 'false' }}
+      # Numéro de version intégré à l'app : sert à détecter une mise à jour disponible.
+      EXPO_PUBLIC_BUILD_NUMBER: ${{ github.run_number }}
       # Pas d'envoi des source maps vers Sentry depuis la CI de test.
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
       NODE_ENV: production
@@ -130,8 +132,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          # Lien permanent (DALA-Finance.apk) + fiche de version lue par l'app pour proposer la mise à jour.
+          cp DALA-Finance-*.apk DALA-Finance.apk
+          printf '{"versionCode": %s, "commit": "%s", "publishedAt": "%s", "url": "https://github.com/%s/releases/download/test-android/DALA-Finance.apk"}\n' \
+            "$GITHUB_RUN_NUMBER" "${GITHUB_SHA::7}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$GITHUB_REPOSITORY" > version.json
+          cat version.json
           gh release delete test-android --yes --cleanup-tag || true
-          gh release create test-android DALA-Finance-*.apk \
+          gh release create test-android DALA-Finance-*.apk DALA-Finance.apk version.json \
             --target "${{ github.sha }}" --prerelease \
             --title "DALA Finance — APK de test (${GITHUB_SHA::7})" \
             --notes "APK Android de test, validé sur émulateur (connexion démo → accueil). Mode démo : OTP 123456, PIN 1234. Guide : docs/TEST-TERRAIN.md"
