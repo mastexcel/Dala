@@ -17,8 +17,9 @@ import { prisma, num } from '../lib/prisma';
 import { asyncHandler, badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { randomToken, transactionReference } from '../lib/crypto';
 import { validate } from '../middleware/validate';
-import type { AuthedRequest } from '../middleware/auth';
-import { monthToDateVolume } from '../middleware/kyc';
+import { requireStrongAuth, type AuthedRequest } from '../middleware/auth';
+import { enforceKycLimit, monthToDateVolume, requireKycLevel } from '../middleware/kyc';
+import { amlScreen } from '../middleware/aml';
 import { appendAudit } from '../services/audit';
 import { post } from '../services/ledger';
 import { getProvider, PROVIDER_IDS, type MobileMoneyProviderId } from '../services/mobileMoney';
@@ -89,6 +90,47 @@ router.post(
     const done = await prisma.paymentRequest.updateMany({ where: { id: req.params.id, userId: uid(req), status: 'OPEN' }, data: { status: 'CANCELLED' } });
     if (!done.count) throw conflict('Cette demande ne peut plus être annulée');
     res.status(204).end();
+  }),
+);
+
+/**
+ * Payer une demande DALA avec son solde (QR ou lien scanné dans l'application).
+ * Le montant est renvoyé par le client et doit correspondre à la demande : il sert aux contrôles
+ * habituels (PIN au-delà de 50 000 FCFA, plafonds KYC des transferts, LBC/FT).
+ */
+const payWithBalanceSchema = z.object({ amount: z.number().int().positive() });
+router.post(
+  '/by-code/:code/pay',
+  requireKycLevel(2),
+  validate(payWithBalanceSchema),
+  requireStrongAuth('PAYMENT', (req) => (req.body as { amount: number }).amount),
+  enforceKycLimit((req) => (req.body as { amount: number }).amount, { isTransfer: true }),
+  amlScreen((req) => (req.body as { amount: number }).amount),
+  asyncHandler(async (req, res) => {
+    const payerId = uid(req);
+    const r = await prisma.paymentRequest.findUnique({ where: { code: req.params.code.toUpperCase() }, include: { user: true } });
+    if (!r) throw notFound('Demande de paiement introuvable');
+    const amount = num(r.amount);
+    if ((req.body as { amount: number }).amount !== amount) throw badRequest('Le montant ne correspond pas à la demande', 'AMOUNT_MISMATCH');
+    if (r.userId === payerId) throw badRequest('Vous ne pouvez pas payer votre propre demande');
+    if (r.status !== 'OPEN' || r.expiresAt < new Date()) throw conflict('Cette demande n’est plus active', 'REQUEST_CLOSED');
+    if (r.user.status !== 'ACTIVE') throw forbidden('Le bénéficiaire ne peut pas recevoir de paiement pour le moment', 'BENEFICIARY_UNAVAILABLE');
+    const payer = await prisma.user.findUniqueOrThrow({ where: { id: payerId } });
+    await prisma.$transaction(async (t) => {
+      const reserved = await t.paymentRequest.updateMany({ where: { id: r.id, status: 'OPEN' }, data: { status: 'PAID', paidAt: new Date(), payerPhone: payer.phone, provider: 'DALA' } });
+      if (!reserved.count) throw conflict('Cette demande n’est plus active', 'REQUEST_CLOSED');
+      await post(t, { userId: payerId, type: 'TRANSFER_OUT', amount, description: `Paiement à ${r.user.firstName} ${r.user.lastName[0]}.${r.note ? ` · ${r.note}` : ''}`, from: 'MAIN', to: null, metadata: { paymentRequestId: r.id, to: r.userId } });
+      const credit = await post(t, { userId: r.userId, type: 'TRANSFER_IN', amount, description: `Paiement reçu de ${payer.firstName} ${payer.lastName[0]}.${r.note ? ` · ${r.note}` : ''}`, from: null, to: 'MAIN', metadata: { paymentRequestId: r.id, from: payerId } });
+      await t.paymentRequest.update({ where: { id: r.id }, data: { transactionId: credit.id } });
+      await appendAudit(t, { userId: r.userId, action: 'PAYMENT_REQUEST_PAID', entity: 'PaymentRequest', entityId: r.id, payload: { amount, provider: 'DALA' } });
+    });
+    await Promise.all([
+      notify(payerId, { title: 'Paiement effectué', body: `${formatFCFA(amount)} payés à ${r.user.firstName}`, type: 'TRANSACTION' }),
+      notify(r.userId, { title: 'Paiement reçu 💸', body: `${payer.firstName} vous a payé ${formatFCFA(amount)}`, type: 'TRANSACTION' }),
+    ]);
+    emitBalanceChanged(payerId);
+    emitBalanceChanged(r.userId);
+    res.status(201).json({ status: 'PAID' });
   }),
 );
 

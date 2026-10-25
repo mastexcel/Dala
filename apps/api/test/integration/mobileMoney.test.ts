@@ -122,4 +122,23 @@ describe('Mobile money : envoyer et recevoir sur tous les opérateurs ouverts', 
     await api().get('/pay/pay.js').expect(200);
     expect((await api().get('/v1/pay/INCONNU1')).status).toBe(404);
   });
+
+  it('paie une demande DALA scannée avec son solde (PIN, KYC 2, montant exact, une seule fois)', async () => {
+    const seller = await register('Aya', 'Kouassi');
+    const req = await api().post('/v1/payment-requests').set(bearer(seller.token)).send({ amount: 60_000, note: 'Pagnes' }).expect(201);
+    const buyer = await funded(100_000);
+    const url = `/v1/payment-requests/by-code/${req.body.code}/pay`;
+
+    expect((await api().post(url).set(bearer(buyer.token)).send({ amount: 60_000 })).body.code).toBe('STRONG_AUTH_REQUIRED');
+    // Un montant inférieur envoyé pour échapper au PIN est refusé avant tout débit.
+    expect((await api().post(url).set(bearer(buyer.token)).send({ amount: 50_000 })).body.code).toBe('AMOUNT_MISMATCH');
+    expect((await api().post(url).set(bearer(buyer.token)).set('x-transaction-pin', PIN).send({ amount: 55_000 })).body.code).toBe('AMOUNT_MISMATCH');
+    expect((await api().post(url).set(bearer(seller.token)).set('x-transaction-pin', PIN).send({ amount: 60_000 })).body.code).toBe('KYC_LEVEL');
+    await api().post(url).set(bearer(buyer.token)).set('x-transaction-pin', PIN).send({ amount: 60_000 }).expect(201);
+
+    expect(await mainBalance(buyer.userId)).toBe(40_000);
+    expect(await mainBalance(seller.userId)).toBe(60_000);
+    expect((await prisma.paymentRequest.findUniqueOrThrow({ where: { code: req.body.code } })).status).toBe('PAID');
+    expect((await api().post(url).set(bearer(buyer.token)).set('x-transaction-pin', PIN).send({ amount: 60_000 })).status).toBe(409);
+  });
 });

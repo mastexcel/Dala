@@ -68,6 +68,8 @@ Les données démo (soldes, tontine, projets…) sont réinitialisées à chaque
 - [ ] Retirer plus de 50 000 FCFA vers Orange Money : le PIN est demandé. Taper un mauvais PIN affiche un message d'erreur. Wave n'apparaît pas.
 - [ ] Envoyer de l'argent vers le mobile money d'un proche (*Envoyer › Vers un mobile money*) : l'opérateur se sélectionne d'après le numéro (07 Orange, 05 MTN, 01 Moov).
 - [ ] *Recevoir › Demander* : créer un lien de paiement, le partager par WhatsApp. En démo, le bouton « Simuler le paiement » joue le rôle du payeur ; avec l'API, le lien s'ouvre sur la page de paiement.
+- [ ] *Accueil › Scanner* : scanner `docs/qr-test-marchand.png` (demande d'un commerçant, 3 500 FCFA) et payer avec le solde ; scanner `docs/qr-test-emvco.png` (QR interopérable MTN, 2 000 FCFA) : l'envoi vers MTN MoMo se pré-remplit. Sans appareil photo, coller le contenu du QR dans le champ prévu.
+- [ ] *Recevoir › Demander › Mon QR DALA* : un autre testeur scanne ce QR pour vous envoyer de l'argent.
 - [ ] Vérifier que les placements et le crowdfunding n'apparaissent nulle part (phase de test).
 - [ ] Créer un compte : l'écran « Avant de commencer » s'affiche, puis la date de naissance est demandée (moins de 18 ans refusé).
 - [ ] Demander un prêt de plus de 100 000 FCFA : impossible.

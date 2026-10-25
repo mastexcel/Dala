@@ -442,6 +442,24 @@ const routes: [string, RegExp, Handler][] = [
     r.status = 'CANCELLED';
     return undefined;
   }],
+  ['GET', /^\/pay\/([^/]+)$/, ({ params }) => {
+    const r = [...db.paymentRequests, ...db.otherRequests].find((x) => x.code === params[0]);
+    if (!r) throw new ApiError(404, 'Demande de paiement introuvable');
+    return { ...requestView(r), beneficiary: db.otherRequests.includes(r) ? 'Maquis Chez Tantie' : `${db.user.firstName} ${db.user.lastName[0]}.` };
+  }],
+  ['POST', /^\/payment-requests\/by-code\/([^/]+)\/pay$/, ({ params, body, headers }) => {
+    if (db.user.kycLevel < 2) throw new ApiError(403, 'KYC de niveau 2 requis', 'KYC_LEVEL');
+    const r = db.otherRequests.find((x) => x.code === params[0]);
+    if (!r) throw new ApiError(400, 'Vous ne pouvez pas payer votre propre demande', 'VALIDATION');
+    if (body.amount !== r.amount) throw new ApiError(400, 'Le montant ne correspond pas à la demande', 'AMOUNT_MISMATCH');
+    requirePin(headers, r.amount);
+    if (requestView(r).status !== 'OPEN') throw new ApiError(409, 'Cette demande n’est plus active', 'REQUEST_CLOSED');
+    post('TRANSFER_OUT', r.amount, `Paiement à Maquis Chez Tantie${r.note ? ` · ${r.note}` : ''}`, 'MAIN', null);
+    r.status = 'PAID';
+    r.paidAt = new Date().toISOString();
+    notify('Paiement effectué', `${r.amount} FCFA payés à Maquis Chez Tantie`, 'TRANSACTION');
+    return { status: 'PAID' };
+  }],
   ['POST', /^\/pay\/([^/]+)$/, ({ params, body }) => {
     const r = db.paymentRequests.find((x) => x.code === params[0]);
     if (!r) throw new ApiError(404, 'Demande de paiement introuvable');

@@ -89,6 +89,13 @@ export const db = {
     { id: 'tx9', type: 'LOAN_REPAYMENT', amount: -51_075, currency: 'XOF', description: 'Remboursement prêt DALA', reference: 'DLA-DEMO-9', status: 'COMPLETED', createdAt: ago(62) },
   ] as TransactionDTO[],
   paymentRequests: [] as PaymentRequestDTO[],
+  /** Demande d'un commerçant fictif, pour essayer « scanner et payer » en démo (QR DEMO2025). */
+  otherRequests: [
+    {
+      id: 'pr_demo', code: 'DEMO2025', amount: 3_500, note: 'Garba + alloco', status: 'OPEN', paidAt: null,
+      expiresAt: inDays(30), url: 'https://demo.dala.invalid/pay/DEMO2025', createdAt: ago(0),
+    },
+  ] as PaymentRequestDTO[],
   advisor: [
     {
       id: 'conv_1',

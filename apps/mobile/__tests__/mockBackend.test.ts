@@ -92,4 +92,14 @@ describe('mobile money sur tous les opérateurs ouverts (mode démo)', () => {
     expect(list.find((x) => x.code === r.code)?.status).toBe('PAID');
     await expect(mockRequest('POST', `/pay/${r.code}`, { provider: 'MOOV_MONEY', phone: '+2250102030405' }, {})).rejects.toMatchObject({ code: 'REQUEST_CLOSED' });
   });
+
+  it('paie avec son solde une demande DALA scannée, une seule fois', async () => {
+    const info = await mockRequest<{ amount: number; beneficiary: string; status: string }>('GET', '/pay/DEMO2025', undefined, {});
+    expect(info).toMatchObject({ amount: 3_500, beneficiary: 'Maquis Chez Tantie', status: 'OPEN' });
+    const before = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
+    await mockRequest('POST', '/payment-requests/by-code/DEMO2025/pay', { amount: 3_500 }, {});
+    const after = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
+    expect(after.main).toBe(before.main - 3_500);
+    await expect(mockRequest('POST', '/payment-requests/by-code/DEMO2025/pay', { amount: 3_500 }, {})).rejects.toBeInstanceOf(ApiError);
+  });
 });

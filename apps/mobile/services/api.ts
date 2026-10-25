@@ -170,6 +170,12 @@ export const paymentRequestApi = {
   list: () => request<PaymentRequestDTO[]>('/payment-requests'),
   create: (amount: number, note?: string) => request<PaymentRequestDTO>('/payment-requests', { method: 'POST', body: { amount, note } }),
   cancel: (id: string) => request(`/payment-requests/${id}/cancel`, { method: 'POST' }),
+  /** Détail public d'une demande (QR ou lien scanné). */
+  info: (code: string) =>
+    request<PaymentRequestDTO & { beneficiary: string }>(`/pay/${code}`, { auth: false }),
+  /** Payer une demande DALA avec son solde (PIN au-delà de 50 000 FCFA). */
+  payWithBalance: (code: string, amount: number, pin?: string) =>
+    request<{ status: string }>(`/payment-requests/by-code/${code}/pay`, { method: 'POST', body: { amount }, pin }),
   /** Paiement public d'une demande (utilisé par le mode démo pour simuler le payeur). */
   pay: (code: string, provider: MobileMoneyProvider, phone: string) =>
     request<{ status: string }>(`/pay/${code}`, { method: 'POST', body: { provider, phone }, auth: false }),

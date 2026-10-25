@@ -242,6 +242,11 @@ Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas u
   - **Retirer** : vers un numéro de l'utilisateur.
   - **Envoyer** : vers le mobile money d'un tiers (`POST /accounts/send-mobile-money`, KYC 2, PIN au-delà de 50 000 FCFA).
   - **Demander un paiement** : lien et QR code (`/payment-requests`). Le payeur règle sur la page publique `/pay/<code>` depuis son opérateur, sans compte DALA. La demande est valable 72 h ; un webhook confirme les paiements validés plus tard sur le téléphone.
+  - **Scanner** (`app/scan.tsx`, décodeur `packages/shared/src/qr.ts`) :
+    - QR DALA personnel (`dala:pay?to=…`) : envoi entre comptes DALA pré-rempli ;
+    - lien ou QR de demande de paiement DALA (`/pay/<code>`) : payé avec le solde (`POST /payment-requests/by-code/:code/pay`, KYC 2, PIN au-delà de 50 000 FCFA) ;
+    - QR interopérables au format EMVCo (celui des paiements instantanés BCEAO / UEMOA), avec contrôle CRC : si le QR contient un numéro, envoi pré-rempli vers l'opérateur ; sinon, DALA affiche le commerçant et explique que le paiement direct attend le raccordement au système interopérable ou aux API marchandes des opérateurs ;
+    - numéros de téléphone (`tel:`, carte de contact, texte) et liens Wave, Orange Money, MTN MoMo, Moov Money (reconnus, ouverts dans l'application de l'opérateur).
 
   Le préfixe ivoirien désigne l'opérateur (07 Orange, 05 MTN, 01 Moov) : il est détecté à la saisie, et un numéro qui ne correspond pas à l'opérateur est refusé (`OPERATOR_MISMATCH`). `PUBLIC_URL` fixe l'adresse des liens de paiement. Le connecteur Wave existe mais il est désactivé pendant la phase de test, tant que son statut d'émetteur de monnaie électronique n'est pas vérifié. Le mode `sandbox` est actif par défaut ; en mode `live`, les opérateurs confirment les paiements par webhook.
 - **SMS OTP** : `console` (dev), Twilio ou Orange SMS API.

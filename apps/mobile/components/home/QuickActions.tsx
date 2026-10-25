@@ -6,7 +6,7 @@ import { AppText, DalaIcon, type DalaIconName } from '@/components/ui';
 const ACTIONS: { label: string; icon: DalaIconName; href: string }[] = [
   { label: 'Envoyer', icon: 'send', href: '/wallet?mode=send' },
   { label: 'Recevoir', icon: 'receive', href: '/wallet?mode=deposit' },
-  { label: 'Scanner', icon: 'scan', href: '/wallet?mode=scan' },
+  { label: 'Scanner', icon: 'scan', href: '/scan' },
   { label: 'Historique', icon: 'tx-all', href: '/transactions' },
 ];
 

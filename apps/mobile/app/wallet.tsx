@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import QRCode from 'react-native-qrcode-svg';
 import {
@@ -23,7 +22,7 @@ import { useStrongAuth } from '@/hooks/useStrongAuth';
 import { isProviderEnabled } from '@/utils/features';
 import { COLORS, RADIUS, SPACING, TEXT_ON_WHITE } from '@/theme';
 
-type Mode = 'deposit' | 'send' | 'request' | 'withdraw' | 'scan';
+type Mode = 'deposit' | 'send' | 'request' | 'withdraw';
 type Destination = 'dala' | 'mobile';
 
 /** Opérateurs ouverts (Wave reste fermé tant que son statut n'est pas vérifié). */
@@ -36,15 +35,6 @@ const STATUS_LABEL: Record<PaymentRequestDTO['status'], { label: string; color: 
   CANCELLED: { label: 'Annulée', color: COLORS.darkGray },
   EXPIRED: { label: 'Expirée', color: COLORS.darkGray },
 };
-
-/** QR de paiement DALA : "dala:pay?to=+2250707000000&amount=5000" */
-function parseQr(data: string): { phone: string; amount?: number } | null {
-  const m = data.match(/^dala:pay\?(.+)$/);
-  if (!m) return null;
-  const p = new URLSearchParams(m[1]);
-  const to = p.get('to');
-  return to ? { phone: to, amount: p.get('amount') ? Number(p.get('amount')) : undefined } : null;
-}
 
 /** Choix de l'opérateur, avec rappel du préfixe ivoirien de chacun. */
 function ProviderPicker({ value, onChange }: { value: MobileMoneyProvider; onChange: (p: MobileMoneyProvider) => void }) {
@@ -72,20 +62,23 @@ function ProviderPicker({ value, onChange }: { value: MobileMoneyProvider; onCha
 }
 
 export default function Wallet() {
-  const params = useLocalSearchParams<{ mode?: Mode }>();
-  const [mode, setMode] = useState<Mode>(params.mode ?? 'deposit');
-  const [destination, setDestination] = useState<Destination>('mobile');
-  const [provider, setProvider] = useState<MobileMoneyProvider>('ORANGE_MONEY');
-  const [amount, setAmount] = useState('');
+  // Pré-remplissage possible depuis le scanner : /wallet?mode=send&dest=mobile&to=+225…&amount=…&operator=…
+  const params = useLocalSearchParams<{ mode?: Mode; dest?: Destination; to?: string; amount?: string; operator?: MobileMoneyProvider }>();
+  const prefillCountry = params.to ? UEMOA_COUNTRIES.find((c) => params.to!.startsWith(c.dialCode)) : undefined;
+  const [mode, setMode] = useState<Mode>(params.mode && ['deposit', 'send', 'request', 'withdraw'].includes(params.mode) ? params.mode : 'deposit');
+  const [destination, setDestination] = useState<Destination>(params.dest === 'dala' ? 'dala' : 'mobile');
+  const [provider, setProvider] = useState<MobileMoneyProvider>(params.operator && isProviderEnabled(params.operator) ? params.operator : 'ORANGE_MONEY');
+  const [amount, setAmount] = useState(params.amount && /^\d+$/.test(params.amount) ? params.amount : '');
   const [note, setNote] = useState('');
-  const [country, setCountry] = useState<Country>(UEMOA_COUNTRIES[0]);
-  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState<Country>(prefillCountry ?? UEMOA_COUNTRIES[0]);
+  const [phone, setPhone] = useState(prefillCountry ? params.to!.slice(prefillCountry.dialCode.length) : '');
+  /** Affiche mon QR DALA personnel (pour recevoir d'un autre utilisateur DALA). */
+  const [showMyQr, setShowMyQr] = useState(false);
   /** Numéro mobile money pour recharger ou retirer (par défaut, celui du compte). */
   const [ownPhone, setOwnPhone] = useState('');
   const [created, setCreated] = useState<PaymentRequestDTO>();
   const [done, setDone] = useState<string>();
   const [error, setError] = useState<string>();
-  const [permission, requestPermission] = useCameraPermissions();
   const summary = useSummary();
   const me = useMe();
   const qc = useQueryClient();
@@ -178,14 +171,15 @@ export default function Wallet() {
     <Screen
       wallpaper="portfolio"
       header={<Header title="Portefeuille" />}
-      footer={mode !== 'scan' && !(mode === 'request' && created) ? <Button title={mode === 'request' ? 'Créer le lien de paiement' : 'Valider'} disabled={!canSubmit} loading={pending} onPress={submit} /> : undefined}
+      footer={!(mode === 'request' && (created || showMyQr)) ? <Button title={mode === 'request' ? 'Créer le lien de paiement' : 'Valider'} disabled={!canSubmit} loading={pending} onPress={submit} /> : undefined}
     >
       <SegmentedTabs<Mode>
-        value={mode === 'scan' ? 'send' : mode}
+        value={mode}
         onChange={(m) => {
           setMode(m);
           setError(undefined);
           setCreated(undefined);
+          setShowMyQr(false);
         }}
         tabs={[
           { key: 'deposit', label: 'Recharger', icon: 'deposit' },
@@ -198,32 +192,17 @@ export default function Wallet() {
         Solde disponible : {formatFCFA(summary.data?.main ?? 0)}
       </AppText>
 
-      {mode === 'scan' ? (
-        permission?.granted ? (
-          <View style={styles.camera}>
-            <CameraView
-              style={StyleSheet.absoluteFill}
-              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-              onBarcodeScanned={({ data }) => {
-                const r = parseQr(data);
-                if (!r) return setError('QR code non reconnu');
-                const c = UEMOA_COUNTRIES.find((x) => r.phone.startsWith(x.dialCode)) ?? UEMOA_COUNTRIES[0];
-                setCountry(c);
-                setPhone(r.phone.slice(c.dialCode.length));
-                if (r.amount) setAmount(String(r.amount));
-                setDestination('dala');
-                setMode('send');
-              }}
-            />
-            <View style={styles.frame} />
+      {mode === 'request' && showMyQr && me.data?.phone ? (
+        <Card style={{ alignItems: 'center', gap: SPACING.md }}>
+          <AppText weight="bold" align="center">Mon QR DALA</AppText>
+          <View style={styles.qr} accessibilityLabel="Mon QR code DALA">
+            <QRCode value={`dala:pay?to=${encodeURIComponent(me.data.phone)}`} size={200} color={COLORS.navy} backgroundColor={COLORS.white} />
           </View>
-        ) : (
-          <Card style={{ gap: SPACING.md, alignItems: 'center' }}>
-            <DalaIcon name="scan" size={96} />
-            <AppText align="center">Scannez le QR code DALA d'un commerçant ou d'un proche pour payer instantanément.</AppText>
-            <Button title="Autoriser l'appareil photo" onPress={() => void requestPermission()} />
-          </Card>
-        )
+          <AppText variant="caption" color={TEXT_ON_WHITE.muted} align="center">
+            Un utilisateur DALA scanne ce code pour vous envoyer de l'argent, sans saisir votre numéro. Pour être payé depuis Orange Money, MTN MoMo ou Moov Money, créez plutôt un lien de paiement.
+          </AppText>
+          <Button title="Créer un lien de paiement" variant="ghost" onPress={() => setShowMyQr(false)} />
+        </Card>
       ) : mode === 'request' && created ? (
         <Card style={{ alignItems: 'center', gap: SPACING.md }}>
           <AppText weight="bold" align="center">Demande de {formatFCFA(created.amount)} créée</AppText>
@@ -246,7 +225,14 @@ export default function Wallet() {
             <View style={{ flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md, flexWrap: 'wrap' }}>
               <Chip label="Vers un mobile money" active={destination === 'mobile'} onPress={() => setDestination('mobile')} />
               <Chip label="Vers un compte DALA" active={destination === 'dala'} onPress={() => setDestination('dala')} />
-              <Chip label="Scanner un QR" active={false} onPress={() => setMode('scan')} />
+              <Chip label="Scanner un QR" active={false} onPress={() => router.push('/scan')} />
+            </View>
+          ) : null}
+
+          {mode === 'request' ? (
+            <View style={{ flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md, flexWrap: 'wrap' }}>
+              <Chip label="Lien de paiement" active onPress={() => undefined} />
+              <Chip label="Mon QR DALA" active={false} onPress={() => setShowMyQr(true)} />
             </View>
           ) : null}
 
@@ -343,7 +329,5 @@ const styles = StyleSheet.create({
   providers: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.md },
   provider: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 2, borderColor: COLORS.lightGray, backgroundColor: COLORS.white, width: '48%' },
   providerDot: { width: 14, height: 14, borderRadius: 7 },
-  camera: { height: 320, borderRadius: RADIUS.lg, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  frame: { width: 200, height: 200, borderWidth: 3, borderColor: COLORS.gold, borderRadius: RADIUS.lg },
   qr: { padding: SPACING.md, backgroundColor: COLORS.white, borderRadius: RADIUS.md },
 });

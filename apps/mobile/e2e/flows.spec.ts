@@ -58,6 +58,27 @@ test('demande de paiement : lien et QR code à partager, payée depuis un autre 
   await expect(shown(page.getByText('Payée'))).toBeVisible();
 });
 
+test('scanner : QR d’un commerçant DALA payé avec le solde', async ({ page }) => {
+  await page.getByRole('button', { name: 'Scanner' }).first().click();
+  await shown(page.getByLabel('Ou collez le contenu du QR code / le lien')).fill('https://demo.dala.invalid/pay/DEMO2025');
+  await shown(page.getByRole('button', { name: 'Analyser' })).click();
+  await expect(shown(page.getByText('Maquis Chez Tantie'))).toBeVisible();
+  await shown(page.getByRole('button', { name: /Payer 3\s?500 FCFA avec mon solde/ })).click();
+  await expect(shown(page.getByText('Paiement effectué'))).toBeVisible();
+});
+
+test('scanner : QR interopérable (EMVCo) avec numéro MTN, envoi pré-rempli', async ({ page }) => {
+  // Tag 26 (compte marchand) avec numéro MTN, montant 2 000 FCFA (devise 952), CRC valide.
+  const qr = '00020101021226330011ci.mtn.momo0114+2250506070809520458125303952540420005802CI5912BOUTIQUE AYA6007ABIDJAN63045E60';
+  await page.getByRole('button', { name: 'Scanner' }).first().click();
+  await shown(page.getByLabel('Ou collez le contenu du QR code / le lien')).fill(qr);
+  await shown(page.getByRole('button', { name: 'Analyser' })).click();
+  await expect(shown(page.getByText('BOUTIQUE AYA'))).toBeVisible();
+  await shown(page.getByRole('button', { name: /Envoyer 2\s?000 FCFA au \+2250506070809/ })).click();
+  await expect(shown(page.getByRole('radio', { name: 'MTN MoMo' }))).toBeChecked();
+  await expect(shown(page.getByLabel('Montant'))).toHaveValue('2000');
+});
+
 test('modules fermés pendant la phase de test : aucun accès par lien direct', async ({ page }) => {
   await page.goto('/crowdfund/p1');
   await expect(page.getByText('AgriTech CI').filter({ visible: true })).toHaveCount(0);
