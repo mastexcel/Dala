@@ -24,6 +24,7 @@ import type {
   AdvisorConversationDetail,
   AdvisorMessageDTO,
   AdvisorTopic,
+  PaymentRequestDTO,
 } from '@dala/shared';
 import { request } from './client';
 
@@ -61,9 +62,13 @@ export const userApi = {
 
 export const accountApi = {
   summary: () => request<BalanceSummary>('/accounts/summary'),
-  deposit: (provider: MobileMoneyProvider, amount: number) => request<{ status: string }>('/accounts/deposit', { method: 'POST', body: { provider, amount } }),
-  withdraw: (provider: MobileMoneyProvider, amount: number, pin?: string) =>
-    request<{ status: string }>('/accounts/withdraw', { method: 'POST', body: { provider, amount }, pin }),
+  deposit: (provider: MobileMoneyProvider, amount: number, phone?: string) =>
+    request<{ status: string }>('/accounts/deposit', { method: 'POST', body: { provider, amount, phone } }),
+  /** Envoi vers le mobile money d'un tiers (tout opérateur ouvert). */
+  sendMobileMoney: (provider: MobileMoneyProvider, phone: string, amount: number, pin?: string, note?: string) =>
+    request<{ status: string }>('/accounts/send-mobile-money', { method: 'POST', body: { provider, phone, amount, note }, pin }),
+  withdraw: (provider: MobileMoneyProvider, amount: number, pin?: string, phone?: string) =>
+    request<{ status: string }>('/accounts/withdraw', { method: 'POST', body: { provider, amount, phone }, pin }),
   transfer: (toPhone: string, amount: number, pin?: string, note?: string) =>
     request('/accounts/transfer', { method: 'POST', body: { toPhone, amount, note }, pin }),
 };
@@ -159,4 +164,13 @@ export const advisorApi = {
   start: (topic: AdvisorTopic, message: string, subject?: string) =>
     request<AdvisorConversationDetail>('/advisor/conversations', { method: 'POST', body: { topic, message, subject } }),
   send: (id: string, body: string) => request<AdvisorMessageDTO>(`/advisor/conversations/${id}/messages`, { method: 'POST', body: { body } }),
+};
+
+export const paymentRequestApi = {
+  list: () => request<PaymentRequestDTO[]>('/payment-requests'),
+  create: (amount: number, note?: string) => request<PaymentRequestDTO>('/payment-requests', { method: 'POST', body: { amount, note } }),
+  cancel: (id: string) => request(`/payment-requests/${id}/cancel`, { method: 'POST' }),
+  /** Paiement public d'une demande (utilisé par le mode démo pour simuler le payeur). */
+  pay: (code: string, provider: MobileMoneyProvider, phone: string) =>
+    request<{ status: string }>(`/pay/${code}`, { method: 'POST', body: { provider, phone }, auth: false }),
 };

@@ -316,3 +316,20 @@ export interface AdvisorConversationDTO {
 export interface AdvisorConversationDetail extends AdvisorConversationDTO {
   messages: AdvisorMessageDTO[];
 }
+
+/* ---------------------------- Demandes de paiement ---------------------------- */
+
+export type PaymentRequestStatus = 'OPEN' | 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED';
+
+export interface PaymentRequestDTO {
+  id: string;
+  code: string;
+  amount: number;
+  note: string | null;
+  status: PaymentRequestStatus;
+  expiresAt: string;
+  paidAt: string | null;
+  /** Lien à partager : le payeur règle depuis son mobile money, sans compte DALA. */
+  url: string;
+  createdAt: string;
+}

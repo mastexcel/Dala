@@ -66,6 +66,8 @@ Les données démo (soldes, tontine, projets…) sont réinitialisées à chaque
 
 ### Parcours métier
 - [ ] Retirer plus de 50 000 FCFA vers Orange Money : le PIN est demandé. Taper un mauvais PIN affiche un message d'erreur. Wave n'apparaît pas.
+- [ ] Envoyer de l'argent vers le mobile money d'un proche (*Envoyer › Vers un mobile money*) : l'opérateur se sélectionne d'après le numéro (07 Orange, 05 MTN, 01 Moov).
+- [ ] *Recevoir › Demander* : créer un lien de paiement, le partager par WhatsApp. En démo, le bouton « Simuler le paiement » joue le rôle du payeur ; avec l'API, le lien s'ouvre sur la page de paiement.
 - [ ] Vérifier que les placements et le crowdfunding n'apparaissent nulle part (phase de test).
 - [ ] Créer un compte : l'écran « Avant de commencer » s'affiche, puis la date de naissance est demandée (moins de 18 ans refusé).
 - [ ] Demander un prêt de plus de 100 000 FCFA : impossible.

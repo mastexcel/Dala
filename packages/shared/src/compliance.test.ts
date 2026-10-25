@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageOn, checkKycLimit, evaluateAml, isStrongAuth, requiresStrongAuth } from './compliance';
+import { ageOn, detectCiOperator, operatorMatchesPhone, checkKycLimit, evaluateAml, isStrongAuth, requiresStrongAuth } from './compliance';
 
 describe('KYC', () => {
   it('bloque les transferts au niveau 1', () => {
@@ -50,5 +50,22 @@ describe('ageOn', () => {
     expect(ageOn('2008-10-26', at)).toBe(17);
     expect(ageOn('1990-02-30', at)).toBeNaN();
     expect(ageOn('25/10/1990', at)).toBeNaN();
+  });
+});
+
+describe('opérateurs mobile money en Côte d’Ivoire', () => {
+  it('déduit l’opérateur du préfixe', () => {
+    expect(detectCiOperator('+2250707000000')).toBe('ORANGE_MONEY');
+    expect(detectCiOperator('+2250505000000')).toBe('MTN_MOMO');
+    expect(detectCiOperator('+2250101000000')).toBe('MOOV_MONEY');
+    expect(detectCiOperator('+2252720000000')).toBeNull();
+    expect(detectCiOperator('+221770000000')).toBeNull();
+  });
+
+  it('vérifie la cohérence opérateur / numéro (Wave accepte tous les numéros)', () => {
+    expect(operatorMatchesPhone('ORANGE_MONEY', '+2250707000000')).toBe(true);
+    expect(operatorMatchesPhone('ORANGE_MONEY', '+2250505000000')).toBe(false);
+    expect(operatorMatchesPhone('WAVE', '+2250505000000')).toBe(true);
+    expect(operatorMatchesPhone('WAVE', '+221770000000')).toBe(false);
   });
 });

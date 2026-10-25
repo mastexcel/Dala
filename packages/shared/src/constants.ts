@@ -213,3 +213,19 @@ export const DATA_RETENTION_POLICY = [
 ];
 /** Durée de conservation après clôture (années). */
 export const RETENTION_YEARS_AFTER_CLOSURE = 10;
+
+/**
+ * Opérateurs mobile money en Côte d'Ivoire. Depuis la numérotation à 10 chiffres (2021), le préfixe
+ * indique l'opérateur : 07 Orange, 05 MTN, 01 Moov. Wave fonctionne avec un numéro de n'importe quel
+ * opérateur (pas de préfixe propre). Les opérateurs de TEST_PHASE.disabledProviders restent fermés.
+ */
+export const CI_MOBILE_MONEY = [
+  { id: 'ORANGE_MONEY', name: 'Orange Money', prefix: '07', color: '#FF7900' },
+  { id: 'MTN_MOMO', name: 'MTN MoMo', prefix: '05', color: '#FFCB05' },
+  { id: 'MOOV_MONEY', name: 'Moov Money', prefix: '01', color: '#0057A8' },
+  { id: 'WAVE', name: 'Wave', prefix: null, color: '#1DC8F1' },
+] as const;
+export type MobileMoneyOperator = (typeof CI_MOBILE_MONEY)[number]['id'];
+
+/** Durée de validité d'une demande de paiement (heures). */
+export const PAYMENT_REQUEST_TTL_HOURS = 72;

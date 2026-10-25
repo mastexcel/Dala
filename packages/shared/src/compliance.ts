@@ -1,4 +1,6 @@
 import {
+  CI_MOBILE_MONEY,
+  type MobileMoneyOperator,
   AML_LARGE_TRANSACTION,
   AML_STRUCTURING_MIN_COUNT,
   AML_STRUCTURING_RATIO,
@@ -116,4 +118,20 @@ export function ageOn(dateOfBirth: string, at: Date = new Date()): number {
   let age = at.getUTCFullYear() - y;
   if (at.getUTCMonth() < mo - 1 || (at.getUTCMonth() === mo - 1 && at.getUTCDate() < d)) age -= 1;
   return age;
+}
+
+/** Opérateur mobile money déduit du préfixe d'un numéro ivoirien (+225 XX…) ; null si inconnu. */
+export function detectCiOperator(phoneE164: string): MobileMoneyOperator | null {
+  const m = /^\+225(\d{2})\d{8}$/.exec(phoneE164.replace(/\s/g, ''));
+  if (!m) return null;
+  return CI_MOBILE_MONEY.find((o) => o.prefix === m[1])?.id ?? null;
+}
+
+/**
+ * Le numéro peut-il recevoir ou payer via cet opérateur ? Wave accepte tous les numéros ivoiriens ;
+ * les autres opérateurs n'acceptent que leurs propres préfixes.
+ */
+export function operatorMatchesPhone(operator: MobileMoneyOperator, phoneE164: string): boolean {
+  if (!/^\+225\d{10}$/.test(phoneE164.replace(/\s/g, ''))) return false;
+  return operator === 'WAVE' || detectCiOperator(phoneE164) === operator;
 }

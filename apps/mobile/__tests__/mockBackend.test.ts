@@ -12,7 +12,7 @@ describe('backend simulé (mode démo)', () => {
 
   it('retire vers le mobile money et débite le compte principal', async () => {
     const before = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
-    await mockRequest('POST', '/accounts/withdraw', { provider: 'MTN_MOMO', amount: 20_000 }, {});
+    await mockRequest('POST', '/accounts/withdraw', { provider: 'ORANGE_MONEY', amount: 20_000 }, {});
     const after = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
     expect(after.main).toBe(before.main - 20_000);
   });
@@ -69,5 +69,27 @@ describe('équipe commerciale (mode démo)', () => {
     expect(detail.messages.at(-1)!.body).toMatch(/limité à 100.000.FCFA/);
     const after = await mockRequest<{ unread: number }[]>('GET', '/advisor/conversations', undefined, {});
     expect(after[0].unread).toBe(0);
+  });
+});
+
+describe('mobile money sur tous les opérateurs ouverts (mode démo)', () => {
+  it('envoie vers un numéro MTN et refuse un numéro qui ne correspond pas à l’opérateur', async () => {
+    const before = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
+    await mockRequest('POST', '/accounts/send-mobile-money', { provider: 'MTN_MOMO', phone: '+2250506070809', amount: 5_000 }, {});
+    const after = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
+    expect(after.main).toBe(before.main - 5_000);
+    await expect(mockRequest('POST', '/accounts/send-mobile-money', { provider: 'ORANGE_MONEY', phone: '+2250506070809', amount: 5_000 }, {})).rejects.toMatchObject({ code: 'OPERATOR_MISMATCH' });
+  });
+
+  it('crée une demande de paiement, la fait payer par un tiers, puis la ferme', async () => {
+    const r = await mockRequest<{ id: string; code: string; url: string }>('POST', '/payment-requests', { amount: 7_000, note: 'Repas' }, {});
+    expect(r.url).toContain(`/pay/${r.code}`);
+    const before = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
+    await mockRequest('POST', `/pay/${r.code}`, { provider: 'MOOV_MONEY', phone: '+2250102030405' }, {});
+    const after = await mockRequest<{ main: number }>('GET', '/accounts/summary', undefined, {});
+    expect(after.main).toBe(before.main + 7_000);
+    const list = await mockRequest<{ code: string; status: string }[]>('GET', '/payment-requests', undefined, {});
+    expect(list.find((x) => x.code === r.code)?.status).toBe('PAID');
+    await expect(mockRequest('POST', `/pay/${r.code}`, { provider: 'MOOV_MONEY', phone: '+2250102030405' }, {})).rejects.toMatchObject({ code: 'REQUEST_CLOSED' });
   });
 });

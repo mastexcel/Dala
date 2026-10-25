@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Payer avec mon mobile money · DALA Finance</title>
+  <link rel="stylesheet" href="/pay/pay.css" />
+</head>
+<body>
+  <div class="notice">Service en phase de test au sein du LIF-BCEAO</div>
+  <main class="wrap">
+    <div class="logo">DALA</div>
+    <section id="loading" class="card"><p class="muted">Chargement de la demande…</p></section>
+
+    <section id="error" class="card" hidden>
+      <h1>Paiement indisponible</h1>
+      <p id="error-text" class="muted"></p>
+    </section>
+
+    <section id="request" class="card" hidden>
+      <p class="muted">Demande de paiement de</p>
+      <h1 id="beneficiary"></h1>
+      <p class="amount" id="amount"></p>
+      <p class="note" id="note"></p>
+
+      <form id="pay-form">
+        <fieldset>
+          <legend>Votre mobile money</legend>
+          <div id="providers" class="providers" role="radiogroup" aria-label="Opérateur"></div>
+        </fieldset>
+        <label>Votre numéro
+          <div class="phone"><span>+225</span><input id="phone" inputmode="numeric" autocomplete="tel-national" placeholder="07 00 00 00 00" maxlength="14" required /></div>
+        </label>
+        <p id="hint" class="muted small"></p>
+        <button type="submit" id="pay" class="primary">Payer</button>
+        <p id="pay-error" class="error" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="done" class="card" hidden>
+      <div class="check">✓</div>
+      <h1 id="done-title"></h1>
+      <p id="done-text" class="muted"></p>
+    </section>
+
+    <p class="legal small muted">DALA Finance, solution éditée par Bridge Investment Partners SARL (RCCM CI-ABJ-03-2022-B12-00279). Service en phase de test au sein du Laboratoire d'Innovation Financière de la BCEAO. Les opérations sont réalisées en partenariat avec un établissement agréé.</p>
+  </main>
+  <script src="/pay/pay.js"></script>
+</body>
+</html>

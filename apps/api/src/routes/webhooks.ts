@@ -38,14 +38,26 @@ router.post(
     if (!tx) throw notFound('Transaction inconnue ou déjà traitée');
     const amount = Math.abs(num(tx.amount));
 
+    const meta = (tx.metadata ?? {}) as { paymentRequestId?: string; channel?: string };
+    // Entrées : dépôt de l'utilisateur ou paiement d'une demande par un tiers (tout opérateur).
+    const incoming = tx.type === 'DEPOSIT' || (tx.type === 'TRANSFER_IN' && !!meta.paymentRequestId);
+    // Sorties : retrait ou envoi vers le mobile money d'un tiers.
+    const outgoing = tx.type === 'WITHDRAWAL' || (tx.type === 'TRANSFER_OUT' && meta.channel === 'MOBILE_MONEY');
+
     await prisma.$transaction(async (t) => {
-      if (tx.type === 'DEPOSIT') {
+      if (incoming) {
         await t.transaction.update({ where: { id: tx.id }, data: { status: status === 'SUCCESS' ? 'COMPLETED' : 'FAILED' } });
         if (status === 'SUCCESS') {
           await t.account.updateMany({ where: { userId: tx.userId, type: 'MAIN' }, data: { balance: { increment: amount } } });
           await appendAudit(t, { userId: tx.userId, action: 'LEDGER_DEPOSIT_CONFIRMED', entity: 'Transaction', entityId: tx.id, payload: { amount } });
         }
-      } else if (tx.type === 'WITHDRAWAL') {
+        if (meta.paymentRequestId) {
+          await t.paymentRequest.update({
+            where: { id: meta.paymentRequestId },
+            data: status === 'SUCCESS' ? { status: 'PAID', paidAt: new Date() } : { status: 'OPEN', payerPhone: null, provider: null, transactionId: null },
+          });
+        }
+      } else if (outgoing) {
         await t.transaction.update({ where: { id: tx.id }, data: { status: status === 'SUCCESS' ? 'COMPLETED' : 'FAILED' } });
         if (status === 'FAILED') {
           await t.account.updateMany({ where: { userId: tx.userId, type: 'MAIN' }, data: { balance: { increment: amount } } });
@@ -53,8 +65,10 @@ router.post(
         }
       }
     });
-    if (status === 'SUCCESS' && tx.type === 'DEPOSIT') {
-      await notify(tx.userId, { title: 'Dépôt reçu', body: `${formatFCFA(amount)} crédités`, type: 'TRANSACTION' });
+    if (status === 'SUCCESS' && incoming) {
+      await notify(tx.userId, meta.paymentRequestId
+        ? { title: 'Paiement reçu 💸', body: `${formatFCFA(amount)} reçus sur votre demande de paiement`, type: 'TRANSACTION' }
+        : { title: 'Dépôt reçu', body: `${formatFCFA(amount)} crédités`, type: 'TRANSACTION' });
     }
     emitBalanceChanged(tx.userId);
     res.json({ ok: true });

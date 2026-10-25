@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { eligibleLoanAmount, formatFCFA, type BalanceSummary } from '@dala/shared';
+import { CI_MOBILE_MONEY, eligibleLoanAmount, formatFCFA, operatorMatchesPhone, type BalanceSummary } from '@dala/shared';
 import { prisma, num } from '../lib/prisma';
 import { asyncHandler, badRequest, notFound } from '../lib/errors';
 import { transactionReference } from '../lib/crypto';
@@ -13,6 +13,7 @@ import { appendAudit } from '../services/audit';
 import { getProvider, PROVIDER_IDS, type MobileMoneyProviderId } from '../services/mobileMoney';
 import { emitBalanceChanged, notify } from '../services/notifications';
 import { assertClientFundsCapacity, isProviderEnabled } from '../services/testPhase';
+import { payoutToMobileMoney } from '../services/payouts';
 import { phoneSchema } from './auth';
 
 export const router = Router();
@@ -62,6 +63,15 @@ router.get(
   }),
 );
 
+/** Contrôle opérateur / préfixe pour les numéros ivoiriens (les autres pays UEMOA ne sont pas vérifiés). */
+const fitsOperator = (provider: MobileMoneyProviderId, phone: string) => !phone.startsWith('+225') || operatorMatchesPhone(provider, phone);
+
+/** Message d'erreur quand le numéro n'appartient pas à l'opérateur choisi (préfixes ivoiriens). */
+export function operatorMismatch(provider: string, phone: string) {
+  const op = CI_MOBILE_MONEY.find((o) => o.id === provider);
+  return op?.prefix ? `Ce numéro (${phone}) n'est pas un numéro ${op.name} : les numéros ${op.name} commencent par ${op.prefix}.` : 'Numéro mobile money invalide';
+}
+
 const mmSchema = z.object({
   // Opérateurs dont le statut n'est pas vérifié (Wave) : refusés pendant la phase de test.
   provider: z.enum(PROVIDER_IDS.filter(isProviderEnabled) as [MobileMoneyProviderId, ...MobileMoneyProviderId[]]),
@@ -78,6 +88,8 @@ router.post(
   asyncHandler(async (req, res) => {
     const { provider, amount, phone } = req.body as z.infer<typeof mmSchema>;
     const user = await prisma.user.findUniqueOrThrow({ where: { id: uid(req) } });
+    // Le dépôt peut venir d'un autre numéro de l'utilisateur (ex. son numéro Orange s'il est inscrit avec MTN).
+    if (!fitsOperator(provider, phone ?? user.phone)) throw badRequest(operatorMismatch(provider, phone ?? user.phone), 'OPERATOR_MISMATCH');
     // Plafond des fonds clients de la phase de test, vérifié avant d'appeler l'opérateur.
     await prisma.$transaction((tx) => assertClientFundsCapacity(tx, amount));
     const reference = transactionReference();
@@ -97,7 +109,7 @@ router.post(
   }),
 );
 
-/** Retrait vers un wallet mobile money. */
+/** Retrait vers un wallet mobile money de l'utilisateur. */
 router.post(
   '/withdraw',
   validate(mmSchema),
@@ -107,22 +119,37 @@ router.post(
   asyncHandler(async (req, res) => {
     const { provider, amount, phone } = req.body as z.infer<typeof mmSchema>;
     const user = await prisma.user.findUniqueOrThrow({ where: { id: uid(req) } });
-    const p = getProvider(provider);
-    // Débit d'abord (évite le double retrait), remboursement si l'opérateur échoue.
-    const tx = await prisma.$transaction((t) => post(t, { userId: user.id, type: 'WITHDRAWAL', amount, description: `Retrait ${p.name}`, from: 'MAIN', to: null, status: 'PENDING', metadata: { provider } }));
-    const result = await p.withdraw(phone ?? user.phone, amount, tx.reference ?? tx.id);
-    if (result.status === 'FAILED') {
-      await prisma.$transaction(async (t) => {
-        await t.transaction.update({ where: { id: tx.id }, data: { status: 'FAILED' } });
-        await t.account.updateMany({ where: { userId: user.id, type: 'MAIN' }, data: { balance: { increment: amount } } });
-        await appendAudit(t, { userId: user.id, action: 'LEDGER_WITHDRAWAL_REVERSED', entity: 'Transaction', entityId: tx.id, payload: { amount } });
-      });
-      throw badRequest(result.message ?? 'Retrait refusé par l\'opérateur', 'PROVIDER_FAILED');
-    }
-    if (result.status === 'SUCCESS') await prisma.transaction.update({ where: { id: tx.id }, data: { status: 'COMPLETED' } });
-    await notify(user.id, { title: 'Retrait effectué', body: `${formatFCFA(amount)} vers ${p.name}`, type: 'TRANSACTION' });
+    const to = phone ?? user.phone;
+    if (!fitsOperator(provider, to)) throw badRequest(operatorMismatch(provider, to), 'OPERATOR_MISMATCH');
+    const r = await payoutToMobileMoney({ userId: user.id, provider, phone: to, amount, type: 'WITHDRAWAL', description: `Retrait ${getProvider(provider).name}` });
+    await notify(user.id, { title: 'Retrait effectué', body: `${formatFCFA(amount)} vers ${r.providerName}`, type: 'TRANSACTION' });
     emitBalanceChanged(user.id);
-    res.status(201).json({ status: result.status, transactionId: tx.id });
+    res.status(201).json({ status: r.status, transactionId: r.transactionId });
+  }),
+);
+
+/**
+ * Envoi vers le mobile money d'un tiers, sur n'importe quel opérateur ouvert (Orange, MTN, Moov…).
+ * Assimilé à un transfert : KYC niveau 2 et authentification forte au-delà de 50 000 FCFA.
+ */
+const sendMmSchema = mmSchema.extend({ phone: phoneSchema, note: z.string().max(140).optional() });
+router.post(
+  '/send-mobile-money',
+  requireKycLevel(2),
+  validate(sendMmSchema),
+  requireStrongAuth('PAYMENT', amountOf),
+  enforceKycLimit(amountOf, { isTransfer: true }),
+  amlScreen(amountOf),
+  asyncHandler(async (req, res) => {
+    const { provider, amount, phone, note } = req.body as z.infer<typeof sendMmSchema>;
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: uid(req) } });
+    if (!fitsOperator(provider, phone)) throw badRequest(operatorMismatch(provider, phone), 'OPERATOR_MISMATCH');
+    const name = getProvider(provider).name;
+    const masked = `${phone.slice(0, 7)}…${phone.slice(-2)}`;
+    const r = await payoutToMobileMoney({ userId: user.id, provider, phone, amount, type: 'TRANSFER_OUT', description: `Envoi ${name} · ${masked}`, metadata: { channel: 'MOBILE_MONEY', note } });
+    await notify(user.id, { title: 'Envoi effectué', body: `${formatFCFA(amount)} envoyés vers ${name} (${masked})`, type: 'TRANSACTION' });
+    emitBalanceChanged(user.id);
+    res.status(201).json({ status: r.status, transactionId: r.transactionId });
   }),
 );
 

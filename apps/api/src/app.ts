@@ -20,6 +20,7 @@ import { router as notifications } from './routes/notifications';
 import { router as compliance } from './routes/compliance';
 import { router as webhooks } from './routes/webhooks';
 import { router as advisor, deskRouter } from './routes/advisor';
+import { router as paymentRequests, publicRouter as pay } from './routes/payments';
 import { requireModule } from './services/testPhase';
 
 export function createApp() {
@@ -34,6 +35,10 @@ export function createApp() {
 
   // Poste des conseillers (page statique ; les données passent par /v1/advisor-desk avec la clé back-office).
   app.use('/desk', express.static(path.join(__dirname, '../desk'), { index: 'index.html', maxAge: '1h' }));
+  // Page publique de paiement d'une demande (lien partagé par l'utilisateur).
+  const payPage = path.join(__dirname, '../pay');
+  app.use('/pay', express.static(payPage, { index: false, maxAge: '1h' }));
+  app.get('/pay/:code', (_req, res) => res.sendFile(path.join(payPage, 'index.html')));
 
   app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'dala-api', time: new Date().toISOString() }));
 
@@ -51,6 +56,8 @@ export function createApp() {
   v1.use('/transactions', requireAuth, transactions);
   v1.use('/notifications', requireAuth, notifications);
   v1.use('/advisor', requireAuth, advisor);
+  v1.use('/payment-requests', requireAuth, paymentRequests);
+  v1.use('/pay', pay);
   v1.use('/advisor-desk', deskRouter);
   app.use('/v1', v1);
 

@@ -237,7 +237,13 @@ Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas u
 
 ## Intégrations
 
-- **Mobile money** : Orange Money, MTN MoMo et Moov Money (`apps/api/src/services/mobileMoney`). Le connecteur Wave existe mais il est désactivé pendant la phase de test, tant que son statut d'émetteur de monnaie électronique n'est pas vérifié. Le mode `sandbox` est actif par défaut ; en mode `live`, les opérateurs confirment les paiements par webhook.
+- **Mobile money** : Orange Money, MTN MoMo et Moov Money (`apps/api/src/services/mobileMoney`). Chaque opérateur est utilisé dans les deux sens :
+  - **Recharger** : depuis n'importe quel numéro de l'utilisateur.
+  - **Retirer** : vers un numéro de l'utilisateur.
+  - **Envoyer** : vers le mobile money d'un tiers (`POST /accounts/send-mobile-money`, KYC 2, PIN au-delà de 50 000 FCFA).
+  - **Demander un paiement** : lien et QR code (`/payment-requests`). Le payeur règle sur la page publique `/pay/<code>` depuis son opérateur, sans compte DALA. La demande est valable 72 h ; un webhook confirme les paiements validés plus tard sur le téléphone.
+
+  Le préfixe ivoirien désigne l'opérateur (07 Orange, 05 MTN, 01 Moov) : il est détecté à la saisie, et un numéro qui ne correspond pas à l'opérateur est refusé (`OPERATOR_MISMATCH`). `PUBLIC_URL` fixe l'adresse des liens de paiement. Le connecteur Wave existe mais il est désactivé pendant la phase de test, tant que son statut d'émetteur de monnaie électronique n'est pas vérifié. Le mode `sandbox` est actif par défaut ; en mode `live`, les opérateurs confirment les paiements par webhook.
 - **SMS OTP** : `console` (dev), Twilio ou Orange SMS API.
 - **Push** : FCM, inactif tant qu'il n'est pas déclaré à l'ARTCI (le contenu des notifications reste générique). **Stockage KYC** : stockage compatible S3 chez l'hébergeur d'Abidjan (`STORAGE_DRIVER=s3`, URL de dépôt signée).
 - **Titres publics** : référentiel `services/treasury.ts`, à synchroniser avec le flux UMOA-Titres.

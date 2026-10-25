@@ -16,10 +16,11 @@ interface Props {
   error?: string;
   dark?: boolean;
   label?: string;
+  placeholder?: string;
 }
 
 /** Saisie de numéro avec sélecteur d'indicatif UEMOA (+225 par défaut). */
-export function PhoneInput({ country, onCountryChange, value, onChangeText, error, dark, label = 'Numéro de téléphone' }: Props) {
+export function PhoneInput({ country, onCountryChange, value, onChangeText, error, dark, label = 'Numéro de téléphone', placeholder }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -31,7 +32,7 @@ export function PhoneInput({ country, onCountryChange, value, onChangeText, erro
         keyboardType="phone-pad"
         autoComplete="tel"
         textContentType="telephoneNumber"
-        placeholder={'0'.repeat(country.phoneLength).replace(/(\d{2})(?=\d)/g, '$1 ')}
+        placeholder={placeholder ?? '0'.repeat(country.phoneLength).replace(/(\d{2})(?=\d)/g, '$1 ')}
         maxLength={country.phoneLength + Math.floor(country.phoneLength / 2)}
         error={error}
         prefix={

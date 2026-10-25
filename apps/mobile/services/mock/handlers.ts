@@ -3,6 +3,10 @@
  * rétractation 48 h, scoring…) pour que l'application soit utilisable sans serveur.
  */
 import {
+  PAYMENT_REQUEST_TTL_HOURS,
+  operatorMatchesPhone,
+  type MobileMoneyOperator,
+  type PaymentRequestDTO,
   ADVISOR_OPEN_TOPICS,
   DATA_RETENTION_POLICY,
   MIN_AGE,
@@ -164,14 +168,26 @@ const routes: [string, RegExp, Handler][] = [
   }],
   ['POST', /^\/accounts\/deposit$/, ({ body }) => {
     requireProvider(body.provider);
+    requireOperator(body.provider, body.phone ?? db.user.phone);
     post('DEPOSIT', body.amount, `Dépôt ${providerName(body.provider)}`, null, 'MAIN');
     notify('Dépôt reçu', `${body.amount} FCFA via ${providerName(body.provider)}`, 'TRANSACTION');
     return { status: 'SUCCESS' };
   }],
   ['POST', /^\/accounts\/withdraw$/, ({ body, headers }) => {
     requireProvider(body.provider);
+    requireOperator(body.provider, body.phone ?? db.user.phone);
     requirePin(headers, body.amount);
     post('WITHDRAWAL', body.amount, `Retrait ${providerName(body.provider)}`, 'MAIN', null);
+    return { status: 'SUCCESS' };
+  }],
+  ['POST', /^\/accounts\/send-mobile-money$/, ({ body, headers }) => {
+    if (db.user.kycLevel < 2) throw new ApiError(403, 'KYC de niveau 2 requis', 'KYC_LEVEL');
+    requireProvider(body.provider);
+    requireOperator(body.provider, body.phone);
+    requirePin(headers, body.amount);
+    const name = providerName(body.provider);
+    post('TRANSFER_OUT', body.amount, `Envoi ${name} · ${body.phone.slice(0, 7)}…${body.phone.slice(-2)}`, 'MAIN', null);
+    notify('Envoi effectué', `${body.amount} FCFA envoyés vers ${name}`, 'TRANSACTION');
     return { status: 'SUCCESS' };
   }],
   ['POST', /^\/accounts\/transfer$/, ({ body, headers }) => {
@@ -407,6 +423,38 @@ const routes: [string, RegExp, Handler][] = [
     return m;
   }],
 
+  /* -------------------------- Demandes de paiement -------------------------- */
+  ['GET', /^\/payment-requests$/, () => db.paymentRequests.map(requestView)],
+  ['POST', /^\/payment-requests$/, ({ body }) => {
+    const code = Math.random().toString(36).slice(2, 10).toUpperCase().padEnd(8, 'X');
+    const r: PaymentRequestDTO = {
+      id: id('pr'), code, amount: body.amount, note: body.note ?? null, status: 'OPEN',
+      expiresAt: new Date(Date.now() + PAYMENT_REQUEST_TTL_HOURS * 3_600_000).toISOString(), paidAt: null,
+      // Adresse réservée (.invalid) : en démo, aucun serveur ne sert la page de paiement.
+      url: `https://demo.dala.invalid/pay/${code}`, createdAt: new Date().toISOString(),
+    };
+    db.paymentRequests.unshift(r);
+    return r;
+  }],
+  ['POST', /^\/payment-requests\/([^/]+)\/cancel$/, ({ params }) => {
+    const r = db.paymentRequests.find((x) => x.id === params[0]);
+    if (!r || r.status !== 'OPEN') throw new ApiError(409, 'Cette demande ne peut plus être annulée', 'CONFLICT');
+    r.status = 'CANCELLED';
+    return undefined;
+  }],
+  ['POST', /^\/pay\/([^/]+)$/, ({ params, body }) => {
+    const r = db.paymentRequests.find((x) => x.code === params[0]);
+    if (!r) throw new ApiError(404, 'Demande de paiement introuvable');
+    if (requestView(r).status !== 'OPEN') throw new ApiError(409, 'Cette demande n’est plus active', 'REQUEST_CLOSED');
+    requireProvider(body.provider);
+    requireOperator(body.provider, body.phone);
+    r.status = 'PAID';
+    r.paidAt = new Date().toISOString();
+    post('TRANSFER_IN', r.amount, `Paiement reçu · ${providerName(body.provider)}${r.note ? ` · ${r.note}` : ''}`, null, 'MAIN');
+    notify('Paiement reçu 💸', `${r.amount} FCFA reçus via ${providerName(body.provider)}`, 'TRANSACTION');
+    return { status: 'PAID' };
+  }],
+
   /* ------------------------- Droits des utilisateurs ------------------------- */
   ['GET', /^\/users\/me\/data\/retention$/, () => ({ policy: DATA_RETENTION_POLICY, yearsAfterClosure: RETENTION_YEARS_AFTER_CLOSURE })],
   ['GET', /^\/users\/me\/data\/export$/, () => ({
@@ -485,6 +533,17 @@ function demoAdvisorAnswer(topic: AdvisorTopic, question: string) {
     default:
       return 'Merci pour votre message. Pouvez-vous me donner quelques précisions pour que je vous oriente au mieux ?';
   }
+}
+
+/** Numéros ivoiriens : le préfixe doit correspondre à l'opérateur (07 Orange, 05 MTN, 01 Moov). */
+function requireOperator(provider: MobileMoneyOperator, phone: string) {
+  if (phone?.startsWith('+225') && !operatorMatchesPhone(provider, phone)) {
+    throw new ApiError(400, `Ce numéro n'est pas un numéro ${providerName(provider)}.`, 'OPERATOR_MISMATCH');
+  }
+}
+
+function requestView(r: PaymentRequestDTO): PaymentRequestDTO {
+  return r.status === 'OPEN' && r.expiresAt < new Date().toISOString() ? { ...r, status: 'EXPIRED' } : r;
 }
 
 function requireProvider(provider: string) {

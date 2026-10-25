@@ -19,6 +19,7 @@ import {
   type CrowdfundHoldingDTO,
   type AdvisorConversationDTO,
   type AdvisorMessageDTO,
+  type PaymentRequestDTO,
 } from '@dala/shared';
 
 export type MockConversation = Omit<AdvisorConversationDTO, 'lastMessage' | 'unread'> & { messages: AdvisorMessageDTO[]; readAt: string };
@@ -87,6 +88,7 @@ export const db = {
     { id: 'tx6', type: 'SAVINGS_IN', amount: -20_000, currency: 'XOF', description: 'Cotisation tontine · Treichville', reference: 'DLA-DEMO-6', status: 'COMPLETED', createdAt: hoursAgo(200) },
     { id: 'tx9', type: 'LOAN_REPAYMENT', amount: -51_075, currency: 'XOF', description: 'Remboursement prêt DALA', reference: 'DLA-DEMO-9', status: 'COMPLETED', createdAt: ago(62) },
   ] as TransactionDTO[],
+  paymentRequests: [] as PaymentRequestDTO[],
   advisor: [
     {
       id: 'conv_1',

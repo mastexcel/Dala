@@ -29,7 +29,33 @@ test('retrait de plus de 50 000 FCFA avec authentification forte (Wave indisponi
   await typePin(page, '0000');
   await expect(page.getByText('PIN incorrect, réessayez')).toBeVisible();
   await typePin(page);
-  await expect(shown(page.getByText(/envoyés vers votre wallet/))).toBeVisible();
+  await expect(shown(page.getByText(/envoyés vers votre compte Orange Money/))).toBeVisible();
+});
+
+test('envoi vers le mobile money d’un tiers : opérateur détecté d’après le numéro', async ({ page }) => {
+  await page.getByRole('button', { name: 'Envoyer' }).first().click();
+  await shown(page.getByText('Vers un mobile money')).click();
+  await shown(page.getByLabel('Numéro mobile money du destinataire')).fill('0506070809');
+  // Préfixe 05 : MTN MoMo est sélectionné automatiquement.
+  await expect(shown(page.getByRole('radio', { name: 'MTN MoMo' }))).toBeChecked();
+  await shown(page.getByRole('radio', { name: 'Orange Money' })).click();
+  await expect(shown(page.getByText("Ce numéro n'est pas un numéro Orange Money."))).toBeVisible();
+  await shown(page.getByRole('radio', { name: 'MTN MoMo' })).click();
+  await shown(page.getByLabel('Montant')).fill('15000');
+  await shown(page.getByRole('button', { name: 'Valider' })).click();
+  await expect(shown(page.getByText(/envoyés vers le MTN MoMo du \+2250506070809/))).toBeVisible();
+});
+
+test('demande de paiement : lien et QR code à partager, payée depuis un autre opérateur', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recevoir' }).click();
+  await shown(page.getByText('Demander', { exact: true })).click();
+  await shown(page.getByLabel('Montant')).fill('12000');
+  await shown(page.getByLabel('Motif (facultatif)')).fill('Commande de pagnes');
+  await shown(page.getByRole('button', { name: 'Créer le lien de paiement' })).click();
+  await expect(shown(page.getByLabel('QR code de la demande de paiement'))).toBeVisible();
+  await expect(shown(page.getByText(/\/pay\/[A-Z0-9]{8}$/))).toBeVisible();
+  await shown(page.getByRole('button', { name: 'Simuler le paiement (démo)' })).click();
+  await expect(shown(page.getByText('Payée'))).toBeVisible();
 });
 
 test('modules fermés pendant la phase de test : aucun accès par lien direct', async ({ page }) => {

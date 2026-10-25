@@ -1,0 +1,30 @@
+:root { --navy: #0f1b3d; --gold: #d4a017; --green: #167358; --red: #c0392b; --muted: #5c636a; --line: #e9ecef; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: #f8f9fa; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #212529; }
+button, input { font: inherit; }
+.notice { background: var(--gold); color: var(--navy); font-weight: 700; text-align: center; padding: 6px 12px; font-size: 14px; }
+.wrap { max-width: 440px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.logo { font-weight: 800; letter-spacing: 4px; color: var(--navy); font-size: 28px; text-align: center; margin-top: 8px; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 8px; }
+h1 { margin: 0; color: var(--navy); font-size: 22px; }
+.amount { font-size: 34px; font-weight: 800; color: var(--navy); margin: 4px 0; }
+.note { margin: 0; font-style: italic; }
+.muted { color: var(--muted); margin: 0; }
+.small { font-size: 13px; }
+.error { color: var(--red); min-height: 1em; margin: 4px 0 0; }
+fieldset { border: 0; padding: 0; margin: 12px 0 0; }
+legend { font-weight: 600; margin-bottom: 8px; }
+.providers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.providers button { display: flex; align-items: center; gap: 8px; padding: 12px; border: 2px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; font-weight: 600; text-align: left; }
+.providers button[aria-checked='true'] { border-color: var(--navy); }
+.dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+label { display: grid; gap: 6px; font-weight: 600; margin-top: 12px; }
+.phone { display: flex; border: 1px solid #ced4da; border-radius: 12px; overflow: hidden; }
+.phone span { padding: 12px; background: #f1f3f5; color: var(--muted); }
+.phone input { border: 0; padding: 12px; flex: 1; min-width: 0; outline: none; }
+.primary { margin-top: 12px; width: 100%; background: var(--gold); color: var(--navy); border: 0; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; }
+.primary:disabled { opacity: 0.5; cursor: default; }
+.check { width: 64px; height: 64px; border-radius: 50%; background: var(--green); color: #fff; font-size: 36px; display: grid; place-items: center; margin: 0 auto; }
+#done { text-align: center; }
+.legal { text-align: center; }
