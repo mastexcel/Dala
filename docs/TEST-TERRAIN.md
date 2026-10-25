@@ -10,6 +10,16 @@
 
 Chaque modification de l'app poussée sur la branche relance aussi la construction automatiquement.
 
+## Lien permanent (toujours la dernière version)
+
+**https://github.com/mastexcel/Dala/releases/download/test-android/DALA-Finance.apk**
+
+Ce lien ne change jamais. Vous pouvez aussi scanner `docs/qr-installation-apk.png` avec l'appareil photo de la tablette ou du téléphone.
+
+Ouvrez le lien **dans Chrome**. Un lien ouvert depuis une autre application (WhatsApp, Gmail, Claude…) s'affiche dans un navigateur intégré qui refuse souvent de télécharger un APK : choisissez « Ouvrir dans Chrome ».
+
+À partir de la version 14, l'application vérifie elle-même s'il existe une version plus récente. Le bandeau « Nouvelle version disponible » apparaît alors sur l'accueil et dans le profil : touchez-le, puis ouvrez le fichier téléchargé. La mise à jour s'installe par-dessus l'application existante, sans perdre vos données.
+
 ## 2. Installer sur le téléphone
 
 1. Transférez l'APK sur le téléphone (WhatsApp à vous-même, Google Drive, câble USB…).
