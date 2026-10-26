@@ -30,5 +30,5 @@ export function QuickActions() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: SPACING.lg },
   item: { alignItems: 'center', gap: SPACING.xs, flex: 1 },
-  icon: { width: 62, height: 62, borderRadius: RADIUS.lg, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center', ...SHADOW.card },
+  icon: { width: 62, height: 62, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', ...SHADOW.surface },
 });

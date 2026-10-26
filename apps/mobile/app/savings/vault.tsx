@@ -97,6 +97,6 @@ export default function VaultScreen() {
 
 const styles = StyleSheet.create({
   options: { flexDirection: 'row', gap: SPACING.sm },
-  option: { flex: 1, alignItems: 'center', padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 2, borderColor: COLORS.lightGray, backgroundColor: COLORS.white },
+  option: { flex: 1, alignItems: 'center', padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 2, borderColor: COLORS.lightGray, backgroundColor: COLORS.surface },
   optionActive: { borderColor: COLORS.gold, backgroundColor: `${COLORS.gold}26` },
 });

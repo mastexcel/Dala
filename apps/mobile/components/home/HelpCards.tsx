@@ -30,5 +30,5 @@ export function HelpCards() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.md },
-  card: { flex: 1, gap: 4, padding: SPACING.md, borderRadius: RADIUS.lg, backgroundColor: COLORS.white, ...SHADOW.card },
+  card: { flex: 1, gap: 4, padding: SPACING.md, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, ...SHADOW.surface },
 });

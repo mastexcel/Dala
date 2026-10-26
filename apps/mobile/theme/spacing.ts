@@ -23,4 +23,15 @@ export const SHADOW = {
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
+  /**
+   * Ombre des blocs semi-transparents. Sans élévation Android : l'ombre native se verrait
+   * à travers le fond transparent et le griserait.
+   */
+  surface: {
+    shadowColor: '#0F1B3D',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 0,
+  },
 } as const;

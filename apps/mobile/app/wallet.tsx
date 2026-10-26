@@ -327,7 +327,7 @@ export default function Wallet() {
 
 const styles = StyleSheet.create({
   providers: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.md },
-  provider: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 2, borderColor: COLORS.lightGray, backgroundColor: COLORS.white, width: '48%' },
+  provider: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 2, borderColor: COLORS.lightGray, backgroundColor: COLORS.surface, width: '48%' },
   providerDot: { width: 14, height: 14, borderRadius: 7 },
   qr: { padding: SPACING.md, backgroundColor: COLORS.white, borderRadius: RADIUS.md },
 });

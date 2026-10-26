@@ -25,6 +25,6 @@ export function Card({ onPress, padded = true, style, children, accessibilityLab
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: COLORS.white, borderRadius: RADIUS.lg, ...SHADOW.card },
+  card: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, ...SHADOW.surface },
   padded: { padding: SPACING.md },
 });

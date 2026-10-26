@@ -12,6 +12,8 @@ export const COLORS = {
 
   // Neutres
   white: '#FFFFFF',
+  /** Fond des blocs posés sur les fonds d'écran : blanc transparent à 15 % (opacité 85 %). */
+  surface: 'rgba(255,255,255,0.85)',
   offWhite: '#F8F9FA',
   lightGray: '#E9ECEF',
   midGray: '#6C757D',

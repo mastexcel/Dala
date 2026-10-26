@@ -16,5 +16,5 @@ export function AskAiLink({ prompt, label = "Analyser avec l'assistant IA" }: { 
 }
 
 const styles = StyleSheet.create({
-  link: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.sm, marginVertical: SPACING.sm, borderRadius: RADIUS.md, backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.lightGray },
+  link: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.sm, marginVertical: SPACING.sm, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.lightGray },
 });

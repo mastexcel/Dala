@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   right: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '86%', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderRadius: RADIUS.lg, gap: 4 },
   mine: { backgroundColor: COLORS.navy, borderBottomRightRadius: 4 },
-  theirs: { backgroundColor: COLORS.white, borderBottomLeftRadius: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: COLORS.lightGray },
+  theirs: { backgroundColor: COLORS.surface, borderBottomLeftRadius: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: COLORS.lightGray },
   system: { alignSelf: 'center', maxWidth: '90%', paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, marginVertical: SPACING.sm, backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: RADIUS.full },
   sources: { marginTop: SPACING.xs, paddingTop: SPACING.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.lightGray, gap: 2 },
 });
