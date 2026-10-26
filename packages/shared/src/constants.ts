@@ -41,6 +41,8 @@ export const TEST_PHASE = {
     maxCreditOutstanding: 5_000_000,
     /** Total des fonds clients (soldes cumulés, FCFA). */
     maxClientFunds: 30_000_000,
+    /** Montant maximal d'une transaction sécurisée Trusty (séquestre, FCFA). */
+    trustyMax: 500_000,
   },
   /** Seul un établissement agréé peut rémunérer l'épargne : coffre-fort sans intérêt pendant le test. */
   vaultInterest: false,

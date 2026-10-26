@@ -21,6 +21,7 @@ import { router as compliance } from './routes/compliance';
 import { router as webhooks } from './routes/webhooks';
 import { router as advisor, deskRouter } from './routes/advisor';
 import { router as paymentRequests, publicRouter as pay } from './routes/payments';
+import { router as trusty, deskRouter as trustyDesk } from './routes/trusty';
 import { requireModule } from './services/testPhase';
 
 export function createApp() {
@@ -58,7 +59,9 @@ export function createApp() {
   v1.use('/advisor', requireAuth, advisor);
   v1.use('/payment-requests', requireAuth, paymentRequests);
   v1.use('/pay', pay);
+  v1.use('/trusty', requireAuth, trusty);
   v1.use('/advisor-desk', deskRouter);
+  v1.use('/trusty-desk', trustyDesk);
   app.use('/v1', v1);
 
   app.use(notFoundHandler);

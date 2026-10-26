@@ -4,7 +4,7 @@ import { badRequest } from '../lib/errors';
 import { transactionReference } from '../lib/crypto';
 import { appendAudit } from './audit';
 
-export const USER_ACCOUNT_TYPES: AccountType[] = ['MAIN', 'SAVINGS', 'VAULT', 'INVESTMENT', 'CROWDFUND'];
+export const USER_ACCOUNT_TYPES: AccountType[] = ['MAIN', 'SAVINGS', 'VAULT', 'INVESTMENT', 'CROWDFUND', 'ESCROW'];
 
 export async function ensureAccounts(tx: Tx, userId: string) {
   const existing = await tx.account.findMany({ where: { userId } });
@@ -79,6 +79,17 @@ export async function post(tx: Tx, input: PostingInput) {
   return transaction;
 }
 
+/**
+ * Sortie d'un compte sans ligne d'historique : fonds bloqués (séquestre) versés à un tiers.
+ * L'historique de l'utilisateur garde la ligne du blocage, qui reflète déjà la dépense.
+ */
+export async function debitWithoutStatement(tx: Tx, userId: string, type: AccountType, amount: number, audit: { action: string; entity: string; entityId: string }) {
+  const acc = await getAccount(tx, userId, type);
+  const updated = await tx.account.updateMany({ where: { id: acc.id, balance: { gte: amount } }, data: { balance: { decrement: amount } } });
+  if (updated.count === 0) throw badRequest('Solde insuffisant', 'INSUFFICIENT_FUNDS');
+  await appendAudit(tx, { userId, ...audit, payload: { amount, from: type } });
+}
+
 export function postInTransaction(input: PostingInput) {
   return prisma.$transaction((tx) => post(tx, input));
 }
@@ -92,5 +103,6 @@ export async function balances(userId: string) {
     VAULT: by('VAULT'),
     INVESTMENT: by('INVESTMENT'),
     CROWDFUND: by('CROWDFUND'),
+    ESCROW: by('ESCROW'),
   };
 }

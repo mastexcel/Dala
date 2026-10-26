@@ -20,7 +20,11 @@ import {
   type AdvisorConversationDTO,
   type AdvisorMessageDTO,
   type PaymentRequestDTO,
+  type EscrowDTO,
 } from '@dala/shared';
+
+/** Séquestre simulé : le DTO vu par Awa, plus les données que seul le serveur connaît. */
+export type MockEscrow = Omit<EscrowDTO, 'actions' | 'releaseCode' | 'codeAttemptsLeft'> & { code6: string; codeAttempts: number };
 
 export type MockConversation = Omit<AdvisorConversationDTO, 'lastMessage' | 'unread'> & { messages: AdvisorMessageDTO[]; readAt: string };
 
@@ -46,7 +50,7 @@ export const db = {
     creditScore: 72,
   } as UserProfile,
   // Phase de test : ni placement ni participation (modules fermés).
-  balances: { MAIN: 247_500, SAVINGS: 850_000, VAULT: 100_000, INVESTMENT: 0, CROWDFUND: 0 },
+  balances: { MAIN: 247_500, SAVINGS: 850_000, VAULT: 100_000, INVESTMENT: 0, CROWDFUND: 0, ESCROW: 0 },
   goals: [
     { id: 'g1', name: 'Mariage', targetAmount: 750_000, currentAmount: 520_000, deadline: inDays(180), autoSave: true, frequency: 'WEEKLY', autoAmount: 15_000, icon: 'heart' },
     { id: 'g2', name: 'Études de Kadi', targetAmount: 400_000, currentAmount: 210_000, deadline: inDays(300), autoSave: true, frequency: 'MONTHLY', autoAmount: 25_000, icon: 'graduation' },
@@ -96,6 +100,23 @@ export const db = {
       expiresAt: inDays(30), url: 'https://demo.dala.invalid/pay/DEMO2025', createdAt: ago(0),
     },
   ] as PaymentRequestDTO[],
+  /** Trusty : Awa vend des pagnes à Fatou, qui a déjà bloqué les fonds. */
+  escrows: [
+    {
+      id: 'esc_demo', code: 'TRUSTY01', title: 'Commande de 20 pagnes wax', description: 'Pagnes Vlisco 6 yards, motifs au choix de la cliente, livraison à Yopougon.',
+      amount: 90_000, role: 'SELLER', initiator: 'BUYER', status: 'FUNDED',
+      counterparty: { name: 'Fatou D.', phone: '+2250102030405', completedDeals: 4 },
+      deliveryDays: 7, inspectionHours: 48, deliveryDeadline: inDays(5), inspectionEndsAt: null,
+      fundedAt: ago(2), deliveredAt: null, closedAt: null, deliveryNote: null, resolution: null, createdAt: ago(3),
+      code6: '482913', codeAttempts: 0,
+      events: [
+        { id: 'ev1', actor: 'BUYER', type: 'PROPOSED', message: 'Fatou propose la transaction : 90 000 FCFA, livraison sous 7 j, vérification 48 h.', createdAt: ago(3) },
+        { id: 'ev2', actor: 'SELLER', type: 'ACCEPTED', message: 'Le vendeur accepte les conditions.', createdAt: ago(2.9) },
+        { id: 'ev3', actor: 'BUYER', type: 'FUNDED', message: '90 000 FCFA bloqués chez DALA. Le vendeur peut livrer en toute confiance.', createdAt: ago(2) },
+        { id: 'ev4', actor: 'BUYER', type: 'MESSAGE', message: 'Je vous donnerai mon code de remise à la livraison (démo : 482913).', createdAt: ago(1.9) },
+      ],
+    },
+  ] as MockEscrow[],
   advisor: [
     {
       id: 'conv_1',

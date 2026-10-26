@@ -19,6 +19,7 @@ describe('engagements de la phase de test (dossier LIF-BCEAO)', () => {
       maxTontineMembers: 20,
       maxCreditOutstanding: 5_000_000,
       maxClientFunds: 30_000_000,
+      trustyMax: 500_000,
     });
   });
 

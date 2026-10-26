@@ -4,7 +4,7 @@ import { prisma, num } from '../lib/prisma';
 import { forbidden, notFound } from '../lib/errors';
 import type { AuthedRequest } from './auth';
 
-const OUTGOING_TYPES = ['WITHDRAWAL', 'TRANSFER_OUT', 'SAVINGS_IN', 'INVESTMENT_BUY', 'CROWDFUND_IN', 'DEPOSIT'] as const;
+const OUTGOING_TYPES = ['WITHDRAWAL', 'TRANSFER_OUT', 'ESCROW_HOLD', 'SAVINGS_IN', 'INVESTMENT_BUY', 'CROWDFUND_IN', 'DEPOSIT'] as const;
 
 /** Volume du mois en cours soumis au plafond KYC (valeurs absolues). */
 export async function monthToDateVolume(userId: string, now = new Date()): Promise<number> {

@@ -25,6 +25,8 @@ import type {
   AdvisorMessageDTO,
   AdvisorTopic,
   PaymentRequestDTO,
+  EscrowDTO,
+  EscrowRole,
 } from '@dala/shared';
 import { request } from './client';
 
@@ -179,4 +181,33 @@ export const paymentRequestApi = {
   /** Paiement public d'une demande (utilisé par le mode démo pour simuler le payeur). */
   pay: (code: string, provider: MobileMoneyProvider, phone: string) =>
     request<{ status: string }>(`/pay/${code}`, { method: 'POST', body: { provider, phone }, auth: false }),
+};
+
+export interface NewEscrow {
+  role: EscrowRole;
+  counterpartyPhone: string;
+  title: string;
+  description?: string;
+  amount: number;
+  deliveryDays: number;
+  inspectionHours: number;
+}
+
+/** Trusty : transactions sécurisées par séquestre. */
+export const trustyApi = {
+  list: () => request<EscrowDTO[]>('/trusty'),
+  get: (id: string) => request<EscrowDTO>(`/trusty/${id}`),
+  create: (body: NewEscrow) => request<EscrowDTO>('/trusty', { method: 'POST', body }),
+  accept: (id: string) => request<EscrowDTO>(`/trusty/${id}/accept`, { method: 'POST' }),
+  cancel: (id: string) => request<EscrowDTO>(`/trusty/${id}/cancel`, { method: 'POST' }),
+  /** Bloque les fonds (PIN au-delà de 50 000 FCFA). */
+  fund: (id: string, amount: number, pin?: string) => request<EscrowDTO>(`/trusty/${id}/fund`, { method: 'POST', body: { amount }, pin }),
+  deliver: (id: string, note?: string) => request<EscrowDTO>(`/trusty/${id}/deliver`, { method: 'POST', body: { note } }),
+  redeem: (id: string, code: string) => request<EscrowDTO>(`/trusty/${id}/redeem`, { method: 'POST', body: { code } }),
+  /** Confirme la réception : PIN toujours demandé. */
+  release: (id: string, pin?: string) => request<EscrowDTO>(`/trusty/${id}/release`, { method: 'POST', pin }),
+  dispute: (id: string, reason: string) => request<EscrowDTO>(`/trusty/${id}/dispute`, { method: 'POST', body: { reason } }),
+  refund: (id: string) => request<EscrowDTO>(`/trusty/${id}/refund`, { method: 'POST' }),
+  reclaim: (id: string) => request<EscrowDTO>(`/trusty/${id}/reclaim`, { method: 'POST' }),
+  message: (id: string, message: string) => request<EscrowDTO>(`/trusty/${id}/messages`, { method: 'POST', body: { message } }),
 };

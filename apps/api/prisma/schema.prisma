@@ -59,6 +59,8 @@ model User {
   consentAcceptedAt   DateTime?
   closedAt            DateTime?
   paymentRequests     PaymentRequest[]
+  escrowsAsBuyer      Escrow[]       @relation("EscrowBuyer")
+  escrowsAsSeller     Escrow[]       @relation("EscrowSeller")
 }
 
 model Account {
@@ -80,6 +82,7 @@ enum AccountType {
   VAULT
   INVESTMENT
   CROWDFUND
+  ESCROW    // Fonds bloqués d'une transaction sécurisée Trusty (côté acheteur)
 }
 
 model SavingsGoal {
@@ -318,6 +321,9 @@ enum TransactionType {
   LOAN_REPAYMENT
   TRANSFER_IN
   TRANSFER_OUT
+  ESCROW_HOLD
+  ESCROW_RELEASE
+  ESCROW_REFUND
   FEE
 }
 
@@ -539,4 +545,81 @@ model PaymentRequest {
 
   user          User                 @relation(fields: [userId], references: [id])
   @@index([userId, createdAt])
+}
+
+// =====================================================================
+// Trusty — transaction sécurisée par séquestre
+// =====================================================================
+
+enum EscrowStatus {
+  PROPOSED
+  ACCEPTED
+  FUNDED
+  DELIVERED
+  DISPUTED
+  RELEASED
+  REFUNDED
+  CANCELLED
+}
+
+enum EscrowRole {
+  BUYER
+  SELLER
+}
+
+enum EscrowActor {
+  BUYER
+  SELLER
+  SYSTEM
+  MEDIATOR
+}
+
+model Escrow {
+  id               String       @id @default(cuid())
+  code             String       @unique
+  title            String
+  description      String?
+  amount           Decimal      @db.Decimal(15, 2)
+  buyerId          String
+  sellerId         String
+  initiator        EscrowRole
+  status           EscrowStatus @default(PROPOSED)
+  deliveryDays     Int
+  inspectionHours  Int
+  /// Code de remise à 6 chiffres (montré à l'acheteur seulement).
+  releaseCode      String?
+  codeAttempts     Int          @default(0)
+  deliveryNote     String?
+  expiresAt        DateTime
+  deliveryDeadline DateTime?
+  inspectionEndsAt DateTime?
+  fundedAt         DateTime?
+  deliveredAt      DateTime?
+  closedAt         DateTime?
+  /// Décision du médiateur : part versée au vendeur et à l'acheteur.
+  sellerAmount     Decimal?     @db.Decimal(15, 2)
+  buyerAmount      Decimal?     @db.Decimal(15, 2)
+  resolutionNote   String?
+  resolvedBy       String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  buyer            User         @relation("EscrowBuyer", fields: [buyerId], references: [id])
+  seller           User         @relation("EscrowSeller", fields: [sellerId], references: [id])
+  events           EscrowEvent[]
+  @@index([buyerId, createdAt])
+  @@index([sellerId, createdAt])
+  @@index([status])
+}
+
+model EscrowEvent {
+  id        String      @id @default(cuid())
+  escrowId  String
+  actor     EscrowActor
+  type      String
+  message   String
+  createdAt DateTime    @default(now())
+
+  escrow    Escrow      @relation(fields: [escrowId], references: [id])
+  @@index([escrowId, createdAt])
 }

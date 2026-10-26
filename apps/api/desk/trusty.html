@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Médiation Trusty · DALA Finance</title>
+  <link rel="stylesheet" href="desk.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo">DALA</span> Médiation Trusty</div>
+    <div class="me"><a class="link" href="./">Conversations clients</a> <span id="me-name"></span></div>
+  </header>
+
+  <main id="app" class="layout">
+    <aside class="inbox">
+      <nav class="filters" role="tablist" aria-label="Filtrer les transactions">
+        <button type="button" role="tab" data-filter="DISPUTED" aria-selected="true">Litiges <span class="count" id="count"></span></button>
+        <button type="button" role="tab" data-filter="ALL" aria-selected="false">Toutes</button>
+      </nav>
+      <ul id="list" class="list" aria-label="Transactions Trusty"></ul>
+      <p id="list-empty" class="muted empty" hidden>Aucun litige en cours.</p>
+      <p id="auth" class="error empty" hidden>Connectez-vous d'abord au <a href="./">poste des conseillers</a>.</p>
+    </aside>
+
+    <section class="thread" aria-live="polite">
+      <div id="placeholder" class="placeholder muted">Sélectionnez une transaction.</div>
+      <div id="conversation" hidden>
+        <div class="thread-head">
+          <button type="button" class="link back" id="back">← Transactions</button>
+          <div>
+            <h2 id="e-title"></h2>
+            <p class="muted" id="e-parties"></p>
+          </div>
+        </div>
+        <ol id="messages" class="messages"></ol>
+        <form id="reply-form" class="reply">
+          <textarea id="reply" rows="2" maxlength="2000" placeholder="Message aux deux participants…" aria-label="Message" required></textarea>
+          <div class="reply-actions"><span class="muted small">Visible par l'acheteur et le vendeur</span><button type="submit" class="secondary">Envoyer</button></div>
+        </form>
+        <form id="resolve-form" class="reply" hidden>
+          <strong>Décision</strong>
+          <label>Part versée au vendeur (FCFA)
+            <input id="seller-amount" type="number" min="0" step="1" required />
+          </label>
+          <p class="muted small" id="split"></p>
+          <textarea id="note" rows="2" minlength="10" maxlength="1000" placeholder="Motif de la décision (communiqué aux deux participants)" aria-label="Motif" required></textarea>
+          <div class="reply-actions">
+            <span class="muted small">Irréversible : les fonds sont versés immédiatement.</span>
+            <button type="submit" class="primary">Trancher le litige</button>
+          </div>
+        </form>
+        <p id="error" class="error" role="alert"></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="trusty.js"></script>
+</body>
+</html>

@@ -40,10 +40,10 @@ router.get(
       prisma.user.findUniqueOrThrow({ where: { id: userId } }),
       prisma.loan.findMany({ where: { userId, status: { in: ['DISBURSED', 'OVERDUE'] } } }),
       prisma.crowdfundInvestment.findMany({ where: { userId, status: { in: ['PENDING', 'CONFIRMED'] } }, distinct: ['projectId'], select: { projectId: true } }),
-      prisma.transaction.findMany({ where: { userId, createdAt: { gte: startOfMonth }, status: 'COMPLETED', type: { in: ['DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT', 'INVESTMENT_RETURN', 'CROWDFUND_RETURN', 'FEE'] } } }),
+      prisma.transaction.findMany({ where: { userId, createdAt: { gte: startOfMonth }, status: 'COMPLETED', type: { in: ['DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT', 'ESCROW_RELEASE', 'INVESTMENT_RETURN', 'CROWDFUND_RETURN', 'FEE'] } } }),
     ]);
     const creditOutstanding = loans.reduce((s, l) => s + num(l.totalDue) - num(l.amountPaid), 0);
-    const total = b.MAIN + b.SAVINGS + b.VAULT + b.INVESTMENT + b.CROWDFUND;
+    const total = b.MAIN + b.SAVINGS + b.VAULT + b.INVESTMENT + b.CROWDFUND + b.ESCROW;
     const monthDelta = monthTx.reduce((s, t) => s + num(t.amount), 0);
     const summary: BalanceSummary = {
       total,
@@ -53,6 +53,7 @@ router.get(
       vault: b.VAULT,
       investments: b.INVESTMENT,
       crowdfund: b.CROWDFUND,
+      escrow: b.ESCROW,
       crowdfundActiveProjects: activeProjects.length,
       creditOutstanding,
       creditEligible: creditOutstanding > 0 ? 0 : eligibleLoanAmount(user.creditScore),

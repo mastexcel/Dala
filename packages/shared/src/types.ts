@@ -2,7 +2,7 @@ export type KycLevel = 1 | 2 | 3;
 
 export type Frequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
 
-export type AccountType = 'MAIN' | 'SAVINGS' | 'VAULT' | 'INVESTMENT' | 'CROWDFUND';
+export type AccountType = 'MAIN' | 'SAVINGS' | 'VAULT' | 'INVESTMENT' | 'CROWDFUND' | 'ESCROW';
 
 export type TransactionType =
   | 'DEPOSIT'
@@ -17,6 +17,9 @@ export type TransactionType =
   | 'LOAN_REPAYMENT'
   | 'TRANSFER_IN'
   | 'TRANSFER_OUT'
+  | 'ESCROW_HOLD'
+  | 'ESCROW_RELEASE'
+  | 'ESCROW_REFUND'
   | 'FEE';
 
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -74,6 +77,8 @@ export interface BalanceSummary {
   vault: number;
   investments: number;
   crowdfund: number;
+  /** Fonds bloqués dans des transactions Trusty en cours (acheteur). */
+  escrow: number;
   crowdfundActiveProjects: number;
   creditOutstanding: number;
   creditEligible: number;

@@ -4,3 +4,4 @@ export * from './format';
 export * from './finance';
 export * from './compliance';
 export * from './qr';
+export * from './trusty';

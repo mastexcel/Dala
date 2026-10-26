@@ -5,10 +5,10 @@ beforeAll(resetDb);
 afterAll(() => prisma.$disconnect());
 
 describe('Inscription et connexion (art. 84)', () => {
-  it('crée l’utilisateur, ses 5 comptes cantonnés et une entrée d’audit', async () => {
+  it('crée l’utilisateur, ses 6 comptes cantonnés et une entrée d’audit', async () => {
     const { userId, token } = await register();
     const accounts = await prisma.account.findMany({ where: { userId } });
-    expect(accounts.map((a) => a.type).sort()).toEqual(['CROWDFUND', 'INVESTMENT', 'MAIN', 'SAVINGS', 'VAULT']);
+    expect(accounts.map((a) => a.type).sort()).toEqual(['CROWDFUND', 'ESCROW', 'INVESTMENT', 'MAIN', 'SAVINGS', 'VAULT']);
     expect(await prisma.auditLog.count({ where: { userId, action: 'USER_REGISTERED' } })).toBe(1);
     const me = await api().get('/v1/users/me').set(bearer(token)).expect(200);
     expect(me.body.kycLevel).toBe(1);

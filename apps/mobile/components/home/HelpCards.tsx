@@ -5,12 +5,13 @@ import { COLORS, RADIUS, SHADOW, SPACING, TEXT_ON_WHITE } from '@/theme';
 import { FEATURES } from '@/utils/features';
 
 const ALL_CARDS: { title: string; body: string; icon: DalaIconName; href: string }[] = [
+  { title: 'Trusty', body: 'Achats et ventes sécurisés par DALA', icon: 'security', href: '/trusty' },
   { title: 'Assistant IA', body: "Aide à l'utilisation de l'application", icon: 'performance', href: '/assistant' },
   { title: 'Un conseiller', body: "Échanger avec l'équipe commerciale", icon: 'investors', href: '/advisor' },
 ];
 const CARDS = ALL_CARDS.filter((c) => c.href !== '/assistant' || FEATURES.assistant);
 
-/** Accès rapide à l'assistant IA et à l'équipe commerciale. */
+/** Accès rapide à Trusty, à l'assistant IA et à l'équipe commerciale. */
 export function HelpCards() {
   return (
     <View style={styles.row}>

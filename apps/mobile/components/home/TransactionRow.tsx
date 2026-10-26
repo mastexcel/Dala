@@ -18,6 +18,9 @@ export const TX_ICON: Record<TransactionType, DalaIconName> = {
   CROWDFUND_RETURN: 'tx-crowdfund',
   LOAN_DISBURSEMENT: 'tx-credit',
   LOAN_REPAYMENT: 'repay',
+  ESCROW_HOLD: 'security',
+  ESCROW_RELEASE: 'security',
+  ESCROW_REFUND: 'security',
   FEE: 'info',
 };
 

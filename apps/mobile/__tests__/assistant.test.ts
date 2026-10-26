@@ -51,7 +51,7 @@ describe('contexte de marché envoyé à l’IA', () => {
   });
 
   it("n'ajoute la situation personnelle qu'avec l'accord de l'utilisateur", () => {
-    const ctx = buildMarketContext({ ...snapshot, summary: { total: 900_000, main: 245_000, savings: 300_000, savingsTarget: 600_000, vault: 100_000, investments: 125_000, crowdfund: 75_000, crowdfundActiveProjects: 2, creditOutstanding: 0, creditEligible: 150_000, monthDelta: 0, monthDeltaPct: 0 } }, new Date());
+    const ctx = buildMarketContext({ ...snapshot, summary: { total: 900_000, main: 245_000, savings: 300_000, savingsTarget: 600_000, vault: 100_000, investments: 125_000, crowdfund: 75_000, escrow: 0, crowdfundActiveProjects: 2, creditOutstanding: 0, creditEligible: 150_000, monthDelta: 0, monthDeltaPct: 0 } }, new Date());
     expect(ctx).toContain("Situation de l'utilisateur");
     expect(ctx).toContain('245');
   });

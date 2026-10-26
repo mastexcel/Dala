@@ -39,7 +39,7 @@ const ENABLED_PROVIDERS = PROVIDER_IDS.filter(isProviderEnabled) as [MobileMoney
 const baseUrl = (req: Request) => (config.PUBLIC_URL ?? `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
 
 /** Code court lisible (sans 0/O ni 1/I pour éviter les confusions). */
-function newCode() {
+export function newCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const bytes = Buffer.from(randomToken(16), 'base64url');
   return Array.from(bytes.subarray(0, 8), (b) => alphabet[b % alphabet.length]).join('');

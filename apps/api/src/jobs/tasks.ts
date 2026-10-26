@@ -8,7 +8,8 @@ import { refreshCreditScore } from '../services/scoring';
 import { reconcileSafeguarding } from '../services/reporting';
 import { appendAudit } from '../services/audit';
 import { frequencyDays } from '../services/tontine';
-import { bondInterest } from '@dala/shared';
+import { TRUSTY, bondInterest } from '@dala/shared';
+import { refundBuyer, releaseToSeller } from '../services/trusty';
 
 /** Prélèvement automatique des objectifs d'épargne arrivés à échéance de fréquence. */
 export async function runAutoSave(now = new Date()) {
@@ -134,4 +135,39 @@ export async function purgeExpiredAccounts(now = new Date()) {
     });
   }
   return expired.length;
+}
+
+/**
+ * Échéances Trusty :
+ * - délai de vérification écoulé sans litige : le vendeur est payé ;
+ * - rien de livré après le délai de livraison et la marge : l'acheteur est remboursé ;
+ * - proposition non acceptée ou non financée : annulée.
+ */
+export async function trustyTimers(now = new Date()) {
+  const counts = { released: 0, refunded: 0, expired: 0 };
+  for (const e of await prisma.escrow.findMany({ where: { status: 'DELIVERED', inspectionEndsAt: { lt: now } } })) {
+    try {
+      await releaseToSeller(e, 'SYSTEM', "Délai de vérification écoulé sans litige : fonds versés au vendeur.", ['DELIVERED']);
+      counts.released++;
+    } catch (err) {
+      logger.warn({ escrowId: e.id, err: (err as Error).message }, 'Libération Trusty ignorée');
+    }
+  }
+  const lateBefore = new Date(now.getTime() - TRUSTY.refundGraceHours * 3_600_000);
+  for (const e of await prisma.escrow.findMany({ where: { status: 'FUNDED', deliveryDeadline: { lt: lateBefore } } })) {
+    try {
+      await refundBuyer(e, 'SYSTEM', "Aucune livraison déclarée dans le délai convenu : l'acheteur est remboursé.", ['FUNDED']);
+      counts.refunded++;
+    } catch (err) {
+      logger.warn({ escrowId: e.id, err: (err as Error).message }, 'Remboursement Trusty ignoré');
+    }
+  }
+  const stale = await prisma.escrow.findMany({ where: { status: { in: ['PROPOSED', 'ACCEPTED'] }, expiresAt: { lt: now } } });
+  for (const e of stale) {
+    const done = await prisma.escrow.updateMany({ where: { id: e.id, status: { in: ['PROPOSED', 'ACCEPTED'] } }, data: { status: 'CANCELLED', closedAt: now } });
+    if (!done.count) continue;
+    await prisma.escrowEvent.create({ data: { escrowId: e.id, actor: 'SYSTEM', type: 'EXPIRED', message: `Proposition expirée après ${TRUSTY.proposalTtlDays} jours sans blocage des fonds.` } });
+    counts.expired++;
+  }
+  return counts;
 }

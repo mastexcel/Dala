@@ -17,6 +17,9 @@ export const TX_CATEGORY: Record<TransactionType, TxCategory> = {
   WITHDRAWAL: 'transfer',
   TRANSFER_IN: 'transfer',
   TRANSFER_OUT: 'transfer',
+  ESCROW_HOLD: 'transfer',
+  ESCROW_RELEASE: 'transfer',
+  ESCROW_REFUND: 'transfer',
   FEE: 'transfer',
 };
 

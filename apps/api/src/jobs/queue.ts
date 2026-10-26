@@ -9,7 +9,7 @@ import * as tasks from './tasks';
  * — suffisant en développement, pas en production multi-instance.
  */
 
-type JobName = 'autoSave' | 'releaseVaults' | 'confirmCrowdfund' | 'settleInvestments' | 'markOverdue' | 'complaintSla' | 'reconcile' | 'rescore' | 'purgeExpired';
+type JobName = 'autoSave' | 'releaseVaults' | 'confirmCrowdfund' | 'settleInvestments' | 'markOverdue' | 'complaintSla' | 'reconcile' | 'rescore' | 'purgeExpired' | 'trustyTimers';
 
 const handlers: Record<JobName, (data: Record<string, string>) => Promise<unknown>> = {
   autoSave: () => tasks.runAutoSave(),
@@ -21,6 +21,7 @@ const handlers: Record<JobName, (data: Record<string, string>) => Promise<unknow
   reconcile: () => tasks.dailyReconciliation(),
   rescore: (d) => tasks.rescoreUser(d.userId),
   purgeExpired: () => tasks.purgeExpiredAccounts(),
+  trustyTimers: () => tasks.trustyTimers(),
 };
 
 const SCHEDULE: { name: JobName; every: number }[] = [
@@ -32,6 +33,7 @@ const SCHEDULE: { name: JobName; every: number }[] = [
   { name: 'complaintSla', every: 6 * 60 * 60_000 },
   { name: 'reconcile', every: 24 * 60 * 60_000 },
   { name: 'purgeExpired', every: 24 * 60 * 60_000 },
+  { name: 'trustyTimers', every: 15 * 60_000 },
 ];
 
 let queue: Queue | null = null;

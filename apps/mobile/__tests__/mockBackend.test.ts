@@ -1,4 +1,4 @@
-import { mockRequest } from '@/services/mock/handlers';
+import { mockRequest, trustyDemo } from '@/services/mock/handlers';
 import { TEST_PHASE, quoteLoan } from '@dala/shared';
 import { ApiError } from '@/services/errors';
 
@@ -103,3 +103,35 @@ describe('mobile money sur tous les opérateurs ouverts (mode démo)', () => {
     await expect(mockRequest('POST', '/payment-requests/by-code/DEMO2025/pay', { amount: 3_500 }, {})).rejects.toBeInstanceOf(ApiError);
   });
 });
+
+describe('Trusty (mode démo)', () => {
+  const pin = { 'x-transaction-pin': '1234' };
+  const summary = () => mockRequest<{ main: number; escrow: number }>('GET', '/accounts/summary', undefined, {});
+
+  it('acheteuse : proposition acceptée, fonds bloqués, livraison, confirmation avec PIN', async () => {
+    trustyDemo.delayMs = 10;
+    const e = await mockRequest<{ id: string; status: string; actions: string[] }>('POST', '/trusty', { role: 'BUYER', counterpartyPhone: '+2250506070809', title: 'Téléphone Tecno', amount: 60_000, deliveryDays: 7, inspectionHours: 48 }, {});
+    expect(e).toMatchObject({ status: 'PROPOSED', actions: ['cancel', 'message'] });
+    await new Promise((r) => setTimeout(r, 50));
+    const before = await summary();
+    await expect(mockRequest('POST', `/trusty/${e.id}/fund`, { amount: 60_000 }, {})).rejects.toMatchObject({ code: 'STRONG_AUTH_REQUIRED' });
+    const funded = await mockRequest<{ status: string; releaseCode: string }>('POST', `/trusty/${e.id}/fund`, { amount: 60_000 }, pin);
+    expect(funded.status).toBe('FUNDED');
+    expect(funded.releaseCode).toMatch(/^\d{6}$/);
+    expect(await summary()).toMatchObject({ main: before.main - 60_000, escrow: before.escrow + 60_000 });
+    await new Promise((r) => setTimeout(r, 50));
+    await expect(mockRequest('POST', `/trusty/${e.id}/release`, undefined, {})).rejects.toMatchObject({ code: 'STRONG_AUTH_REQUIRED' });
+    const done = await mockRequest<{ status: string }>('POST', `/trusty/${e.id}/release`, undefined, pin);
+    expect(done.status).toBe('RELEASED');
+    expect((await summary()).escrow).toBe(before.escrow);
+  });
+
+  it('vendeuse : code de remise erroné puis correct, paiement reçu', async () => {
+    const before = await summary();
+    await expect(mockRequest('POST', '/trusty/esc_demo/redeem', { code: '000000' }, {})).rejects.toMatchObject({ code: 'INVALID_CODE' });
+    const done = await mockRequest<{ status: string; codeAttemptsLeft: number }>('POST', '/trusty/esc_demo/redeem', { code: '482913' }, {});
+    expect(done.status).toBe('RELEASED');
+    expect((await summary()).main).toBe(before.main + 90_000);
+  });
+});
+

@@ -37,9 +37,14 @@ import {
   type AdvisorConversationDTO,
   type AdvisorMessageDTO,
   type AdvisorTopic,
+  TRUSTY,
+  escrowActions,
+  type EscrowActor,
+  type EscrowDTO,
+  type EscrowStatus,
 } from '@dala/shared';
 import { ApiError } from '../errors';
-import { DEMO_OTP, DEMO_PIN, bonds, db, funds, projects, type MockConversation } from './db';
+import { DEMO_OTP, DEMO_PIN, bonds, db, funds, projects, type MockConversation, type MockEscrow } from './db';
 
 type Handler = (ctx: { params: string[]; body: any; query: URLSearchParams; headers: Record<string, string> }) => unknown;
 type Account = keyof typeof db.balances;
@@ -78,7 +83,7 @@ const CATEGORY: Record<string, TransactionType[]> = {
   INVEST: ['INVESTMENT_BUY', 'INVESTMENT_RETURN'],
   CROWDFUND: ['CROWDFUND_IN', 'CROWDFUND_RETURN'],
   CREDIT: ['LOAN_DISBURSEMENT', 'LOAN_REPAYMENT'],
-  TRANSFER: ['DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT', 'FEE'],
+  TRANSFER: ['DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT', 'ESCROW_HOLD', 'ESCROW_RELEASE', 'ESCROW_REFUND', 'FEE'],
 };
 
 function authResponse() {
@@ -148,7 +153,7 @@ const routes: [string, RegExp, Handler][] = [
   /* ------------------------------- Accounts ------------------------------- */
   ['GET', /^\/accounts\/summary$/, () => {
     const b = db.balances;
-    const total = b.MAIN + b.SAVINGS + b.VAULT + b.INVESTMENT + b.CROWDFUND;
+    const total = b.MAIN + b.SAVINGS + b.VAULT + b.INVESTMENT + b.CROWDFUND + b.ESCROW;
     const outstanding = db.loans.filter((l) => l.status === 'DISBURSED' || l.status === 'OVERDUE').reduce((s, l) => s + l.totalDue - l.amountPaid, 0);
     const summary: BalanceSummary = {
       total,
@@ -158,6 +163,7 @@ const routes: [string, RegExp, Handler][] = [
       vault: b.VAULT,
       investments: b.INVESTMENT,
       crowdfund: b.CROWDFUND,
+      escrow: b.ESCROW,
       crowdfundActiveProjects: new Set(db.holdings.filter((h) => h.status !== 'CLOTURE').map((h) => h.projectId)).size,
       creditOutstanding: outstanding,
       creditEligible: hasOpenLoan() ? 0 : eligibleLoanAmount(db.user.creditScore),
@@ -578,11 +584,189 @@ function providerName(p: string) {
   return { ORANGE_MONEY: 'Orange Money', MTN_MOMO: 'MTN MoMo', WAVE: 'Wave', MOOV_MONEY: 'Moov Money' }[p] ?? p;
 }
 
+/* --------------------------------- Trusty --------------------------------- */
+
+/** Réactions simulées de l'autre participant (acceptation, livraison, confirmation). */
+export const trustyDemo = { delayMs: 3_000 };
+const HOUR = 3_600_000;
+
+function escrowView(e: MockEscrow): EscrowDTO {
+  const { code6, codeAttempts, ...rest } = e;
+  const state = { status: e.status, initiator: e.initiator, deliveryDeadline: e.deliveryDeadline, inspectionEndsAt: e.inspectionEndsAt, codeAttempts };
+  return {
+    ...rest,
+    releaseCode: e.role === 'BUYER' && (e.status === 'FUNDED' || e.status === 'DELIVERED') ? code6 : null,
+    codeAttemptsLeft: Math.max(0, TRUSTY.maxCodeAttempts - codeAttempts),
+    actions: escrowActions(state, e.role),
+  };
+}
+
+function findEscrow(escrowId: string) {
+  const e = db.escrows.find((x) => x.id === escrowId);
+  if (!e) throw new ApiError(404, 'Transaction Trusty introuvable', 'NOT_FOUND');
+  return e;
+}
+
+function escrowEvent(e: MockEscrow, actor: EscrowActor, type: string, message: string) {
+  e.events.push({ id: id('ev'), actor, type, message, createdAt: new Date().toISOString() });
+}
+
+function allowEscrow(e: MockEscrow, action: ReturnType<typeof escrowActions>[number]) {
+  if (!escrowView(e).actions.includes(action)) throw new ApiError(409, 'Action impossible à cette étape de la transaction', 'ESCROW_STATE');
+}
+
+/** Dénouement vu par Awa : acheteuse (fonds bloqués chez elle) ou vendeuse (paiement reçu). */
+function settleEscrow(e: MockEscrow, status: EscrowStatus, actor: EscrowActor, message: string) {
+  const toSeller = status === 'RELEASED';
+  if (e.role === 'BUYER') {
+    if (toSeller) db.balances.ESCROW -= e.amount;
+    else post('ESCROW_REFUND', e.amount, `Remboursement Trusty · ${e.title}`, 'ESCROW', 'MAIN');
+  } else if (toSeller) {
+    post('ESCROW_RELEASE', e.amount, `Trusty · ${e.title}`, null, 'MAIN');
+  }
+  e.status = status;
+  e.closedAt = new Date().toISOString();
+  escrowEvent(e, actor, status, message);
+  notify(toSeller ? (e.role === 'SELLER' ? 'Paiement Trusty reçu 💸' : 'Transaction Trusty terminée') : 'Remboursement Trusty', `« ${e.title} » : ${formatFCFA(e.amount)} ${toSeller ? 'versés au vendeur' : "rendus à l'acheteur"}.`, 'TRANSACTION');
+}
+
+function later(e: MockEscrow, from: EscrowStatus, run: () => void) {
+  setTimeout(() => {
+    if (e.status === from) run();
+  }, trustyDemo.delayMs);
+}
+
+function fundEscrow(e: MockEscrow, actor: EscrowActor) {
+  e.status = 'FUNDED';
+  e.fundedAt = new Date().toISOString();
+  e.deliveryDeadline = new Date(Date.now() + e.deliveryDays * 24 * HOUR).toISOString();
+  escrowEvent(e, actor, 'FUNDED', `${formatFCFA(e.amount)} bloqués chez DALA. Le vendeur peut livrer en toute confiance.`);
+}
+
+const trustyRoutes: [string, RegExp, Handler][] = [
+  ['GET', /^\/trusty$/, () => db.escrows.map(escrowView)],
+  ['GET', /^\/trusty\/([^/]+)$/, ({ params }) => escrowView(findEscrow(params[0]))],
+  ['POST', /^\/trusty$/, ({ body }) => {
+    if (db.user.kycLevel < 2) throw new ApiError(403, 'KYC de niveau 2 requis', 'KYC_LEVEL', { requiredLevel: 2 });
+    if (body.amount < TRUSTY.minAmount || body.amount > TRUSTY.maxAmount) throw new ApiError(400, `Montant entre ${formatFCFA(TRUSTY.minAmount)} et ${formatFCFA(TRUSTY.maxAmount)} pendant la phase de test`, 'VALIDATION');
+    if (body.counterpartyPhone === db.user.phone) throw new ApiError(400, 'Vous ne pouvez pas traiter avec vous-même', 'VALIDATION');
+    const now = new Date().toISOString();
+    const e: MockEscrow = {
+      id: id('esc'), code: `T${seq}DEMO`, title: body.title, description: body.description || null, amount: body.amount,
+      role: body.role, initiator: body.role, status: 'PROPOSED',
+      counterparty: { name: body.role === 'BUYER' ? 'Koffi B.' : 'Aïcha T.', phone: body.counterpartyPhone, completedDeals: 7 },
+      deliveryDays: body.deliveryDays, inspectionHours: body.inspectionHours, deliveryDeadline: null, inspectionEndsAt: null,
+      fundedAt: null, deliveredAt: null, closedAt: null, deliveryNote: null, resolution: null, createdAt: now, code6: '135790', codeAttempts: 0, events: [],
+    };
+    escrowEvent(e, body.role, 'PROPOSED', `${db.user.firstName} propose la transaction : ${formatFCFA(body.amount)}, livraison sous ${body.deliveryDays} j, vérification ${body.inspectionHours} h.`);
+    db.escrows.unshift(e);
+    // Démo : l'autre participant accepte (et, s'il achète, bloque aussitôt les fonds).
+    later(e, 'PROPOSED', () => {
+      e.status = 'ACCEPTED';
+      escrowEvent(e, body.role === 'BUYER' ? 'SELLER' : 'BUYER', 'ACCEPTED', `${body.role === 'BUYER' ? 'Le vendeur' : 'L’acheteur'} accepte les conditions.`);
+      if (body.role === 'SELLER') fundEscrow(e, 'BUYER');
+      notify('Transaction Trusty acceptée', `« ${e.title} » : ${body.role === 'BUYER' ? 'bloquez les fonds pour lancer la livraison.' : 'les fonds sont bloqués, vous pouvez livrer.'}`, 'TRANSACTION');
+    });
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/accept$/, ({ params }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'accept');
+    e.status = 'ACCEPTED';
+    escrowEvent(e, e.role, 'ACCEPTED', `${e.role === 'BUYER' ? 'L’acheteur' : 'Le vendeur'} accepte les conditions.`);
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/cancel$/, ({ params }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'cancel');
+    e.status = 'CANCELLED';
+    e.closedAt = new Date().toISOString();
+    escrowEvent(e, e.role, 'CANCELLED', `${e.role === 'BUYER' ? 'L’acheteur' : 'Le vendeur'} annule la transaction (aucun fonds bloqué).`);
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/fund$/, ({ params, body, headers }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'fund');
+    if (body.amount !== e.amount) throw new ApiError(400, 'Le montant ne correspond pas à la transaction', 'AMOUNT_MISMATCH');
+    requirePin(headers, e.amount);
+    post('ESCROW_HOLD', e.amount, `Fonds bloqués Trusty · ${e.title}`, 'MAIN', 'ESCROW');
+    fundEscrow(e, 'BUYER');
+    // Démo : le vendeur expédie et déclare la livraison.
+    later(e, 'FUNDED', () => {
+      e.status = 'DELIVERED';
+      e.deliveredAt = new Date().toISOString();
+      e.deliveryNote = 'Colis remis au livreur, arrivée prévue aujourd’hui.';
+      e.inspectionEndsAt = new Date(Date.now() + e.inspectionHours * HOUR).toISOString();
+      escrowEvent(e, 'SELLER', 'DELIVERED', `Le vendeur déclare la livraison : ${e.deliveryNote} L'acheteur a ${e.inspectionHours} h pour vérifier.`);
+      notify('Livraison déclarée 📦', `« ${e.title} » : vérifiez puis confirmez la réception.`, 'TRANSACTION');
+    });
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/deliver$/, ({ params, body }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'deliver');
+    e.status = 'DELIVERED';
+    e.deliveredAt = new Date().toISOString();
+    e.deliveryNote = body.note || null;
+    e.inspectionEndsAt = new Date(Date.now() + e.inspectionHours * HOUR).toISOString();
+    escrowEvent(e, 'SELLER', 'DELIVERED', `Le vendeur déclare la livraison${body.note ? ` : ${body.note}` : '.'} L'acheteur a ${e.inspectionHours} h pour vérifier.`);
+    // Démo : l'acheteur vérifie et confirme.
+    later(e, 'DELIVERED', () => settleEscrow(e, 'RELEASED', 'BUYER', "L'acheteur confirme la réception : fonds versés au vendeur."));
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/redeem$/, ({ params, body }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'redeem');
+    if (body.code !== e.code6) {
+      e.codeAttempts++;
+      const left = Math.max(0, TRUSTY.maxCodeAttempts - e.codeAttempts);
+      throw new ApiError(400, left ? `Code incorrect. ${left} essai${left > 1 ? 's' : ''} restant${left > 1 ? 's' : ''}.` : 'Code incorrect. La saisie est bloquée.', 'INVALID_CODE', { attemptsLeft: left });
+    }
+    settleEscrow(e, 'RELEASED', 'SELLER', 'Code de remise validé à la livraison : fonds versés au vendeur.');
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/release$/, ({ params, headers }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'release');
+    requirePin(headers, 0, true);
+    settleEscrow(e, 'RELEASED', 'BUYER', "L'acheteur confirme la réception : fonds versés au vendeur.");
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/dispute$/, ({ params, body }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'dispute');
+    if (!body.reason || body.reason.trim().length < 10) throw new ApiError(400, 'Décrivez le problème en quelques mots (10 caractères minimum).', 'VALIDATION');
+    e.status = 'DISPUTED';
+    escrowEvent(e, 'BUYER', 'DISPUTED', `Litige ouvert par l'acheteur : ${body.reason.trim()}`);
+    escrowEvent(e, 'SYSTEM', 'MEDIATION', 'Les fonds restent bloqués. Un médiateur DALA examine les échanges et vous répond ici sous 48 h ouvrées. Ajoutez vos explications et preuves (numéro de suivi, description…).');
+    later(e, 'DISPUTED', () => escrowEvent(e, 'MEDIATOR', 'MESSAGE', 'Mariam (médiation DALA) : bonjour, nous avons bien reçu votre signalement. Pouvez-vous décrire ce qui ne correspond pas à la commande ?'));
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/refund$/, ({ params }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'refund');
+    settleEscrow(e, 'REFUNDED', 'SELLER', "Le vendeur rembourse l'acheteur.");
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/reclaim$/, ({ params }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'reclaim');
+    settleEscrow(e, 'REFUNDED', 'BUYER', "Délai de livraison dépassé : l'acheteur récupère ses fonds.");
+    return escrowView(e);
+  }],
+  ['POST', /^\/trusty\/([^/]+)\/messages$/, ({ params, body }) => {
+    const e = findEscrow(params[0]);
+    allowEscrow(e, 'message');
+    escrowEvent(e, e.role, 'MESSAGE', String(body.message ?? '').trim());
+    return escrowView(e);
+  }],
+];
+
 export async function mockRequest<T>(method: string, fullPath: string, body: unknown, headers: Record<string, string>): Promise<T> {
   await sleep(250);
   const [path, qs = ''] = fullPath.split('?');
   if (CLOSED_PREFIXES.some((p) => path.startsWith(p))) throw new ApiError(404, 'Service non disponible pendant la phase de test', 'MODULE_DISABLED');
-  for (const [m, re, handler] of routes) {
+  for (const [m, re, handler] of [...routes, ...trustyRoutes]) {
     if (m !== method) continue;
     const match = path.match(re);
     if (match) {

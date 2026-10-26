@@ -70,6 +70,8 @@ Les données démo (soldes, tontine, projets…) sont réinitialisées à chaque
 - [ ] *Recevoir › Demander* : créer un lien de paiement, le partager par WhatsApp. En démo, le bouton « Simuler le paiement » joue le rôle du payeur ; avec l'API, le lien s'ouvre sur la page de paiement.
 - [ ] *Accueil › Scanner* : scanner `docs/qr-test-marchand.png` (demande d'un commerçant, 3 500 FCFA) et payer avec le solde ; scanner `docs/qr-test-emvco.png` (QR interopérable MTN, 2 000 FCFA) : l'envoi vers MTN MoMo se pré-remplit. Sans appareil photo, coller le contenu du QR dans le champ prévu.
 - [ ] *Recevoir › Demander › Mon QR DALA* : un autre testeur scanne ce QR pour vous envoyer de l'argent.
+- [ ] **Trusty** (*Accueil › Trusty*) : ouvrir « Commande de 20 pagnes wax » (vous êtes la vendeuse), saisir le code de remise de l'acheteuse `482913` : les 90 000 FCFA arrivent sur le solde.
+- [ ] **Trusty, achat** : *Nouvelle transaction sécurisée › J'achète*, un numéro, un objet, un montant. En démo, le vendeur accepte au bout de quelques secondes : bloquer les fonds, noter le code de remise, attendre la livraison, puis « J'ai reçu, payer le vendeur » (PIN). Essayer aussi « Signaler un problème » sur un autre achat.
 - [ ] Vérifier que les placements et le crowdfunding n'apparaissent nulle part (phase de test).
 - [ ] Créer un compte : l'écran « Avant de commencer » s'affiche, puis la date de naissance est demandée (moins de 18 ans refusé).
 - [ ] Demander un prêt de plus de 100 000 FCFA : impossible.

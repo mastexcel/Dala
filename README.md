@@ -249,6 +249,14 @@ Les tests E2E tournent sur la version web en mode démo. Ils ne remplacent pas u
     - numéros de téléphone (`tel:`, carte de contact, texte) et liens Wave, Orange Money, MTN MoMo, Moov Money (reconnus, ouverts dans l'application de l'opérateur).
 
   Le préfixe ivoirien désigne l'opérateur (07 Orange, 05 MTN, 01 Moov) : il est détecté à la saisie, et un numéro qui ne correspond pas à l'opérateur est refusé (`OPERATOR_MISMATCH`). `PUBLIC_URL` fixe l'adresse des liens de paiement. Le connecteur Wave existe mais il est désactivé pendant la phase de test, tant que son statut d'émetteur de monnaie électronique n'est pas vérifié. Le mode `sandbox` est actif par défaut ; en mode `live`, les opérateurs confirment les paiements par webhook.
+- **Trusty (transaction sécurisée par séquestre)** : `apps/api/src/routes/trusty.ts`, règles communes dans `packages/shared/src/trusty.ts`.
+  1. L'acheteur ou le vendeur propose : objet, montant (jusqu'à 500 000 FCFA pendant le test), délai de livraison, délai de vérification. L'autre accepte (KYC 2 pour les deux).
+  2. L'acheteur bloque les fonds (compte `ESCROW`, PIN au-delà de 50 000 FCFA, plafonds KYC, LBC/FT). Le vendeur voit que l'argent est sécurisé.
+  3. Livraison en main propre : l'acheteur donne son code de remise à 6 chiffres, le vendeur le saisit (5 essais) et il est payé aussitôt. À distance : le vendeur déclare la livraison, l'acheteur confirme avec son PIN ou ouvre un litige pendant le délai de vérification.
+  4. Échéances (`trustyTimers`, toutes les 15 min) : vendeur payé à la fin du délai de vérification sans litige ; acheteur remboursé 72 h après le délai de livraison sans livraison ; proposition non financée annulée après 7 jours.
+  5. Litige : fonds gelés, échanges dans le journal de la transaction, décision d'un médiateur sur `/desk/trusty.html` (versement, remboursement ou partage).
+
+  Gratuit pendant la phase de test. Les fonds bloqués restent des fonds clients (compris dans le plafond de 30 M FCFA) et sont conservés sur le compte de cantonnement de l'établissement partenaire.
 - **SMS OTP** : `console` (dev), Twilio ou Orange SMS API.
 - **Push** : FCM, inactif tant qu'il n'est pas déclaré à l'ARTCI (le contenu des notifications reste générique). **Stockage KYC** : stockage compatible S3 chez l'hébergeur d'Abidjan (`STORAGE_DRIVER=s3`, URL de dépôt signée).
 - **Titres publics** : référentiel `services/treasury.ts`, à synchroniser avec le flux UMOA-Titres.

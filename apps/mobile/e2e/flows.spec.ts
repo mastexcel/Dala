@@ -132,3 +132,30 @@ test.describe('paysage (tablette / ordinateur)', () => {
     await expect(shown(page.getByText('Total épargné'))).toBeVisible();
   });
 });
+
+test('Trusty : la vendeuse saisit le code de remise de l’acheteuse et reçoit le paiement', async ({ page }) => {
+  await page.getByRole('button', { name: /^Trusty/ }).click();
+  await shown(page.getByText('Commande de 20 pagnes wax')).click();
+  await expect(shown(page.getByText(/sont bloqués chez DALA pour vous/))).toBeVisible();
+  await shown(page.getByLabel("Code de remise de l'acheteur")).fill('482913');
+  await shown(page.getByRole('button', { name: 'Valider le code et être payé' })).click();
+  await expect(shown(page.getByText(/90\s000 FCFA versés au vendeur/))).toBeVisible();
+});
+
+test('Trusty : achat sécurisé de bout en bout (proposition, blocage, livraison, confirmation)', async ({ page }) => {
+  await page.getByRole('button', { name: /^Trusty/ }).click();
+  await shown(page.getByRole('button', { name: 'Nouvelle transaction sécurisée' })).click();
+  await shown(page.getByLabel('Numéro DALA du vendeur')).fill('0506070809');
+  await shown(page.getByLabel('Objet de la transaction')).fill('Téléphone Tecno Spark 20');
+  await shown(page.getByLabel('Montant')).fill('25000');
+  await shown(page.getByRole('button', { name: 'Envoyer la proposition' })).click();
+  await expect(shown(page.getByText(/doit accepter les conditions/))).toBeVisible();
+  // Démo : le vendeur accepte au bout de quelques secondes.
+  await shown(page.getByRole('button', { name: /Bloquer 25\s000 FCFA/ })).click({ timeout: 15_000 });
+  await expect(shown(page.getByText('Votre code de remise'))).toBeVisible();
+  // Démo : le vendeur déclare la livraison.
+  await expect(shown(page.getByText(/Le vendeur a déclaré la livraison/))).toBeVisible({ timeout: 15_000 });
+  await shown(page.getByRole('button', { name: "J'ai reçu, payer le vendeur" })).click();
+  await typePin(page);
+  await expect(shown(page.getByText(/25\s000 FCFA versés au vendeur/))).toBeVisible();
+});
